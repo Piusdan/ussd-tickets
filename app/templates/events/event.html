@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Events - Create Event{% endblock %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel">
+            <div class="panel-heading"> <h4 class="page-header text-info">{{ event.title }}</h4></div>
+            <!-- .panel-heading -->
+            <div class="panel-body">
+                <div class="panel-group" id="accordion">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                                    <button type="button" class="btn btn-primary btn-circle btn-sm">
+                                        <i class="fa fa-info-circle"></i>
+                                    </button>
+                                    Event Details
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseOne">
+                            <div class="panel-body">
+
+                                <div class="col-lg-9">
+                                    <div class="panel-body">
+                                        {% if event.logo_url %}
+                                        <div class="col-lg-3">
+                                            <img class="img img-responsive" src="{{event.logo_url}}">
+                                        </div>
+                                        {% endif %}
+                                        <div class="col-lg-6">
+                                        <p>{{ event.description }}</p>
+                                        Venue: <a href="http://maps.google.com/?q={{ event.location }}">{{ event.location }}</a><br/>Date: {{ event.date }}<br/></div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="text-info">
+                                    <button type="button" class="btn btn-primary fa fa-ticket btn-sm">
+                                        <!--<i class="fa fa-plus"></i>-->
+                                    </button>
+                                    Tickets
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseTwo">
+                            <div class="panel-body">
+                                {% if tickets %}
+                                {% include '_tickets.html' %}
+                                   {% else %}
+                                   <a href="{{ url_for('main.add_ticket', event_id=event.id) }}">
+                                       <button type="button" class="btn btn-success">
+                                           <span class="fa fa-plus "></span>&nbsp; Add a Ticket
+                                       </button></a>
+                                   {% endif %}
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- .panel-body -->
+        </div>
+        <!-- /.panel -->
+    </div>
+    <!-- /.col-lg-12 -->
+</div>
+{% endblock %}

@@ -1,0 +1,2 @@
+# For hosting on heroku
+web: gunicorn manage:app

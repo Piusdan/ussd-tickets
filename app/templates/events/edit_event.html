@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Events - Edit Event{% endblock %}
+
+{% block page_content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel">
+            <div class="panel-heading"> <h4 class="page-header text-info">{{ event.title }}</h4></div>
+            <!-- .panel-heading -->
+            <div class="panel-body">
+                <div class="panel-group" id="accordion">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
+                                    <button type="button" class="btn btn-primary btn-circle btn-sm">
+                                        <i class="fa fa-info-circle"></i>
+                                    </button>
+                                    Event Details
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseOne" class="panel-collapse collapse in">
+                            <div class="panel-body">
+
+                                <div class="col-lg-9">
+                                    <style>
+
+                                        .img {
+                                          width: 100%;
+                                          height: 100%;
+                                          display: relative;
+                                        }
+                                        </style>
+                                    <div class="panel">
+                                        {% if event.logo_url %}
+                                        <div class="col-lg-4">
+                                            <img class="img" src="{{event.logo_url}}">
+                                        </div>
+                                        {% endif %}
+                                        <div class="col-lg-6">
+                                        <b>Description: </b><p>{{ event.description }}</p>
+                                        Venue: <a href="http://maps.google.com/?q={{ event.location }}">{{ event.location }}</a><br/>Date: {{ event.date }}<br/></div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" class="text-info">
+                                    <button type="button" class="btn btn-primary fa fa-ticket btn-sm">
+                                        <!--<i class="fa fa-plus"></i>-->
+                                    </button>
+                                    Tickets
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseTwo" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <!-- /.col-lg-4 -->
+                                {% if tickets %}
+                                {%- for ticket in tickets %}
+                                <div class="col-lg-3">
+                                    <div class="well well-sm">
+                                        {{ ticket.type }}<br/>
+                                        {{ ticket.count }}<br/>
+                                        {{ ticket.price }}<br/>
+
+                                    </div>
+                                </div>
+                                {% endfor -%}
+                                <!-- Colored FAB button -->
+                                <button class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored">
+                                <div id="tt4" class="material-icons">add</div>
+                                <div class="mdl-tooltip" for="tt4">
+                                    Add tickets
+                                </div>
+                            </button>
+                                {% endif %}
+                                <!-- /.col-lg-4 -->
+                                <div class="col-lg-3">
+                                    <div class="well well-sm">
+                                        {{ wtf.quick_form(form) }}
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- .panel-body -->
+        </div>
+        <!-- /.panel -->
+    </div>
+    <!-- /.col-lg-12 -->
+</div>
+{% endblock %}
