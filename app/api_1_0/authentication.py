@@ -1,6 +1,6 @@
 from flask_httpauth import HTTPBasicAuth
 from flask import g, jsonify
-from ..models import User, AnonymousUser, Permission
+from ..models import User, AnonymousUser
 from . import api
 from .errors import unauthorised
 
@@ -33,7 +33,7 @@ def auth_error():
 @api_auth.login_required
 def before_request():
     # check login credentials
-    print isinstance(g.current_user, AnonymousUser)
+    pass
 
 
 @api.route('/token')

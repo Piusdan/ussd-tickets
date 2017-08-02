@@ -1,7 +1,7 @@
 from functools import wraps
 from flask import g
-from .errors import forbidden, unauthorised
 from ..models import Permission, User, AnonymousUser
+from .errors import forbidden, unauthorised
 
 def permission_Required(permission):
     def decorator(f):
@@ -31,3 +31,11 @@ def current_user_or_admin_required(id=None):
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
+def valid_user_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if isinstance(g.current_user, AnonymousUser):
+            return unauthorised("Login to proceed")
+        return f(*args, **kwargs)
+    return decorated_function

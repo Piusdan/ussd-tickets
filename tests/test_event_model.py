@@ -35,14 +35,12 @@ class UserModelTestCase(unittest.TestCase):
     def test_ticket_has_holder(self):
         u = User(email="joe@example.com", password='cat')
         ticket = Ticket()
-        u.ticket = ticket
-        self.assertTrue(u.ticket_id == ticket.id)
+        ticket.holder = u
+        self.assertTrue(ticket.holder_id == u.id)
 
-    def test_ticket_has_many_holders(self):
-        ticket = Ticket()
-        u = User(email="joe@example.com", password='cat', ticket=ticket)
-        u2 = User(email="jo@example.com", password='cat', ticket=ticket)
-        u3 = User(email="oe@example.com", password='cat', ticket=ticket)
-
-        self.assertTrue(u.ticket_id == ticket.id and u2.ticket_id == ticket.id and u3.ticket_id == ticket.id)
+    def test_user_has_many_ticketss(self):
+        u = User(email="joe@example.com", password='cat')
+        ticket = Ticket(ticket_holder=u)
+        t1 =Ticket(ticket_holder=u)
+        self.assertTrue(ticket.holder_id == u.id == t1.holder_id)
 

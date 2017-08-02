@@ -1,9 +1,12 @@
-from flask import request, jsonify, abort, g
+from flask import request, jsonify
 from .. import db
-from . import api, Permission
+from ..models import User, Permission
+
+from . import api
+
 from .decorators import permission_Required, current_user_or_admin_required
-from .errors import validation, SignupError
-from ..models import User
+from .errors import validation
+from ..app_exceptions import SignupError
 
 @api.route('/user', methods=['POST'])
 def create_user():
@@ -17,7 +20,6 @@ def create_user():
 
 
 @api.route('/user/<int:id>', methods=['GET'])
-@current_user_or_admin_required(id)
 def get_user(id):
     """
     get a specific user from db
@@ -26,7 +28,7 @@ def get_user(id):
     """
     user = User.query.filter_by(id=id).first_or_404()
     response = jsonify(user.to_json())
-    response.status_code = 201
+    response.status_code = 200
     return response
 
 @api.route('/user/<int:id>', methods=['PUT'])
@@ -51,7 +53,6 @@ def edit_user(id):
 
 
 @api.route('/user', methods=['GET'])
-@permission_Required(Permission.ADMINISTER)
 def get_users():
     """
     get all users from the db

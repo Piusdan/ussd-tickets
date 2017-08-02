@@ -1,0 +1,148 @@
+{% extends "bootstrap/base.html" %}
+
+{% block head %}
+{{ super() }}
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="Pius Dan Nyongesa npiusdan@gmail.com" content="Event Ticketing ashboard">
+
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+{% endblock %}
+
+{% block title %}Cash Value Solutions{% endblock %}
+
+{% block styles%}
+{{ super() }}
+    <!-- MetisMenu CSS -->
+    <link href="{{ url_for('static', filename='dashboard/vendor/metisMenu/metisMenu.min.css') }}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='dashboard/dist/css/sb-admin-2.css') }}" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="{{ url_for('static', filename='dashboard/vendor/font-awesome/css/font-awesome.min.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+
+    {{ moment.include_jquery() }}
+    {{ moment.include_moment() }}
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="{{ url_for('static', filename='dashboard/vendor/metisMenu/metisMenu.min.js') }}"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="{{ url_for('static', filename='dashboard/dist/js/sb-admin-2.js') }}"></script>
+
+     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+{% endblock %}
+
+{% block navbar %}
+
+    <div id="wrapper">
+        <!-- Navigation -->
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{{ url_for('main.index') }}">Cash Value Solutions</a>
+            </div>
+            <!-- /.navbar-header -->
+
+            <ul class="nav navbar-top-links navbar-right">
+                {% if current_user.is_authenticated %}
+                <!-- /.account settings -->
+                <li class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                        <i class="fa fa-user fa-fw"></i>{{ current_user.username }} <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-user">
+                        <li><a href="{{ url_for('main.get_user', id=current_user.id ) }}"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                        </li>
+                        {% if user == current_user %}
+                        <li><a href="{{ url_for('main.edit_profile') }}"><i class="fa fa-gear fa-fw"></i> Settings</a></li>
+                        {% endif %}
+                        <li class="divider"></li>
+                        <li><a href="{{ url_for('auth.logout') }}"><i class="fa fa-sign-out fa-fw"></i>Logout</a>
+                        </li>
+                    </ul>
+                    <!-- /.dropdown-user -->
+                </li>
+                {% else %}
+                <li><a href="{{ url_for('auth.login') }}"><i class="fa fa-log-in fa-fw"></i>Login</a>
+                {% endif %}
+                <!-- /.dropdown -->
+            </ul>
+            <!-- /.navbar-top-links -->
+
+            {% if current_user.is_authenticated %}
+            <div class="navbar-default sidebar" role="navigation">
+                <div class="sidebar-nav navbar-collapse">
+                    <ul class="nav" id="side-menu">
+                        <li><a class="disabled"><i class="fa fa-bars fa-fw"></i> Menu</a></li>
+
+                        <li><a href="{{ url_for('main.dashboard') }}"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a></li>
+
+                        <li><a href="#"><i class="fa fa-calendar fa-fw"></i> Events<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="#"><i class="fa fa-plus-circle fa-fw"></i>Create Event</a>
+                                </li>
+                                <li>
+                                    <a href="#"> <i class="fa fa-eye fa-fw"></i> Events</a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        {% if current_user.is_administrator() %}
+                        <li>
+                            <a href=""><i class="fa fa-users fa-fw"></i>Users</a>
+                        </li>
+                        {% endif %}
+
+                    </ul>
+                </div>
+                <!-- /.sidebar-collapse -->
+            </div>
+            {% endif %}
+            <!-- /.navbar-static-side -->
+        </nav>
+{% endblock %}
+{% block content %}
+<div class="container">
+            {% for message in get_flashed_messages() %}
+            {% if message.category == "msg" %}
+                <div class="alert alert-success">
+            {% endif %}
+            {% if message.category == "error"%}
+                    <div class="alert alert-danger">
+                {% else %}
+                    <div class="alert alert-warning">
+                    {% endif %}
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    {{ message }}
+                </div>
+            {% endfor %}
+    {% block page_content %}
+        {% block footer %}
+
+        {% endblock %}
+    {% endblock %}
+
+    </div>
+    <!-- /#wrapper -->
+<!-- /#wrapper -->
+{% endblock %}

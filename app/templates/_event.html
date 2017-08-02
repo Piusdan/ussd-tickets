@@ -1,0 +1,28 @@
+<style>
+    .col-lg-4{
+    margin-bottom: 4px;
+    margin-top: 4px;
+    }
+</style>
+<div class="col-lg-4">
+<li class="list-group-item">
+<a class="media" href="{{ url_for('.get_event', id=event.id)}}">
+    <style>
+        #img {
+        height: 100px;
+        width: 100px;
+        radius: 4px;
+
+    </style>
+  <div class="media-left">
+    <a href="{{ url_for('.get_event', id=event.id)}}">
+      <img id="img" class="media-object" src="{{ event.logo_url }}" alt="{{ event.title }}">
+    </a>
+  </div>
+  <div class="media-body">
+    <h4 class="media-heading">{{ event.title }}</h4>
+        <p class="">{{ event.description }}</p>
+  </div>
+</a>
+</li>
+</div>

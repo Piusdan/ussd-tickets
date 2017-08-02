@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_pagination_macro.html" as macros %}
+
+{% block title %}Events - All Events{% endblock %}
+
+{% block page_content %}
+<div class="panel">
+<h4 class="page-header">All Events</h4>
+    <div class="panel-body">
+<ul class="list-group">
+    {% for event in events %}
+    {% include '_event.html' %}
+    {% endfor %}
+</ul>
+        </div>
+<div class="panel-footer">
+    {{ macros.pagination_widget(pagination, '.get_events') }}
+</div>
+    </div>
+    {% endblock %}

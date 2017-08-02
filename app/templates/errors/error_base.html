@@ -1,0 +1,29 @@
+{% extends "bootstrap/base.html" %}
+{% block head %}
+{{ super() }}
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+
+    <title>cash Value Solutions</title>
+
+    <!-- Custom CSS for error page -->
+    <link href="{{ url_for('static', filename='errors/styles.css') }}" rel="stylesheet">
+
+{% endblock %}
+{% block content %}
+    {% block page_content %}
+        {% block footer %}
+
+        {% endblock %}
+    {% endblock %}
+
+    </div>
+    <!-- /#wrapper -->
+<!-- /#wrapper -->
+{% endblock %}

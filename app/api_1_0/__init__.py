@@ -13,4 +13,4 @@ api = Blueprint("api", __name__)
 def inject_permissions():
     return dict(Permission=Permission)
 
-from . import users, errors, authentication, decorators
+from . import users, errors, authentication, decorators, events, tickets, engine
