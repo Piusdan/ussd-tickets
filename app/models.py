@@ -11,7 +11,7 @@ from dateutil.parser import parse
 from . import login_manager
 from . import db
 
-from app_exceptions import SignupError
+from app.app_exceptions import SignupError
 
 
 class User(UserMixin, db.Model):
