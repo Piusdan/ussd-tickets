@@ -42,6 +42,10 @@ def create_app(config_name):
     # apply configurations from config file
     app.config.from_object(config[config_name])
 
+    if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
+        from flask_sslify import SSLify
+        sslify = SSLify(app)
+
     # initialise extensions
     db.init_app(app)
 
