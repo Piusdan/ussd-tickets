@@ -4,10 +4,11 @@ Launch script
 Creates a shell context for the app
 """
 import os
-from app import create_app, db
-from app.models import User, Role, Event, Ticket, Account, Location
 from flask_script import Manager, Shell
 from flask_migrate import  Migrate, MigrateCommand
+
+from app import create_app, db
+from app.models import User, Role, Event, Ticket, Account, Location
 
 app = create_app(os.environ.get('VALHALLA_CONFIG') or 'default')
 manager = Manager(app)
@@ -25,6 +26,7 @@ def make_shell_context():
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
+
 @manager.command
 def deploy():
     """Run deployment tasks"""
@@ -36,10 +38,6 @@ def deploy():
 
     # create user roles
     Role.insert_roles()
-
-
-
-
 
 
 @manager.command

@@ -5,7 +5,7 @@ from celery import Celery
 
 from flask_qrcode import QRcode
 from flask_bootstrap import Bootstrap
-from flask_uploads import configure_uploads, UploadSet, IMAGES, AUDIO
+from flask_uploads import configure_uploads, UploadSet, IMAGES
 from flask_login import LoginManager
 from flask_moment import Moment
 
