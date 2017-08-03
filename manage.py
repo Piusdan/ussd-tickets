@@ -26,6 +26,23 @@ manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
 @manager.command
+def deploy():
+    """Run deployment tasks"""
+    from flask_migrate import upgrade
+    from app.models import Role, User
+
+    # migrate db to latest version
+    upgrade()
+
+    # create user roles
+    Role.insert_roles()
+
+
+
+
+
+
+@manager.command
 def test(coverage=False):
     """
     Run unit tests.
