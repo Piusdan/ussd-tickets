@@ -10,7 +10,7 @@ from flask_login import LoginManager
 from flask_moment import Moment
 
 from config import config, Config
-
+from gateway import Gateway
 db = SQLAlchemy()
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 
@@ -24,6 +24,8 @@ redis = Redis()
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
+
+gateway = Gateway()
 
 moment = Moment()
 qrcode = QRcode()
@@ -65,6 +67,9 @@ def create_app(config_name):
 
     configure_uploads(app, (photos))
     qrcode.init_app(app)
+
+    # Africastalking gateway
+    gateway.init_app(app)
 
     # register blueprints
 

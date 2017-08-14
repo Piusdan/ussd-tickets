@@ -30,3 +30,34 @@ def add_ticket(event_id):
         flash_errors(form)
 
     return render_template('events/create_ticket.html', form=form, event=event, tickets=event.tickets)
+
+@main.route('/verify_ticket/<string:ticket_hash>')
+@login_required
+@admin_required
+def verify_ticket(hash):
+    pass
+
+
+@main.route('/email_ticket/<string:ticket_hash>')
+def mail_ticket(ticket_hash):
+    subject = "Mail with PDF"
+    receiver = "receiver@mail.com"
+    mail_to_be_sent = Message(subject=subject, recipients=[receiver])
+    mail_to_be_sent.body = "This email contains PDF."
+    pdf = create_pdf.apply_async(args=[payload], countdown=10)
+    # pdf = create_pdf(render_template('your/template.html'))
+    mail_to_be_sent.attach("file.pdf", "application/pdf", pdf.getvalue())
+    mail_ext.send(mail_to_be_sent)
+    return redirect(url_for('other_view'))
+
+# @main.route('/download/<string:ticket_hash>')
+# @login_required
+# @admin_required
+# def download_ticket(ticket_hash):
+#     pass
+
+
+# @main.route('/ticket/<int:id>')
+# def get_ticket(id):
+#     ticket.q
+

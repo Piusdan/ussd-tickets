@@ -71,8 +71,16 @@ class RegistrationMenu:
 
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
+    
+    
+    def get_country(self):
+        pass
+    
+    def get_city(self):
+        pass
 
-
+    def get_email(self):
+        pass
 
     @staticmethod
     def register_default():

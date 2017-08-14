@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 348704afef24
+Revision ID: d11f85bfcd90
 Revises: 
-Create Date: 2017-08-02 00:30:59.413626
+Create Date: 2017-08-14 12:09:00.940293
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '348704afef24'
+revision = 'd11f85bfcd90'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -36,7 +36,7 @@ def upgrade():
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=64), nullable=True),
-    sa.Column('phone_number', sa.String(length=64), nullable=True),
+    sa.Column('phone', sa.String(length=64), nullable=True),
     sa.Column('email', sa.String(), nullable=True),
     sa.Column('name', sa.String(length=64), nullable=True),
     sa.Column('about_me', sa.Text(), nullable=True),
@@ -56,7 +56,7 @@ def upgrade():
     sa.UniqueConstraint('username')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
-    op.create_index(op.f('ix_users_phone_number'), 'users', ['phone_number'], unique=True)
+    op.create_index(op.f('ix_users_phone'), 'users', ['phone'], unique=True)
     op.create_table('accounts',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
@@ -81,7 +81,7 @@ def upgrade():
     op.create_table('tickets',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('count', sa.Integer(), nullable=True),
-    sa.Column('price', sa.String(), nullable=True),
+    sa.Column('price', sa.Integer(), nullable=True),
     sa.Column('type', sa.String(length=64), nullable=True),
     sa.Column('event_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['event_id'], ['events.id'], ),
@@ -89,10 +89,15 @@ def upgrade():
     )
     op.create_index(op.f('ix_tickets_type'), 'tickets', ['type'], unique=False)
     op.create_table('purchases',
-    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('count', sa.Integer(), nullable=True),
+    sa.Column('code', sa.String(length=64), nullable=True),
     sa.Column('ticket_id', sa.Integer(), nullable=True),
+    sa.Column('account_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['account_id'], ['accounts.id'], ),
     sa.ForeignKeyConstraint(['ticket_id'], ['tickets.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['accounts.id'], )
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('code')
     )
     # ### end Alembic commands ###
 
@@ -106,7 +111,7 @@ def downgrade():
     op.drop_index(op.f('ix_events_description'), table_name='events')
     op.drop_table('events')
     op.drop_table('accounts')
-    op.drop_index(op.f('ix_users_phone_number'), table_name='users')
+    op.drop_index(op.f('ix_users_phone'), table_name='users')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
     op.drop_index(op.f('ix_roles_default'), table_name='roles')

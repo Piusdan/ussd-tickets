@@ -1,6 +1,7 @@
-from ..AfricasTalkingGateway import AfricasTalkingGatewayException
+from africastalking.AfricasTalkingGateway import AfricasTalkingGatewayException
 from flask import current_app, g
 
+from .. import gateway
 from utils import respond, make_gateway, session_exists
 from .. import db
 from .. import celery
@@ -29,16 +30,12 @@ class MobileWallet:
     def deposit_checkout(self):
         # Alert user of incoming Mpesa checkout
         menu_text = "END We are sending you the MPESA checkout in a moment...\n"
-        menu_text += "If you dont have a bonga pin, dial \n"
-        menu_text += "Dial dial *126*5*1# to create.\n"
-        product_name = current_app.config["PRODUCT_NAME"]
+
+        # todo un hardcode this!
         currency_code = "KES"
         amount = int(self.user_response)
 
-        metadata = current_app.config["DEPOSIT_METADATA"]
-        api_key = current_app.config["AT_APIKEY"]
-        user_name = current_app.config["AT_USERNAME"]
-        payload = {"phone_number": self.get_phone_number(), "product_name":product_name, "metadat":metadata, "amount":amount,"currency_code": currency_code, "metadata":metadata, "api_key":api_key, "user_name":user_name}
+        payload = {"phone_number": self.get_phone_number(),"amount": amount,"currency_code": currency_code}
         async_checkoutc2b.apply_async(args=[payload], countdown=10)
 
         return respond(menu_text)
@@ -70,12 +67,6 @@ class MobileWallet:
             menu_text = "END We are sending your withdrawal of\n"
             menu_text += " {} {}/- shortly... \n".format(currency_code,self.user_response)
 
-            # Declare Params
-            gateway = make_gateway(user_name="Nyongesa",
-                               api_key='95e4ed06e5f551f266d3e7d2408c00e7be17a831be06a27a6ef6527a9a2c5e62',
-                               sandbox=True)
-
-
             product_name = current_app.config["PRODUCT_NAME"]
 
             recipients = [
@@ -88,13 +79,13 @@ class MobileWallet:
                      }
                  }
             ]
+
             # Send B2c
-            try:
-                gateway.mobilePaymentB2CRequest(product_name, recipients)
-            except AfricasTalkingGatewayException as e:
-                print "Received error response {}".format(str(e))
+            payload = {"productName": product_name, "recipients": recipients}
+            async_checkoutb2c(args=[payload], countdown=10)
+
         else:
-            # Alert user of insufficient funds
+            # Alert user of insufficient fundsb
             menu_text = "END Sorry, you don't have sufficient\n"
             menu_text += " funds in your account \n"
 
@@ -120,18 +111,20 @@ class MobileWallet:
 def async_checkoutc2b(self, payload):
     # pass to gateway
     try:
-        # sandbox
-        gateway = make_gateway(user_name="Nyongesa",
-                               api_key='95e4ed06e5f551f266d3e7d2408c00e7be17a831be06a27a6ef6527a9a2c5e62',
-                               sandbox=True)
-        # print  "Payload {}".format(payload)
-        # live
-        # gateway = make_gateway(payload.get("user_name"),payload.get("api_key"))
-        transaction_id = gateway.initiateMobilePaymentCheckout(payload["product_name"],
-                                                               payload['phone_number'],
-                                                               payload["currency_code"],
-                                                               payload["amount"],
-                                                               payload["metadata"])
+        transaction_id = gateway.initiateMobilePaymentCheckout(productName_= current_app.config['PRODUCT_NAME'],
+                                                               phoneNumber_= payload['phone_number'],
+                                                               currencyCode_= payload["currency_code"],
+                                                               amount_= payload["amount"],
+                                                               providerChannel_="Athena: 13237",
+                                                               metadata_= current_app.config['DEPOSIT_METADATA'])
+
         print "Transaction id is: " + transaction_id
-    except Exception as exc:
+    except AfricasTalkingGatewayException as exc:
+        raise self.retry(exc=exc, countdown=5)
+
+@celery.task(bind=True, default_retry_delay=30*60)
+def async_checkoutb2c(self, payload):
+    try:
+        gateway.mobilePaymentB2BRequest(payload.productName, payload.recipients)
+    except AfricasTalkingGatewayException as exc:
         raise self.retry(exc=exc, countdown=5)

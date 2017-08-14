@@ -3,6 +3,7 @@ from flask_sqlalchemy import current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask_login import UserMixin, AnonymousUserMixin
+from geopy.geocoders import googlev3
 import hashlib
 from datetime import datetime
 
@@ -25,7 +26,7 @@ class User(UserMixin, db.Model):
     # core details
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True)
-    phone_number = db.Column(db.String(64), unique=True, index=True)
+    phone = db.Column(db.String(64), unique=True, index=True)
     email = db.Column(db.String, unique=True, index=True)
 
     name = db.Column(db.String(64))
@@ -74,7 +75,10 @@ class User(UserMixin, db.Model):
             url = 'https://secure.gravatar.com/avatar'
         else:
             url = 'http://www.gravatar.com/avatar'
-        hash = self.avatar_hash or hashlib.md5(self.email.encode('utf-8')).hexdigest()
+        if self.email:
+            hash = self.avatar_hash or hashlib.md5(self.email.encode('utf-8')).hexdigest()
+        else:
+            hash = self.avatar_hash or hashlib.md5(self.username + "@gmail.com".encode('utf-8')).hexdigest()
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
             url=url, hash=hash, size=size, default=default, rating=rating)
 
@@ -93,6 +97,14 @@ class User(UserMixin, db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    @property
+    def phone_number(self):
+        return self.location.country_code + self.phone
+
+    @phone_number.setter
+    def phone_number(self, phone_number):
+        self.phone = phone_number[len(phone_number)-9:]
+        
     # user loader
     @login_manager.user_loader
     def load_user(user_id):
@@ -226,6 +238,7 @@ class Event(db.Model):
     organiser_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     location_id = db.Column(db.Integer, db.ForeignKey('locations.id'))
+    venue = db.column(db.String(64))
 
     def __repr__(self):
         return "<Event {}>".format(self.title)
@@ -266,21 +279,34 @@ class Event(db.Model):
         event = Event(description=desc, date=parse(date))
         return event
 
-purchases= db.Table('purchases',
-                        db.Column('user_id', db.Integer, db.ForeignKey('accounts.id')),
-                        db.Column('ticket_id', db.Integer, db.ForeignKey('tickets.id'))
-                        )
+
+
+
+# purchases= db.Table('purchases',
+#                         db.Column('user_id', db.Integer, db.ForeignKey('accounts.id')),
+#                         db.Column('ticket_id', db.Integer, db.ForeignKey('tickets.id'))
+#                         )
 
 class Account(db.Model):
     __tablename__ = "accounts"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     balance = db.Column(db.Integer, default=0)
-    tickets = db.relationship('Ticket',
-                              secondary=purchases,
-                              backref=db.backref('tickets', lazy='dynamic'),
-                              lazy='dynamic')
+    purchases = db.relationship('Purchase', backref='account', lazy='dynamic')
+    # tickets = db.relationship('Ticket',
+    #                           secondary=purchases,
+    #                           backref=db.backref('tickets', lazy='dynamic'),
+    #                           lazy='dynamic')
 
+class Purchase(db.Model):
+    __tablename__ = "purchases"
+    id = db.Column(db.Integer, primary_key=True)
+    count = db.Column(db.Integer)
+    code = db.Column(db.String(64), unique=True)
+    ticket_id = db.Column(db.Integer, db.ForeignKey('tickets.id'))
+    account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
+    
+    
 class Ticket(db.Model):
     __tablename__ = "tickets"
     id = db.Column(db.Integer, primary_key=True)
@@ -288,25 +314,11 @@ class Ticket(db.Model):
     price = db.Column(db.Integer)
     type = db.Column(db.String(64), default='regular', index=True)
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'))
+    purchases = db.relationship('Purchase', backref='ticket', lazy='dynamic')
+
 
     def __repr__(self):
         return "<Type> {} <Price> {}".format(self.type, self.price)
-
-    @staticmethod
-    def tickets(type, price, event_id, number):
-        # TODO implement this async
-        """
-        Create an amount of tickets of type=type, event= event.event_id and price indicated as price
-        :param type: 
-        :param price: 
-        :param event_id: 
-        :param number: 
-        :return: 
-        """
-        for i in range(number):
-            ticket = Ticket(price=price, type=type, event_id=event_id)
-            db.session.add(ticket)
-        db.session.commit()
 
     def to_json(self):
         json_data = {}
@@ -335,10 +347,38 @@ class Location(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     country = db.Column(db.String(64))
     city = db.Column(db.String(64))
-    currency_code = db.Column(db.String(64), default="KSH")
     users = db.relationship('User', backref='location', lazy='dynamic')
     events = db.relationship('Event', backref='location', lazy='dynamic')
 
+    codes = {
+        "kenya": { 
+            "phone": "+254", 
+            "currency":"Ksh"
+            },
+        "uganda": {
+            "phone": "+255", 
+            "currency":"Ugx"
+            }
+        }
+
+    @property
+    def address(self):
+        return self.city
+    
+    @address.setter
+    def address(self, city):
+        geocoder = googlev3.GoogleV3()
+        location = str(geocoder.geocode(city).address)
+        self.city, self.country = location.split(", ")
+    
+    @property
+    def currency_code(self):
+        return self.codes.get(self.country.lower()).get("currency")
+
+    @property
+    def country_code(self):
+        return self.codes.get(self.country.lower()).get("phone")
 
     def __repr__(self):
-        return "<Country {} - City {}>".format(self.country, self.city)
+        return "{} {}".format(self.city, self.country)
+

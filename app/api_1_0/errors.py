@@ -3,19 +3,8 @@ from . import api
 from api_exceptions import SignupError
 
 
-@api.errorhandler(404)
-def page_not_found(e):
-    response = jsonify({'error': 'not found'})
-    response.status_code = 404
-    return response
 
-@api.errorhandler(405)
-def method_not_allowed(e):
-    response = jsonify({'error': "Method not allowed"})
-    response.status_code = 405
-    return response
-
-@api.app_errorhandler(ValueError)
+@api.errorhandler(ValueError)
 def value_error(e):
     response = jsonify({'error': 'invalid values', 'message':e.args})
     response.status_code = 402
@@ -25,13 +14,6 @@ def value_error(e):
 def bad_request(e):
     response = jsonify({'error': 'Bad request', 'message': e.args})
     response.status_code = 405
-    return response
-
-
-@api.errorhandler(500)
-def internal_server_error(e):
-    response = jsonify({'error': 'internal server error'})
-    response.status_code = 500
     return response
 
 def under_construction():
@@ -54,6 +36,3 @@ def validation(message):
     response = jsonify({'error': 'validation error', 'message': message})
     response.status_code = 402
     return response
-
-
-

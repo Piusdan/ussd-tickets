@@ -1,0 +1,148 @@
+<style>
+    .fa-fw {
+        padding: 5px;
+        padding-bottom: None;
+        padding-top: None;
+    }
+
+    .text {
+        padding: 10px;
+        padding-bottom: None;
+        padding-top: None;
+    }
+
+    .ls {
+        border-left: None;
+        border-right: None;
+    }
+
+    .logo {
+        height: 100%;
+        width: 100%;
+        display: inline;
+    }
+
+    .cstimg {
+        height: 256px;
+        width: 256px;
+        radius: 2px;
+        padding: 2px;
+    }
+
+    .qr-img {
+        height: 100%;
+        width: 100%;
+    }
+
+    .qr {
+        padding: 0;
+        height: 20px;
+        width: 20px;
+    }
+
+    .product_view .modal-dialog {
+        max-width: 800px;
+        width: 100%;
+    }
+
+    .pre-cost {
+        text-decoration: line-through;
+        color: #a5a5a5;
+    }
+
+    .space-ten {
+        padding: 10px 0;
+    }
+
+    .text-muted {
+        font-size: 11px;
+    }
+</style>
+
+<div class="modal fade product_view" id="product_view">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="#" data-dismiss="modal" class="class pull-right"><span class="glyphicon glyphicon-remove"></span></a>
+                <div class="col-md-3">
+                    <img class="img-responsive logo" src="{{ url_for("static", filename='images/logo.jpg') }}"></img>
+                </div>
+                <div class="col-mid-8">
+                    <h3 class="modal-title">E-Ticket</h3>
+                    <p class="text-muted">present this ticket at the venue</p>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <img src="{{ ticket.event.logo }}" class="img-responsive">
+                        </div>
+                    </div>
+                    <div class="product_content">
+                        <div class="row">
+                            <div class="col-md-7">
+                                <p>Welcome to The {{ ticket.event.title }} event<br/>
+                                    <h3>{{ ticket.event.description }}</h3>
+                                </p>
+                                <ul class="list-group">
+                                    <li class="ls list-group-item d-flex justify-content-between align-items-center">
+                                        EVENT DATE
+                                        <span class="text pull-right">
+                                            <span class="fa fa-calendar fa-fw" aria-hidden="true"></span>
+                                            {{ ticket.event.date }}
+                                        </span>
+                                    </li>
+                                    <li class="ls list-group-item d-flex justify-content-between align-items-center">
+                                        LOCATION
+                                        <span class="text pull-right">
+                                            <span class="fa fa-map-marker fa-fw" aria-hidden="true"></span>
+                                            {{ ticket.event.location }}
+                                        </span>
+                                    </li>
+                                    <li class="ls list-group-item d-flex justify-content-between align-items-center">
+                                        PURCHASERUSERNAME
+                                        <span class="text pull-right">
+                                            <span class="fa fa-user fa-fw" aria-hidden="true"></span>
+                                            {{ user.username }}
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-5 product_img">
+                                <img src="{{ qrcode( (ticket.id, user.id) ) }}" class="img-responsive qr-img">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-row">
+                                <div class="form-group col-md-2">
+                                    <label for="ticketNo" class="col-form-label">TICKET NO</label>
+                                    <input type="text" class="form-control" id="ticketNo" value="{{ ticket.id }}">
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="ticketType" class="col-form-label"> TICKET TYPE</label>
+                                    <input id="ticketType" class="form-control" type="text" value="{{ ticket.type }}">
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="ticketPrice" class="col-form-label">PRICE</label>
+                                    <input type="text" class="form-control" id="ticketPrice" value="{{ ticket.price }}">
+                                </div>
+
+                                <div class="form-group col-md-2">
+                                    <label for="ticketCode" class="col-form-label">TICKET #</label>
+                                    <input type="text" class="form-control" id="ticketCode" value="{{ ticket.id }}">
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="space-ten"></div>
+                        <div class="btn-ground">
+                            <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"><span class="glyphicon glyphicon-download-alt"></span> Download</button>
+                            <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"><span class="glyphicon glyphicon-inbox"></span> Email</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,4 +1,4 @@
-from ..AfricasTalkingGateway import AfricasTalkingGateway, AfricasTalkingGatewayException
+from africastalking.AfricasTalkingGateway import AfricasTalkingGateway, AfricasTalkingGatewayException
 from flask import current_app, make_response, g
 from ..controllers import get_event_tickets_query
 from .. import redis
@@ -10,12 +10,14 @@ def db_get_user(id_or_phone_number):
         user = User.query.filter_by(phone_number=phone_number).first()
     else:
         user = User.query.filter_by(id=id_or_phone_number).first()
-    try:
+    if user:
         return user
-    except NameError:
+    else:
         return AnonymousUser()
 
-def respond(menu_text):
+def respond(menu_text, pretext=True):
+    if pretext:
+        menu_text = menu_text[:3] + " Cash Value Solution\n" + menu_text[3:]
     response = make_response(menu_text, 200)
     response.headers['Content-Type'] = "text/plain"
     return response
@@ -23,9 +25,9 @@ def respond(menu_text):
 
 def make_gateway(api_key, user_name, sandbox=False):
     if sandbox:
-        return AfricasTalkingGateway(user_name, api_key, "sandbox")
+        return AfricasTalkingGateway(username=user_name, apiKey=api_key,environment="sandbox")
     else:
-        return AfricasTalkingGateway(user_name, api_key)
+        return AfricasTalkingGateway(username=user_name, api_key=api_key)
 
 
 def add_session(session_id):

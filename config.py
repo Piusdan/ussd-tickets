@@ -21,6 +21,7 @@ class Config:
     USSD_EVENTS_PER_PAGE = 5
     WEB_EVENTS_PER_PAGE = 8
     TICKET_TYPES = ["Regular", "VVIP", "VIP"]
+
     # general application conf
     VALHALLA_ADMIN = os.environ.get('VALHALLA_ADMIN_PHONE')
     SECRET_KEY = os.environ.get('SECRET_KEY') or str(uuid.uuid4())
@@ -56,13 +57,12 @@ class DevelopmentConfig(Config):
     # set true for debugging pruposes
     DEBUG = True
 
-
-
     # Africas' talking API conf
-    AT_APIKEY = '95e4ed06e5f551f266d3e7d2408c00e7be17a831be06a27a6ef6527a9a2c5e62'
-    AT_USERNAME = 'Nyongesa'
+    AT_ENVIRONMENT = "sandbox"
+    AT_APIKEY = '13913e995ef62afa2501369c3308fa78611453b94886ab64f77cd05b29d83027'
+    AT_USERNAME = 'sandbox'
     SMS_CODE = '9999'
-    PRODUCT_NAME = 'Mobile Wallet'
+    PRODUCT_NAME = 'MobileC2B'
 
     # configure database url
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
@@ -85,7 +85,7 @@ class ProductionConfig(Config):
     """
     Configuration for production mode
     """
-    @ classmethod
+    @classmethod
     def init_app(cls, app):
         Config.init_app(app)
 
@@ -109,6 +109,7 @@ class ProductionConfig(Config):
         mail_handler.setLevel(logging.ERROR)
         app.logger.addHandler(mail_handler)
 
+    USSD_CONFIG = 'production'
     AT_APIKEY = os.environ.get('AT_APIKEY')
     AT_USERNAME = os.environ.get('AT_USERNAME')
     SMS_CODE = os.environ.get('AT_SMSCODE')

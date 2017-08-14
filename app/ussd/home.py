@@ -1,4 +1,4 @@
-from ..AfricasTalkingGateway import AfricasTalkingGateway, AfricasTalkingGatewayException
+from africastalking.AfricasTalkingGateway import AfricasTalkingGateway, AfricasTalkingGatewayException
 from flask import current_app, g
 
 
@@ -30,7 +30,7 @@ class Home:
         # upgrade user level and serve home menu
         promote_session(self.session_id)
         # serve the menu
-        menu_text = "CON Welcome to Cash Value Solutions Mobile Wallet,\n Choose a service\n"
+        menu_text = "CON Hello {}.\n Welcome to Cash Value Solutions Mobile Wallet,\n Choose a service\n".format(current_user().username)
         menu_text += " 1. Top up Account\n"
         menu_text += " 2. Withdraw Money\n"
         menu_text += " 3. Buy Airtime\n"
@@ -38,7 +38,7 @@ class Home:
         menu_text += " 5. Buy Event Tickets\n"
 
         # print the response on to the page so that our gateway can read it
-        return respond(menu_text)
+        return respond(menu_text, pretext=False)
 
 
     def deposit(self):

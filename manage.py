@@ -8,7 +8,7 @@ from flask_script import Manager, Shell
 from flask_migrate import  Migrate, MigrateCommand
 
 from app import create_app, db
-from app.models import User, Role, Event, Ticket, Account, Location
+from app.models import User, Role, Event, Ticket, Account, Location, Purchase
 
 app = create_app(os.environ.get('VALHALLA_CONFIG') or 'default')
 manager = Manager(app)
@@ -22,7 +22,7 @@ if os.environ.get('VALHALLA_COVERAGE'):
 
 
 def make_shell_context():
-    return dict(app=app, User=User, Role=Role, Ticket=Ticket, Event=Event, Account=Account, Location=Location, db=db)
+    return dict(app=app, User=User, Role=Role, Ticket=Ticket, Event=Event, Account=Account, Location=Location, db=db, Purchase=Purchase)
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
