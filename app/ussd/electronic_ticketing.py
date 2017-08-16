@@ -1,5 +1,7 @@
 from ..models import db
 from utils import respond, update_session, session_exists, promote_session, demote_session, get_events, current_user, get_phone_number, get_event_tickets, get_ticket
+from ..controllers import async_buy_ticket
+from .. import redis
 
 class ElecticronicTicketing:
     def __init__(self, user_response, session_id):
@@ -7,40 +9,41 @@ class ElecticronicTicketing:
         self.session_id = session_id
 
     def view_event(self):
-
-        tickets = get_event_tickets(event_id=int(self.user_reponse))
+        events = redis.get("events").split(",")
+        for event in events[:-1]:
+            if event[0] == self.user_reponse:
+                id = int(event[2])
+        
+        event, tickets= get_event_tickets(event_id=id)
         if tickets:
-            menu_text = "CON " + tickets
+            menu_text = "CON {}\n{}".format(event.title, tickets)
         else:
-            menu_text="END The Event has no availble tickets at the moment"
+            menu_text = "END {} has no tickets available at the moment".format(event.title)
         # Update sessions to level 32
         update_session(self.session_id, 32)
         return respond(menu_text)
 
     def buy_ticket(self):
-        ticket = get_ticket(int(self.user_reponse))
-        ticket.price = int(ticket.price)
-        if ticket.price <  current_user().account.balance:
-            current_user().account.balance -= ticket.price
-            menu_text = "END You have purchased a {} ticket worth {}. {} for event {}\n Your new account balance is\n {}. {}".format(
-                ticket.type,
-                ticket.event.location.currency_code,
-                ticket.price,
-                ticket.event.title,
-                current_user().location.currency_code,
-                current_user().account.balance)
+        ticket_ids = redis.get("tickets").split(",")
+        print ticket_ids
+        for ticket_id in ticket_ids[:-1]:
+            if ticket_id[0] == self.user_reponse:
+                id = int(ticket_id[2])
 
-            current_user().account.tickets.append(ticket)
-            db.session.commit()
+        ticket = get_ticket(id)
+        ticket.price = int(ticket.price)
+        if ticket.price < current_user().account.balance:
+            menu_text = "END Your request to purchase {}'s {} ticket worth {} is being processed\nYou will receive a confirmatory SMS shortly\nThank you".format(
+                ticket.event.title,
+                ticket.type,
+                ticket.price_code)
+            payload = {"user":current_user().id, "ticket":ticket.id, "number":1, "ussd":True}
+            async_buy_ticket.apply_async(args=[payload], countdown=0)
         else:
             menu_text = "END You have insufficient funds to purchase this ticket\n" \
-                        "Your account balance is \n{}. {}\n" \
-                        "Kindly top up and try again".format(current_user().location.currency_code,
-                                                      current_user().account.balance)
+                        "Kindly top up and try again"
         return respond(menu_text)
-
-
-
+    
     def more_events(self):
         pass
 
@@ -51,4 +54,3 @@ class ElecticronicTicketing:
 
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
-

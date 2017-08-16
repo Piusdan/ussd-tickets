@@ -1,9 +1,10 @@
 from africastalking.AfricasTalkingGateway import AfricasTalkingGateway, AfricasTalkingGatewayException
 from flask import current_app, g
 
-
+from .. import redis
+from .. import gateway
 from utils import respond, update_session, session_exists, promote_session, demote_session, get_events, current_user, get_phone_number
-
+from tasks import async_send_account_balance
 
 class Home:
     """
@@ -30,7 +31,7 @@ class Home:
         # upgrade user level and serve home menu
         promote_session(self.session_id)
         # serve the menu
-        menu_text = "CON Hello {}.\n Welcome to Cash Value Solutions Mobile Wallet,\n Choose a service\n".format(current_user().username)
+        menu_text = "CON Cash Value Solutions Mobile Wallet\nHello {}.\nChoose a service\n".format(current_user().username)
         menu_text += " 1. Top up Account\n"
         menu_text += " 2. Withdraw Money\n"
         menu_text += " 3. Buy Airtime\n"
@@ -62,33 +63,27 @@ class Home:
 
     def buy_airtime(self):
         # 9e.Send user airtime
-        menu_text = "END Please wait while we load your account.\n"
+        menu_text = "CON Enter amount you wish to buy.\n"
 
-        # Search DB and the Send Airtime
-        recipientStringFormat = [{"phoneNumber": get_phone_number(), "amount": "KES 5"}]
-
-        # Create an instance of our gateway
-        gateway = AfricasTalkingGateway(
-            current_app.config["AT_USERNAME"], current_app.config["AT_APIKEY"])
-        try:
-            resp = gateway.sendAirtime(recipientStringFormat)
-            for r in resp:
-                menu_text += r
-        except AfricasTalkingGatewayException as e:
-            menu_text += str(e)
-
+        update_session(self.session_id, 11)       
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
 
     def check_balance(self):
-        return respond("END Your account balance is\n {} {}\n".format(current_user().location.currency_code,current_user().account.balance))
+        payload = {"phoneNumber":current_user().phone_number, "message": "Your account balance is {}".format(current_user().account.balance_available)}
+        async_send_account_balance.apply_async(ags=[payload], countdown=0)
+        return respond("END We are sending your account balance shortly")
 
     def buy_event_tickets(self, page=1):
         menu_text = "CON Events\n"
-        events, pagination = get_events()
-        events = map(lambda event: str(event.id) + ". " + str(event.title), events)
-        events = "\n".join(events)
-        menu_text += events
+        events, pagination = get_events(user=current_user())
+        event_list = ""
+        for index, event in enumerate(events):
+            index+=1
+            menu_text += str(index) + ". " + str(event.title) + "\n"
+            event_list += str(index) + ":" + str(event.id) + ","
+        redis.set("events", event_list)
+
         if pagination.has_next:
             menu_text += "98. More"
 

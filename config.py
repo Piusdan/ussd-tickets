@@ -7,7 +7,13 @@ class Config:
     """
     Base configuration class for our application
     """
-    "Mail"
+    USSD_CONFIG = 'production'
+    AT_APIKEY = os.environ.get('AT_APIKEY')
+    AT_USERNAME = os.environ.get('AT_USERNAME')
+    SMS_CODE = os.environ.get('AT_SMSCODE')
+    PRODUCT_NAME = os.environ.get('AT_PRODUCT_NAME') or "MobileC2B"
+
+
     VALHALLA_ADMIN_MAIL = os.environ.get('VALHALLA_ADMIN_MAIL')
     VALHALLA_MAIL_SUBJECT_PREFIX = "[Cash Value Solutions]"
     VALHALLA_MAIL_SENDER = 'Cash Value Solutions <cashvaluesolutions@gmail.com>'
@@ -23,7 +29,7 @@ class Config:
     TICKET_TYPES = ["Regular", "VVIP", "VIP"]
 
     # general application conf
-    VALHALLA_ADMIN = os.environ.get('VALHALLA_ADMIN_PHONE')
+    VALHALLA_ADMIN = os.environ.get('VALHALLA_ADMIN')
     SECRET_KEY = os.environ.get('SECRET_KEY') or str(uuid.uuid4())
 
     # sqlalchemy conf
@@ -56,13 +62,6 @@ class DevelopmentConfig(Config):
 
     # set true for debugging pruposes
     DEBUG = True
-
-    # Africas' talking API conf
-    AT_ENVIRONMENT = "sandbox"
-    AT_APIKEY = '13913e995ef62afa2501369c3308fa78611453b94886ab64f77cd05b29d83027'
-    AT_USERNAME = 'sandbox'
-    SMS_CODE = '9999'
-    PRODUCT_NAME = 'MobileC2B'
 
     # configure database url
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
@@ -108,13 +107,6 @@ class ProductionConfig(Config):
         )
         mail_handler.setLevel(logging.ERROR)
         app.logger.addHandler(mail_handler)
-
-    USSD_CONFIG = 'production'
-    AT_APIKEY = os.environ.get('AT_APIKEY')
-    AT_USERNAME = os.environ.get('AT_USERNAME')
-    SMS_CODE = os.environ.get('AT_SMSCODE')
-    PRODUCT_NAME = os.environ.get('AT_PRODUCTNAME')
-
     # set database url
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
                               'sqlite:///' + os.path.join(basedir,'data-sqlite')

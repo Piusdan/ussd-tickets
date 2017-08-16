@@ -44,8 +44,10 @@ def ussd_callback():
         menus = {
             # params = (session_id, phone_number=phone_number)
             0: menu.get_number,
-            21: menu.get_username,
-            22: menu.get_password,
+            21: menu.get_email,
+            22: menu.get_username,
+            23: menu.get_city,
+            24: menu.get_password,
             # params = (session_id, phone_number=phone_number,
             # user_response=user_response)
             # params = (session_id, phone_number=phone_number,
@@ -93,9 +95,14 @@ def ussd_callback():
                     10: {
                         "0": menu.withdrawal_checkout,
                         "default": menu.invalid_response
+                    },
+                    11: {
+                        "0": menu.buy_airtime,
+                        "default": menu.invalid_response
+
                     }
                 }
-                if len(user_response) > 1 and user_response.isdigit():
+                if user_response.isdigit():
                         return menus[level].get("0")()
                 else:
                     return menus[level].get("default")()

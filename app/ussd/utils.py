@@ -6,8 +6,7 @@ from ..models import User, AnonymousUser, Event, Ticket
 
 def db_get_user(id_or_phone_number):
     if id_or_phone_number.startswith("+"):
-        phone_number = id_or_phone_number.lstrip("+")
-        user = User.query.filter_by(phone_number=phone_number).first()
+        user = User.query.filter_by(phone=id_or_phone_number[4:]).first()
     else:
         user = User.query.filter_by(id=id_or_phone_number).first()
     if user:
@@ -17,7 +16,7 @@ def db_get_user(id_or_phone_number):
 
 def respond(menu_text, pretext=True):
     if pretext:
-        menu_text = menu_text[:3] + " Cash Value Solution\n" + menu_text[3:]
+        menu_text = menu_text[:3] +" " + "Cash Value Solution\n" + menu_text[3:].lstrip()
     response = make_response(menu_text, 200)
     response.headers['Content-Type'] = "text/plain"
     return response
@@ -52,27 +51,37 @@ def update_session(session_id, level=0):
 def promote_session(session_id, level=1):
     return redis.incr(session_id, level)
 
-def add_user(phone_number, value=''):
-   return redis.set(phone_number, value)
+def add_user(phone_number, value):
+    value = ":" + value
+    redis.append(phone_number, value)
+    return redis.get(phone_number)
 
 
 def get_user(phone_number):
-   return redis.get(phone_number)
+    resp = redis.get(phone_number)
+    return tuple(resp.split(":")[-3:])
 
-def get_events(page=1):
+def get_events(user, page=1):
     page = page
     pagination = Event.query.order_by(Event.date.desc()).paginate(page, per_page=current_app.config[
         'USSD_EVENTS_PER_PAGE'], error_out=False)
-    events = pagination.items
+    events = filter(lambda event: event.location.country == user.location.country, pagination.items)
     return events, pagination
 
 def get_event_tickets(event_id):
     # get event tickets
-    tickets = get_event_tickets_query(event_id=event_id).all()
+    menu_text = ""
+    ticket_list= ""
+    event = Event.query.filter_by(id=event_id).first()
+    tickets = get_event_tickets_query(event_id=event_id)
     if tickets:
-        tickets = map(lambda ticket: "{}. {} {} {}".format(ticket.id,ticket.type, ticket.event.location.currency_code, ticket.price), tickets)
-        tickets = "\n".join(tickets)
-    return tickets
+        for index, ticket in enumerate(tickets):
+            index+=1
+            ticket_list += str(index) + ":" + str(ticket.id) + ","
+            menu_text += "{}. {} {}".format(index, ticket.type, ticket.price_code) + "\n"
+        redis.set("tickets", ticket_list)
+    
+    return event, menu_text
 
 def current_user():
     return g.current_user

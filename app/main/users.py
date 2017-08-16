@@ -47,20 +47,14 @@ def edit_profile_admin(id):
     form = EditProfileAdminForm(user=user)
     if form.validate_on_submit():
         user.email = form.email.data
-        user.username = form.username.data
         user.phone_number = form.phone_number.data
         user.role = Role.query.get(form.role.data)
-        user.name = form.name.data
-        user.location = form.location.data
-        user.about_me = form.about_me.data
+        user.account.balance = form.account_balance.data
         db.session.add(user)
         flash('The profile has been updated.', category="msg")
         return redirect(url_for('.get_user', id=user.id))
     form.email.data = user.email
-    form.username.data = user.username
     form.phone_number.data = user.phone_number
     form.role.data = user.role_id
-    form.name.data = user.name
-    form.location.data = user.location
-    form.about_me.data = user.about_me
+    form.account_balance.data = user.account.balance
     return render_template('/users/edit_profile_admin.html', form=form, user=user)

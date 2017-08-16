@@ -15,7 +15,7 @@ def internal_server_error(e):
     return message
 
 @main.app_errorhandler(405)
-@handle_errors(500)
+@handle_errors(405)
 def unauthorised_error(e):
-    message = "Unauthorised"
+    message = "Method Not Allowed"
     return message

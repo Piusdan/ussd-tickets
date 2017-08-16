@@ -12,7 +12,6 @@
         height: 100px;
         width: 100px;
         radius: 4px;
-
     </style>
   <div class="media-left">
     <a href="{{ url_for('.get_event', id=event.id)}}">
@@ -21,7 +20,8 @@
   </div>
   <div class="media-body">
     <h4 class="media-heading">{{ event.title }}</h4>
-        <p class="">{{ event.description }}</p>
+        <p class="">{{ event.description }}
+        <br/>{{ event.venue }} {{ event.day }}</p>
   </div>
 </a>
 </li>

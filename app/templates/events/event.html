@@ -1,13 +1,21 @@
-{% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
+ {% extends "base.html" %} {% import "bootstrap/wtf.html" as wtf %} {% import "bootstrap/wtf.html" as wtf %} {% block title
+%}Events - Create Event{% endblock %} 
+{% block scripts %} {{ super() }}
+<script type="text/javascript">
+    $(function () {
+        $('#date').datetimepicker({
+            format: 'DD/MM/YYYY HH:mm'
+        });
 
-{% block title %}Events - Create Event{% endblock %}
-
+    });
+</script>{% endblock %}
 {% block page_content %}
 <div class="row">
     <div class="col-lg-12">
         <div class="panel">
-            <div class="panel-heading"> <h4 class="page-header text-info">{{ event.title }}</h4></div>
+            <div class="panel-heading">
+                <h4 class="page-header text-info">{{ event.title }}</h4>
+            </div>
             <!-- .panel-heading -->
             <div class="panel-body">
                 <div class="panel-group" id="accordion">
@@ -28,13 +36,46 @@
                                 <div class="col-lg-9">
                                     <div class="panel-body">
                                         {% if event.logo_url %}
-                                        <div class="col-lg-3">
-                                            <img class="img img-responsive" src="{{event.logo_url}}">
+                                        <div class="container-fluid">
+                                            <div class="row">
+                                                <div class="col-lg-2">
+                                                    <style>
+                                                        .img-responsive {
+                                                            height: 100%;
+                                                            width: 100%;
+                                                            border-radius: 10px;
+                                                        }
+                                                    </style>
+                                                    <img class="img img-responsive" src="{{event.logo_url}}">
+                                                </div>
+                                                {% endif %}
+                                                <div class="col-lg-4">
+                                                    <p>{{ event.description }}</p>
+                                                    <a href="http://maps.google.com/?q={{ event.location }}{{ event.venue }}">{{ event.venue }}</a><br/>
+                                                    {{ event.location }}<br/>{{ event.day }}<br/>
+
+                                                    <style>
+                                                        .btns {
+                                                            padding-top: 20px;
+                                                            position: relative;
+                                                        }
+                                                        .mkl {
+                                                            margin-bottom: 0px;
+                                                        }
+                                                    </style>
+                                                    <div class="btns">
+                                                    <a href="#"><span class="mkl label label-success pull-left" data-toggle="modal" data-target="#edit"><span class="fa fa-pencil fa-fw"></span>
+                                                        Edit
+                                                    </a>
+                                                    <a href="#"><span class="mkl label label-danger pull-right" data-toggle="modal" data-target="#exampleModal"><span class="fa fa-trash fa-fw"></span>
+                                                        Delete
+                                                    </a></div> {% include('_delete_event.html')
+                                                    %} {% include('_edit_event.html') %}
+
+                                                </div>
+                                            </div>
                                         </div>
-                                        {% endif %}
-                                        <div class="col-lg-6">
-                                        <p>{{ event.description }}</p>
-                                        Venue: <a href="http://maps.google.com/?q={{ event.location }}">{{ event.location }}</a><br/>Date: {{ event.date }}<br/></div>
+
                                     </div>
                                 </div>
 
@@ -52,17 +93,18 @@
                                 </a>
                             </h4>
                         </div>
+                        <script>
+                            $('#myModal').on('shown.bs.modal', function () {
+                                $('#myInput').focus()
+                            })
+                        </script>
                         <div id="collapseTwo">
                             <div class="panel-body">
-                                {% if tickets %}
-                                {% include '_tickets.html' %}
-                                   {% else %}
-                                   <a href="{{ url_for('main.add_ticket', event_id=event.id) }}">
+                                {% if tickets %} {% include '_tickets.html' %} {% else %}
+                                <a href="{{ url_for('main.add_ticket', event_id=event.id) }}">
                                        <button type="button" class="btn btn-success">
                                            <span class="fa fa-plus "></span>&nbsp; Add a Ticket
-                                       </button></a>
-                                   {% endif %}
-
+                                       </button></a> {% endif %}
                             </div>
                         </div>
                     </div>

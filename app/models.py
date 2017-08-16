@@ -6,7 +6,7 @@ from flask_login import UserMixin, AnonymousUserMixin
 from geopy.geocoders import googlev3
 import hashlib
 from datetime import datetime
-
+from app_exceptions import GeocoderError
 from dateutil.parser import parse
 
 from . import login_manager
@@ -26,15 +26,11 @@ class User(UserMixin, db.Model):
     # core details
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True)
-    phone = db.Column(db.String(64), unique=True, index=True)
+    phone = db.Column(db.String(64), index=True)
     email = db.Column(db.String, unique=True, index=True)
 
     name = db.Column(db.String(64))
     about_me = db.Column(db.Text())
-
-    town = db.Column(db.String(64))
-    city = db.Column(db.String(64))
-    country = db.Column(db.String(64))
 
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
@@ -57,7 +53,7 @@ class User(UserMixin, db.Model):
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
         if self.role is None:
-            if self.phone_number == current_app.config['VALHALLA_ADMIN']:
+            if self.email == current_app.config['VALHALLA_ADMIN_MAIL']:
                 self.role = Role.query.filter_by(permissions=0xff).first()
             else:
                 self.role = Role.query.filter_by(default=True).first()
@@ -65,7 +61,6 @@ class User(UserMixin, db.Model):
             self.avatar_hash = hashlib.md5(
                 self.email.encode('utf-8')).hexdigest()
         self.account = Account()
-
 
     def __repr__(self):
         return "<User {}>".format(self.username)
@@ -76,9 +71,11 @@ class User(UserMixin, db.Model):
         else:
             url = 'http://www.gravatar.com/avatar'
         if self.email:
-            hash = self.avatar_hash or hashlib.md5(self.email.encode('utf-8')).hexdigest()
+            hash = self.avatar_hash or hashlib.md5(
+                self.email.encode('utf-8')).hexdigest()
         else:
-            hash = self.avatar_hash or hashlib.md5(self.username + "@gmail.com".encode('utf-8')).hexdigest()
+            hash = self.avatar_hash or hashlib.md5(
+                self.username + "@gmail.com".encode('utf-8')).hexdigest()
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
             url=url, hash=hash, size=size, default=default, rating=rating)
 
@@ -103,8 +100,8 @@ class User(UserMixin, db.Model):
 
     @phone_number.setter
     def phone_number(self, phone_number):
-        self.phone = phone_number[len(phone_number)-9:]
-        
+        self.phone = phone_number[len(phone_number) - 9:]
+
     # user loader
     @login_manager.user_loader
     def load_user(user_id):
@@ -158,13 +155,15 @@ class User(UserMixin, db.Model):
         if password is None or phone_number is None:
             raise SignupError("Missing password or phone number fields")
         try:
-            assert (User.query.filter_by(phone_number=phone_number).first() is None)
+            assert (User.query.filter_by(
+                phone_number=phone_number).first() is None)
             if email:
                 assert (User.query.filter_by(email=email).first() is None)
-            new_user = User(name=name, phone_number=phone_number, email=email, password=password)
+            new_user = User(name=name, phone_number=phone_number,
+                            email=email, password=password)
             return new_user
         except AssertionError as e:
-            raise SignupError("Phone number or email already exists")   
+            raise SignupError("Phone number or email already exists")
 
 
 class Role(db.Model):
@@ -182,7 +181,7 @@ class Role(db.Model):
     users = db.relationship('User', backref='role', lazy='dynamic')
 
     def __repr__(self):
-        return "Role "+ self.name
+        return "Role " + self.name
 
     @staticmethod
     def insert_roles():
@@ -223,7 +222,6 @@ class AnonymousUser(AnonymousUserMixin):
         return False
 
 
-
 class Event(db.Model):
     __tablename__ = "events"
     id = db.Column(db.Integer, primary_key=True)
@@ -233,25 +231,14 @@ class Event(db.Model):
     date = db.Column(db.DateTime)
     logo_url = db.Column(db.String(64))
 
-
     tickets = db.relationship('Ticket', backref='event', lazy='dynamic')
     organiser_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     location_id = db.Column(db.Integer, db.ForeignKey('locations.id'))
-    venue = db.column(db.String(64))
+    venue = db.Column(db.String(64))
 
     def __repr__(self):
         return "<Event {}>".format(self.title)
-
-
-    @staticmethod
-    def delete_past_events():
-        """
-        deletes all events in the data base whose date has passed(gives a one week grace period)
-        :return: 
-        """
-        # TODO Implement this feature
-        pass
 
     def can_add_tickets(self):
         if self.tickets.count() == len(current_app.config["TICKET_TYPES"]):
@@ -259,13 +246,19 @@ class Event(db.Model):
         else:
             return True
 
+    @property
+    def day(self):
+        return self.date.strftime('%B %d, %y')
+
     def to_json(self):
         json_data = {}
         json_data.setdefault('id', self.id)
         json_data.setdefault('description', self.description)
         json_data.setdefault('date', self.date)
-        json_data.setdefault('event_url', url_for('api.get_event', id=self.id, _external=True))
-        json_data.setdefault('organiser_url', url_for('api.get_user', id=self.organiser_id, _external=True))
+        json_data.setdefault('event_url', url_for(
+            'api.get_event', id=self.id, _external=True))
+        json_data.setdefault('organiser_url', url_for(
+            'api.get_user', id=self.organiser_id, _external=True))
         return json_data
 
     @staticmethod
@@ -280,23 +273,17 @@ class Event(db.Model):
         return event
 
 
-
-
-# purchases= db.Table('purchases',
-#                         db.Column('user_id', db.Integer, db.ForeignKey('accounts.id')),
-#                         db.Column('ticket_id', db.Integer, db.ForeignKey('tickets.id'))
-#                         )
-
 class Account(db.Model):
     __tablename__ = "accounts"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     balance = db.Column(db.Integer, default=0)
     purchases = db.relationship('Purchase', backref='account', lazy='dynamic')
-    # tickets = db.relationship('Ticket',
-    #                           secondary=purchases,
-    #                           backref=db.backref('tickets', lazy='dynamic'),
-    #                           lazy='dynamic')
+
+    @property
+    def balance_available(self):
+        return self.holder.location.currency_code + ". " + str(self.balance)
+
 
 class Purchase(db.Model):
     __tablename__ = "purchases"
@@ -305,8 +292,8 @@ class Purchase(db.Model):
     code = db.Column(db.String(64), unique=True)
     ticket_id = db.Column(db.Integer, db.ForeignKey('tickets.id'))
     account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
-    
-    
+
+
 class Ticket(db.Model):
     __tablename__ = "tickets"
     id = db.Column(db.Integer, primary_key=True)
@@ -316,7 +303,6 @@ class Ticket(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'))
     purchases = db.relationship('Purchase', backref='ticket', lazy='dynamic')
 
-
     def __repr__(self):
         return "<Type> {} <Price> {}".format(self.type, self.price)
 
@@ -325,10 +311,15 @@ class Ticket(db.Model):
         json_data.setdefault('id', self.id)
         json_data.setdefault('price', self.price)
         json_data.setdefault('type', self.type)
-        json_data.setdefault('event_url', url_for('api.get_event', id=self.event_id, _external=True))
-        json_data.setdefault('ticket_url', url_for('api.get_ticket', id=self.id, _external=True))
+        json_data.setdefault('event_url', url_for(
+            'api.get_event', id=self.event_id, _external=True))
+        json_data.setdefault('ticket_url', url_for(
+            'api.get_ticket', id=self.id, _external=True))
         return json_data
-
+    @property
+    def price_code(self):
+        return self.event.location.currency_code + ". " + str(self.price)
+    
     @staticmethod
     def from_json(json_data):
         type = json_data.get('type', None)
@@ -342,6 +333,7 @@ class Ticket(db.Model):
         ticket.type = type
         return ticket
 
+
 class Location(db.Model):
     __tablename__ = "locations"
     id = db.Column(db.Integer, primary_key=True)
@@ -351,26 +343,29 @@ class Location(db.Model):
     events = db.relationship('Event', backref='location', lazy='dynamic')
 
     codes = {
-        "kenya": { 
-            "phone": "+254", 
-            "currency":"Ksh"
-            },
+        "kenya": {
+            "phone": "+254",
+            "currency": "Ksh"
+        },
         "uganda": {
-            "phone": "+255", 
-            "currency":"Ugx"
-            }
+            "phone": "+255",
+            "currency": "Ugx"
         }
+    }
 
     @property
     def address(self):
         return self.city
-    
+
     @address.setter
     def address(self, city):
-        geocoder = googlev3.GoogleV3()
-        location = str(geocoder.geocode(city).address)
-        self.city, self.country = location.split(", ")
-    
+        try:
+            geocoder = googlev3.GoogleV3()
+            location = str(geocoder.geocode(city).address)
+            self.city, self.country = location.split(", ")
+        except:
+            raise GeocoderError
+
     @property
     def currency_code(self):
         return self.codes.get(self.country.lower()).get("currency")
@@ -381,4 +376,3 @@ class Location(db.Model):
 
     def __repr__(self):
         return "{} {}".format(self.city, self.country)
-

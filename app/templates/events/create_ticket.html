@@ -1,46 +1,41 @@
-{% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
-
-{% block title %}Events - Edit Event{% endblock %}
-
-{% block page_content %}
+{% extends "base.html" %} {% import "bootstrap/wtf.html" as wtf %} {% block title %}Events - Edit Event{% endblock %} {%
+block page_content %}
 <div class="row">
     <div class="col-lg-12">
         <div class="panel">
-            <div class="panel-heading"> <h4 class="page-header text-info">{{ event.title }}</h4></div>
+            <div class="panel-heading">
+                <h4 class="page-header text-info">{{ event.title }}</h4>
+            </div>
             <!-- .panel-heading -->
             <div class="panel-body">
                 <div class="panel-group" id="accordion">
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h4 class="panel-title">
-                                    <button type="button" class="btn btn-primary btn-circle btn-sm">
+                                <button type="button" class="btn btn-primary btn-circle btn-sm">
                                         <i class="fa fa-info-circle"></i>
-                                    </button>
-                                    Event Details
+                                    </button> Event Details
                             </h4>
                         </div>
                         <div id="collapseOne">
                             <div class="panel-body">
 
-                                <div class="col-lg-9">
+                                <div class="row">
                                     <style>
-
-                                        .img {
-                                          width: 100%;
-                                          height: 100%;
-                                          display: relative;
+                                        .event-logo {
+                                            height: 150px;
+                                            width: 200px;
+                                            border-radius: 10px;
                                         }
-                                        </style>
-                                    <div class="panel">
-                                        {% if event.logo_url %}
-                                        <div class="col-lg-4">
-                                            <img class="img" src="{{event.logo_url}}">
-                                        </div>
-                                        {% endif %}
-                                        <div class="col-lg-6">
-                                        <b>Description: </b><p>{{ event.description }}</p>
-                                        Venue: <a href="http://maps.google.com/?q={{ event.location }}">{{ event.location }}</a><br/>Date: {{ event.date }}<br/></div>
+                                    </style>
+                                    <div class="col-lg-2">
+
+                                        <img class="img img-responsive event-logo" src="{{event.logo_url}}">
+                                    </div>
+                                    <div class="col-lg-4">
+                                        <p>{{ event.description }}</p>
+                                        <a href="http://maps.google.com/?q={{ event.location }}{{ event.venue }}">{{ event.venue }}</a><br/>                                        {{ event.location }}<br/>{{ event.day }}<br/>
+
                                     </div>
                                 </div>
 
@@ -52,16 +47,13 @@
                             <h4 class="panel-title">
                                 <button type="button" class="btn btn-primary fa fa-ticket btn-sm">
                                         <!--<i class="fa fa-plus"></i>-->
-                                    </button>
-                                    Tickets
+                                    </button> Tickets
                             </h4>
                         </div>
                         <div id="collapseTwo">
                             <div class="panel-body">
                                 <!-- /.col-lg-4 -->
-                                {% if tickets %}
-                                {% include '_tickets.html' %}
-                                {% endif %}
+                                {% if tickets %} {% include '_tickets.html' %} {% endif %}
                                 <!-- /.col-lg-4 -->
                                 <div class="col-lg-3">
                                     <div class="well well-sm">
