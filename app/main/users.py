@@ -4,6 +4,7 @@ from flask_login import login_required, current_user
 
 from . import main
 from ..decorators import admin_required
+from ..controllers import async_send_message
 from ..models import User, db, Role
 from forms import EditProfileForm, EditProfileAdminForm
 
@@ -49,12 +50,17 @@ def edit_profile_admin(id):
         user.email = form.email.data
         user.phone_number = form.phone_number.data
         user.role = Role.query.get(form.role.data)
-        user.account.balance = form.account_balance.data
+        bal = form.account_balance.data
+        if bal > 0:
+            user.account.balance += bal
+            message = "Cash Value Solution\nYour account has been credited with {}. {}".format(user.location.currency_code, form.account_balance.data)
+            payload = {"message": message, "to":user.phone_number}
+            async_send_message.apply_async(args=[payload], countdown=0)    
         db.session.add(user)
         flash('The profile has been updated.', category="msg")
         return redirect(url_for('.get_user', id=user.id))
     form.email.data = user.email
     form.phone_number.data = user.phone_number
     form.role.data = user.role_id
-    form.account_balance.data = user.account.balance
+    form.account_balance.data = 0
     return render_template('/users/edit_profile_admin.html', form=form, user=user)

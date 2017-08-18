@@ -11,10 +11,10 @@ class EditProfileForm(Form):
     submit = SubmitField('Submit')
 
 class EditProfileAdminForm(Form):
-    phone_number = StringField('Phone Number', validators=[DataRequired(), Length(10, 14)])
-    email = StringField('Email', validators=[DataRequired(), Length(1, 64),Email()])
-    role = SelectField('Role', coerce=int)
-    account_balance = IntegerField('Account Balance')
+    phone_number = StringField('Change Phone Number', validators=[DataRequired(), Length(10, 14)])
+    email = StringField('Change Email', validators=[DataRequired(), Length(1, 64),Email()])
+    role = SelectField('Edit Role', coerce=int)
+    account_balance = IntegerField('Top Up')
     submit = SubmitField('Submit')
 
     def __init__(self, user, *args, **kwargs):

@@ -11,7 +11,8 @@ class Config:
     AT_APIKEY = os.environ.get('AT_APIKEY')
     AT_USERNAME = os.environ.get('AT_USERNAME')
     SMS_CODE = os.environ.get('AT_SMSCODE')
-    PRODUCT_NAME = os.environ.get('AT_PRODUCT_NAME') or "MobileC2B"
+    PRODUCT_NAME = os.environ.get('AT_PRODUCT_NAME') or "tus"
+    SERVER_NAME = os.getenv('SERVER_NAME') or 'localhost:8000'
 
 
     VALHALLA_ADMIN_MAIL = os.environ.get('VALHALLA_ADMIN_MAIL')
@@ -74,8 +75,7 @@ class UnitTestingConfig(Config):
     TESTING = True
 
     # neccesary for code coverage tests uncomment to run unnitests
-    SERVER_NAME = os.getenv('SERVER_NAME') or 'localhost:5000'
-
+    
     # set database url
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
                               'sqlite:///' + os.path.join(basedir,'data-test.sqlite')

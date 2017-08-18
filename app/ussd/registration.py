@@ -27,8 +27,8 @@ class RegistrationMenu:
 
     def get_number(self):
         # promote the user a higher session level
-        update_session(self.session_id, 21)
-        menu_text = "CON Please enter an email address\n"
+        update_session(self.session_id, 22)
+        menu_text = "CON Please choose a Username\n"
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
 
@@ -83,9 +83,9 @@ class RegistrationMenu:
             # insert user name into db request for city
             password = self.user_response
             phone_number = self.phone_number
-            email, username, city =  get_user(self.phone_number)
-            payload = {"email":email, "username":username, "phone_number":phone_number, "password":password, "address": city}
-            new_user.apply_async(args=[payload], countdown=0)
+            username, city =  get_user(self.phone_number)
+            payload = {"username":username, "phone_number":phone_number, "password":password, "address": city}
+            new_user(payload)
             # graduate user level
             update_session(self.session_id)
             menu_text = "CON Registration Succesfull\n Press 0 to continue"

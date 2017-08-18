@@ -1,3 +1,7 @@
+from uuid import uuid1
+
+from flask import  url_for
+
 from ..models import db
 from utils import respond, update_session, session_exists, promote_session, demote_session, get_events, current_user, get_phone_number, get_event_tickets, get_ticket
 from ..controllers import async_buy_ticket
@@ -9,12 +13,13 @@ class ElecticronicTicketing:
         self.session_id = session_id
 
     def view_event(self):
-        events = redis.get("events").split(",")
+        even = "events"+self.session_id
+        events = redis.get(even).split(",")
         for event in events[:-1]:
             if event[0] == self.user_reponse:
-                id = int(event[2])
+                id = int(event.split(":")[1])
         
-        event, tickets= get_event_tickets(event_id=id)
+        event, tickets= get_event_tickets(event_id=id, session_id=self.session_id)
         if tickets:
             menu_text = "CON {}\n{}".format(event.title, tickets)
         else:
@@ -24,11 +29,13 @@ class ElecticronicTicketing:
         return respond(menu_text)
 
     def buy_ticket(self):
-        ticket_ids = redis.get("tickets").split(",")
-        print ticket_ids
+        tick = "tickets" + self.session_id
+        ticket_ids = redis.get(tick).split(",")
+        print "tickets {}".format(ticket_ids)
+        # if ticket_ids:
         for ticket_id in ticket_ids[:-1]:
             if ticket_id[0] == self.user_reponse:
-                id = int(ticket_id[2])
+                id = int(ticket_id.split(":")[1])
 
         ticket = get_ticket(id)
         ticket.price = int(ticket.price)
@@ -37,7 +44,11 @@ class ElecticronicTicketing:
                 ticket.event.title,
                 ticket.type,
                 ticket.price_code)
-            payload = {"user":current_user().id, "ticket":ticket.id, "number":1, "ussd":True}
+            code = str(uuid1())
+            print code
+
+            url = url_for('main.get_purchase', code=code, _external=True)
+            payload = {"user":current_user().id, "ticket":ticket.id, "number":1, "ussd":True, "code":code, "url":url}
             async_buy_ticket.apply_async(args=[payload], countdown=0)
         else:
             menu_text = "END You have insufficient funds to purchase this ticket\n" \

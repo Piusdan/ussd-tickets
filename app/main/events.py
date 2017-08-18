@@ -5,7 +5,7 @@ from flask_login import login_required, current_user
 from ..decorators import admin_required
 from ..models import User, Event, Ticket, Account, Location
 from .. import photos, db
-from ..controllers import get_event_tickets_query, edit_event, new_event
+from ..controllers import get_event_tickets_query, edit_event, new_event, async_delete_event, get_event_attendees_query
 from . import main
 from .forms import CreateEventForm, CreateTicketForm, EditEventForm
 from ..utils import flash_errors
@@ -17,14 +17,12 @@ def get_event(id):
     event = Event.query.filter_by(id=id).first_or_404()
     tickets = get_event_tickets_query(event_id=event.id).all()
     if form.validate_on_submit():
-        if form.logo.data:
-            try:
-                filename = photos.save(request.files['logo'])
-                url = photos.url(filename)
-            except:
-                pass
-        else:
+        try:
+            filename = photos.save(request.files['logo'])
+            url = photos.url(filename)
+        except:
            url = event.logo_url
+        
         payload = {
             "event_id": event.id,
             "logo_url": url,
@@ -41,7 +39,6 @@ def get_event(id):
     else:
         flash_errors(form)
     form.title.data = event.title
-    form.logo.data = event.logo_url
     form.description.data = event.description
     form.location.data = event.location
     form.venue.data = event.venue
@@ -64,7 +61,8 @@ def get_events():
 @admin_required
 def delete_event(event_id):
     event = Event.query.filter_by(id=event_id).first()
-    db.session.delete(event)
+    payload={"event_id": event_id}
+    async_delete_event.apply_async(args=[payload], countdown=0)
     flash('{} deleted!'.format(event.title))
     return redirect(url_for('.get_events'))
 
@@ -89,6 +87,7 @@ def create_event():
             "date":form.date.data,
             "venue":form.venue.data
         }
+
         event = new_event(payload)
         flash("Event {} created".format(event.title), category="msg")
         return redirect(url_for('.get_event', id=event.id))
@@ -99,3 +98,18 @@ def create_event():
 @main.route('/photos/<filename>')
 def uploaded_image(filename):
     return send_from_directory(os.path.join(current_app.config['UPLOADS_DEFAULT_DEST'], 'photos'), filename)
+
+@main.route('/details/<int:event_id>', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def event_details(event_id):
+    page = request.args.get('page', 1, type=int)
+    event = Event.query.filter_by(id=event_id).first()
+    # pagination = get_event_attendees_query(event_id).paginate(page, per_page=10, error_out=False) 
+    attendees = get_event_attendees_query(event_id).all()  
+    # pagination = filter(lambda att: att.ticket.event_id==event_id, attendees)
+    # attendees = pagination.items
+    
+    # count = len(attendees)
+    # total = pagination.total
+    return render_template('events/event_details.html', event=event, purchases=attendees)

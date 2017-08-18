@@ -82,7 +82,8 @@ class Home:
             index+=1
             menu_text += str(index) + ". " + str(event.title) + "\n"
             event_list += str(index) + ":" + str(event.id) + ","
-        redis.set("events", event_list)
+        even = "events"+self.session_id
+        redis.set(even, event_list)
 
         if pagination.has_next:
             menu_text += "98. More"

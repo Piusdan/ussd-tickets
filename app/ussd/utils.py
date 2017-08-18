@@ -59,7 +59,7 @@ def add_user(phone_number, value):
 
 def get_user(phone_number):
     resp = redis.get(phone_number)
-    return tuple(resp.split(":")[-3:])
+    return tuple(resp.split(":")[-2:])
 
 def get_events(user, page=1):
     page = page
@@ -68,18 +68,19 @@ def get_events(user, page=1):
     events = filter(lambda event: event.location.country == user.location.country, pagination.items)
     return events, pagination
 
-def get_event_tickets(event_id):
+def get_event_tickets(event_id, session_id=None):
     # get event tickets
     menu_text = ""
     ticket_list= ""
     event = Event.query.filter_by(id=event_id).first()
-    tickets = get_event_tickets_query(event_id=event_id)
-    if tickets:
-        for index, ticket in enumerate(tickets):
-            index+=1
-            ticket_list += str(index) + ":" + str(ticket.id) + ","
-            menu_text += "{}. {} {}".format(index, ticket.type, ticket.price_code) + "\n"
-        redis.set("tickets", ticket_list)
+    tickets = get_event_tickets_query(event_id=event_id).all()
+    tickets = filter(lambda ticket: ticket.count > 0, tickets)
+    for index, ticket in enumerate(tickets):
+        index+=1
+        ticket_list += str(index) + ":" + str(ticket.id) + ","
+        menu_text += "{}. {} {}".format(index, ticket.type, ticket.price_code) + "\n"
+    tick = "tickets"+session_id
+    redis.set(tick, ticket_list)
     
     return event, menu_text
 

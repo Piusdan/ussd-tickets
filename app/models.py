@@ -1,14 +1,15 @@
-from flask import url_for, request
-from flask_sqlalchemy import current_app
+from datetime import datetime
+import hashlib
+from dateutil.parser import parse
+from geopy.geocoders import googlev3
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from flask_login import UserMixin, AnonymousUserMixin
-from geopy.geocoders import googlev3
-import hashlib
-from datetime import datetime
-from app_exceptions import GeocoderError
-from dateutil.parser import parse
+from flask import url_for, request
 
+from flask_sqlalchemy import current_app
+from flask_login import UserMixin, AnonymousUserMixin
+
+from app_exceptions import GeocoderError
 from . import login_manager
 from . import db
 
@@ -290,6 +291,7 @@ class Purchase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     count = db.Column(db.Integer)
     code = db.Column(db.String(64), unique=True)
+    url = db.Column(db.String(64))
     ticket_id = db.Column(db.Integer, db.ForeignKey('tickets.id'))
     account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
 

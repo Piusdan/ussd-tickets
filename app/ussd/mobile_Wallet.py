@@ -51,7 +51,7 @@ class MobileWallet:
 
         payload = {"phone_number": self.get_phone_number(
         ), "amount": amount, "currency_code": currency_code}
-        async_checkoutc2b.apply_async(args=[payload], countdown=10)
+        async_checkoutc2b.apply_async(args=[payload], countdown=5)
 
         return respond(menu_text)
 
@@ -85,7 +85,7 @@ class MobileWallet:
             payload = {"productName": current_app.config["PRODUCT_NAME"],
                        "phoneNumber": self.get_phone_number(), "currencyCode": currency_code,
                        "amount": int(self.user_response), "reason": "Mobile Wallet Withdrawal", "name": self.current_user().username, }
-            async_checkoutb2c.apply_async(args=[payload], countdown=10)
+            async_checkoutb2c.apply_async(args=[payload], countdown=5)
 
         else:
             # Alert user of insufficient fundsb

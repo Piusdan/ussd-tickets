@@ -2,7 +2,7 @@ from flask import Flask
 from flask_redis import  Redis
 from flask_sqlalchemy import SQLAlchemy
 from celery import Celery
-
+from flask_wkhtmltopdf import Wkhtmltopdf
 from flask_qrcode import QRcode
 from flask_bootstrap import Bootstrap
 from flask_uploads import configure_uploads, UploadSet, IMAGES
@@ -19,6 +19,8 @@ bootsrap = Bootstrap()
 
 # redis
 redis = Redis()
+
+htmltopdf = Wkhtmltopdf()
 
 # login manager
 login_manager = LoginManager()
@@ -58,6 +60,8 @@ def create_app(config_name):
 
     # initialise redis
     redis.init_app(app)
+
+    htmltopdf._init_app(app)
 
     # initialise celery
     celery.conf.update(app.config)

@@ -1,4 +1,6 @@
+from flask import current_app
 from africastalking.AfricasTalkingGateway import AfricasTalkingGatewayException
+
 from .. import gateway
 from .. import celery
 

@@ -65,7 +65,7 @@
             <div class="modal-header">
                 <a href="#" data-dismiss="modal" class="class pull-right"><span class="glyphicon glyphicon-remove"></span></a>
                 <div class="col-md-3">
-                    <img class="img-responsive logo" src="{{ url_for("static", filename='images/logo.jpg') }}"></img>
+                    <img class="img-responsive logo" src="{{ url_for('static', filename='images/logo.jpg') }}"></img>
                 </div>
                 <div class="col-mid-8">
                     <h3 class="modal-title">E-Ticket</h3>
@@ -76,69 +76,66 @@
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-md-6">
-                            <img src="{{ ticket.event.logo }}" class="img-responsive">
+                            <img src="{{ purchase.ticket.event.logo }}" class="img-responsive">
                         </div>
                     </div>
                     <div class="product_content">
                         <div class="row">
                             <div class="col-md-7">
-                                <p>Welcome to The {{ ticket.event.title }} event<br/>
-                                    <h3>{{ ticket.event.description }}</h3>
+                                <p>Welcome to The {{ purchase.ticket.event.title }} event<br/>
+                                    <h3>{{ purchase.ticket.event.description }}</h3>
                                 </p>
                                 <ul class="list-group">
                                     <li class="ls list-group-item d-flex justify-content-between align-items-center">
                                         EVENT DATE
                                         <span class="text pull-right">
-                                            <span class="fa fa-calendar fa-fw" aria-hidden="true"></span>
-                                            {{ ticket.event.date }}
+                                            <span class="fa fa-calendar fa-fw" aria-hidden="true"></span>                                        {{ purchase.ticket.event.day }}
                                         </span>
                                     </li>
                                     <li class="ls list-group-item d-flex justify-content-between align-items-center">
                                         LOCATION
                                         <span class="text pull-right">
-                                            <span class="fa fa-map-marker fa-fw" aria-hidden="true"></span>
-                                            {{ ticket.event.location }}
+                                            <span class="fa fa-map-marker fa-fw" aria-hidden="true"></span>                                        {{ purchase.ticket.event.location }}
                                         </span>
                                     </li>
                                     <li class="ls list-group-item d-flex justify-content-between align-items-center">
                                         PURCHASERUSERNAME
                                         <span class="text pull-right">
-                                            <span class="fa fa-user fa-fw" aria-hidden="true"></span>
-                                            {{ user.username }}
+                                            <span class="fa fa-user fa-fw" aria-hidden="true"></span>                                        {{ user.username }}
                                         </span>
                                     </li>
                                 </ul>
                             </div>
                             <div class="col-md-5 product_img">
-                                <img src="{{ qrcode( (ticket.id, user.id) ) }}" class="img-responsive qr-img">
+                                <img src="{{ qrcode( purchase.code ) }}" class="img-responsive qr-img">
                             </div>
                         </div>
                         <div class="row">
                             <div class="form-row">
                                 <div class="form-group col-md-2">
                                     <label for="ticketNo" class="col-form-label">TICKET NO</label>
-                                    <input type="text" class="form-control" id="ticketNo" value="{{ ticket.id }}">
+                                    <input type="text" class="form-control" id="ticketNo" value="{{ purchase.id }}">
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="ticketType" class="col-form-label"> TICKET TYPE</label>
-                                    <input id="ticketType" class="form-control" type="text" value="{{ ticket.type }}">
+                                    <input id="ticketType" class="form-control" type="text" value="{{ purchase.ticket.type }}">
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="ticketPrice" class="col-form-label">PRICE</label>
-                                    <input type="text" class="form-control" id="ticketPrice" value="{{ ticket.price }}">
+                                    <input type="text" class="form-control" id="ticketPrice" value="{{ purchase.ticket.price }}">
                                 </div>
 
-                                <div class="form-group col-md-2">
+                                <div class="form-group col-md-5">
                                     <label for="ticketCode" class="col-form-label">TICKET #</label>
-                                    <input type="text" class="form-control" id="ticketCode" value="{{ ticket.id }}">
+                                    <input type="text" class="form-control" id="ticketCode" value="{{ purchase.code }}">
                                 </div>
                             </div>
 
                         </div>
                         <div class="space-ten"></div>
                         <div class="btn-ground">
-                            <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"><span class="glyphicon glyphicon-download-alt"></span> Download</button>
-                            <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"><span class="glyphicon glyphicon-inbox"></span> Email</button>
+                            <a href="{{ url_for('main.get_purchase', code=purchase.code) }}" type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"><span class="glyphicon glyphicon-download-alt"></span> Download</a>
+                            <a href="" type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"><span class="glyphicon glyphicon-inbox"></span> Email</a>
                         </div>
                     </div>
                 </div>
