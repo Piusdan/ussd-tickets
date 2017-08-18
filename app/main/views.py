@@ -8,7 +8,7 @@ from . import main
 @main.route('/')
 @login_required
 def index():
-    return redirect(url_for('main.get_events'))
+    return redirect(url_for('main.dashboard'))
 
 @main.route('/dashboard')
 @login_required
