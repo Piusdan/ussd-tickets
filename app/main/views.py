@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for
 from flask_login import login_required, current_user
-from ..models import User, Event, Ticket
+from ..models import User, Event, Ticket, Purchase
 from . import main
 
 
@@ -13,17 +13,18 @@ def index():
 @main.route('/dashboard')
 @login_required
 def dashboard():
-    users = User.query.all()
-    tickets = Ticket.query.all()
-    events = Event.query.all()
+    users = len(User.query.all())
+    tickets = len(Ticket.query.all())
+    purchases = len(Purchase.query.all())
+    events = len(Event.query.all())
+    campaigns = 0
 
     context = {
         "users": users,
         "events": events,
         "tickets": tickets,
-        "total_users": len(users),
-        "total_tickets": len(tickets),
-        "total_events": len(events)
+        "purchases": purchases,
+        "campaigns": campaigns
     }
 
     return render_template('main/dashboard.html', context=context)

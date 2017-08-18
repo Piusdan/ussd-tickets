@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from celery import Celery
 from flask_wkhtmltopdf import Wkhtmltopdf
 from flask_qrcode import QRcode
-from flask_bootstrap import Bootstrap
+from flask_bootstrap import Bootstrap, WebCDN
 from flask_uploads import configure_uploads, UploadSet, IMAGES
 from flask_login import LoginManager
 from flask_moment import Moment
@@ -46,6 +46,8 @@ def create_app(config_name):
     # apply configurations from config file
     app.config.from_object(config[config_name])
 
+
+
     if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
         from flask_sslify import SSLify
         sslify = SSLify(app)
@@ -68,6 +70,10 @@ def create_app(config_name):
 
     # initialise bootsrap
     bootsrap.init_app(app)
+    app.extensions['bootstrap']['cdns']['jquery'] = WebCDN(
+        '//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/'
+    )
+
 
     configure_uploads(app, (photos))
     qrcode.init_app(app)
