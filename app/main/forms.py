@@ -1,4 +1,4 @@
-from flask_wtf import Form
+from flask_wtf import FlaskForm as Form
 from wtforms import StringField, SubmitField, TextAreaField, BooleanField, SelectField, IntegerField, DateTimeField, FileField, SelectFieldBase
 from wtforms.validators import  Length, DataRequired, Email, Regexp, ValidationError, Optional
 
@@ -35,7 +35,7 @@ class EditProfileAdminForm(Form):
 
 class CreateEventForm(Form):
     title = StringField('Event title', validators=[Length(1, 64), DataRequired()])
-    logo = FileField("Choose an event logo")
+    logo = FileField("Upload your event's logo/image")
     description =  TextAreaField('Event description', validators=[Length(0, 100), Optional()])
     location = StringField('Event City', validators=[Length(0, 64), DataRequired()])
     venue  = StringField('Event Venue', validators=[Length(0, 64), DataRequired()])

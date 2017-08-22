@@ -16,6 +16,7 @@ def new_user(payload):
     address = payload.get("address")
     phone_number = payload.get("phone_number")
     username = payload.get("username")
+    email = payload.get("email")
     password = payload.get("password")
     location = Location.query.filter_by(address=address.capitalize()).first()
     if location:
@@ -26,7 +27,7 @@ def new_user(payload):
         except GeocoderError as exc:
             raise self.retry(exc=exc, countdown=5)
 
-    user = User(phone_number=phone_number, password=password, location=location, username=username)
+    user = User(phone_number=phone_number, password=password, location=location, username=username, email=email)
 
     db.session.add_all([user, location])
 

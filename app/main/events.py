@@ -10,6 +10,7 @@ from . import main
 from .forms import CreateEventForm, CreateTicketForm, EditEventForm
 from ..utils import flash_errors
 
+
 @main.route('/event/<int:id>', methods=['POST', 'GET'])
 @login_required
 def get_event(id):
@@ -21,16 +22,16 @@ def get_event(id):
             filename = photos.save(request.files['logo'])
             url = photos.url(filename)
         except:
-           url = event.logo_url
-        
+            url = event.logo_url
+
         payload = {
             "event_id": event.id,
             "logo_url": url,
-            "title":form.title.data,
-            "description":form.description.data,
-            "location":form.location.data,
-            "date":form.date.data,
-            "venue":form.venue.data
+            "title": form.title.data,
+            "description": form.description.data,
+            "location": form.location.data,
+            "date": form.date.data,
+            "venue": form.venue.data
         }
         edit_event.apply_async(args=[payload], countdown=0)
         flash("Eidited {}".format(event.title), category="msg")
@@ -46,12 +47,12 @@ def get_event(id):
     return render_template('events/event.html', event=event, tickets=tickets, form=form)
 
 
-
 @main.route('/event')
 @login_required
 def get_events():
     page = request.args.get('page', 1, type=int)
-    pagination = Event.query.order_by(Event.date.desc()).paginate(page, per_page=current_app.config['WEB_EVENTS_PER_PAGE'], error_out=False)
+    pagination = Event.query.order_by(Event.date.desc()).paginate(
+        page, per_page=current_app.config['WEB_EVENTS_PER_PAGE'], error_out=False)
     events = pagination.items
     return render_template('events/events.html', events=events, pagination=pagination)
 
@@ -61,7 +62,7 @@ def get_events():
 @admin_required
 def delete_event(event_id):
     event = Event.query.filter_by(id=event_id).first()
-    payload={"event_id": event_id}
+    payload = {"event_id": event_id}
     async_delete_event.apply_async(args=[payload], countdown=0)
     flash('{} deleted!'.format(event.title))
     return redirect(url_for('.get_events'))
@@ -81,11 +82,11 @@ def create_event():
             pass
         payload = {
             "logo_url": url,
-            "title":form.title.data,
-            "description":form.description.data,
-            "location":form.location.data,
-            "date":form.date.data,
-            "venue":form.venue.data
+            "title": form.title.data,
+            "description": form.description.data,
+            "location": form.location.data,
+            "date": form.date.data,
+            "venue": form.venue.data
         }
 
         event = new_event(payload)
@@ -95,9 +96,14 @@ def create_event():
         flash_errors(form)
     return render_template('events/create_event.html', event_form=form)
 
+
 @main.route('/photos/<filename>')
 def uploaded_image(filename):
-    return send_from_directory(os.path.join(current_app.config['UPLOADS_DEFAULT_DEST'], 'photos'), filename)
+    return send_from_directory(
+        os.path.join(
+            current_app.config['UPLOADS_DEFAULT_DEST'],
+            'photos'), filename)
+
 
 @main.route('/details/<int:event_id>', methods=['GET', 'POST'])
 @login_required
@@ -105,11 +111,11 @@ def uploaded_image(filename):
 def event_details(event_id):
     page = request.args.get('page', 1, type=int)
     event = Event.query.filter_by(id=event_id).first()
-    # pagination = get_event_attendees_query(event_id).paginate(page, per_page=10, error_out=False) 
-    attendees = get_event_attendees_query(event_id).all()  
+    # pagination = get_event_attendees_query(event_id).paginate(page, per_page=10, error_out=False)
+    attendees = get_event_attendees_query(event_id).all()
     # pagination = filter(lambda att: att.ticket.event_id==event_id, attendees)
     # attendees = pagination.items
-    
+
     # count = len(attendees)
     # total = pagination.total
     return render_template('events/event_details.html', event=event, purchases=attendees)

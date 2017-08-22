@@ -1,5 +1,7 @@
-{% extends "base.html" %} {% block page_content %}
-<div class="container-fluid">
+{% extends "base.html" %} 
+{% block dashboard %}class="active"{% endblock %}
+{% block page_content %}{{ super() }}
+
     <div class="block-header">
         <h2>DASHBOARD</h2>
     </div>
@@ -52,6 +54,5 @@
         </div>
     </div>
     <!-- #END# Widgets -->
-</div>
 </div>
 {% endblock %}

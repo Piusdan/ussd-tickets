@@ -2,7 +2,8 @@ import os
 import uuid
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-
+mysecret = uuid.uuid4()
+mysecret = str(mysecret)
 class Config:
     """
     Base configuration class for our application
@@ -31,7 +32,7 @@ class Config:
 
     # general application conf
     VALHALLA_ADMIN = os.environ.get('VALHALLA_ADMIN')
-    SECRET_KEY = os.environ.get('SECRET_KEY') or str(uuid.uuid4())
+    SECRET_KEY = os.environ.get('SECRET_KEY') or mysecret
 
     # sqlalchemy conf
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True

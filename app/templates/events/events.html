@@ -1,0 +1,16 @@
+{% extends "base.html" %} {% block event %}class="active"{% endblock %} {% block events %}class="active"{% endblock %} {%
+import "bootstrap/wtf.html" as wtf %} {% import "_pagination_macro.html" as macros %} {% block title %}Events - All Events{%
+endblock %} {% block page_content %}
+<h4 class="block-header">Events</h4>
+{% if events %}
+<div class="row clearfix">
+<ul class="list-group">
+    {% for event in events %} {% include '_event.html' %} {% endfor %}
+</ul>
+</div>
+<div class="row clearfix">
+    {{ macros.pagination_widget(pagination, '.get_events') }}
+</div>
+{% else %}
+    <a href="{{ url_for('main.create_event') }}"><button type="button" class="btn btn-warning btn-lg"><span class="fa fa-plus"></span> Add Event</button></a>
+{% endif %} {% endblock %}

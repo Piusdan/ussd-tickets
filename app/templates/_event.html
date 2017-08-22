@@ -1,28 +1,39 @@
 <style>
-    .col-lg-4{
-    margin-bottom: 4px;
-    margin-top: 4px;
+    #img {
+      height: 100px;
+      width: 100px; 
+      border-radius: 5px;
     }
 </style>
-<div class="col-lg-4">
-<li class="list-group-item">
-<a class="media" href="{{ url_for('.get_event', id=event.id)}}">
-    <style>
-        #img {
-        height: 100px;
-        width: 100px;
-        radius: 4px;
-    </style>
-  <div class="media-left">
-    <a href="{{ url_for('.get_event', id=event.id)}}">
-      <img id="img" class="media-object" src="{{ event.logo_url }}" alt="{{ event.title }}">
-    </a>
-  </div>
-  <div class="media-body">
-    <h4 class="media-heading">{{ event.title }}</h4>
-        <p class="">{{ event.description }}
-        <br/>{{ event.venue }} {{ event.day }}</p>
-  </div>
-</a>
-</li>
+<div class="col-lg-3 col-md-3 col-sm-5 col-xs-10">
+    <div class="card">
+        <div class="header">
+            <h2>
+                {{ event.title }} <small>{{ event.description }}</small>
+            </h2>
+            <ul class="header-dropdown m-r--5">
+                <li class="dropdown">
+                    <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                        <i class="material-icons">more_vert</i>
+                    </a>
+                    <ul class="dropdown-menu pull-right">
+                        <li><a href="{{ url_for('.get_event', id=event.id)}}">More Details</a></li>
+                        <li><a href="javascript:void(0);">View Tickets</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <div class="body">
+            <a class="media" href="{{ url_for('.get_event', id=event.id)}}">
+              <div class="media-left">
+                <a href="{{ url_for('.get_event', id=event.id)}}">
+                  <img id="img" class="media-object" src="{{ event.logo_url }}" alt="{{ event.title }}">
+                </a>
+              </div>
+              <div class="media-body">
+                    <p>{{ event.venue }}<br/>{{ event.day }}</p>
+              </div>
+            </a>            
+        </div>
+    </div>
 </div>

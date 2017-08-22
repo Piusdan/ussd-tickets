@@ -1,10 +1,10 @@
 $(function () {
     $('#sign_up').validate({
         rules: {
-            'terms': {
+            'confirm': {
                 required: true
             },
-            'confirm': {
+            'password2': {
                 equalTo: '[name="password"]'
             }
         },

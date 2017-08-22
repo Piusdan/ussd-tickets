@@ -1,0 +1,96 @@
+{% extends "base.html" %} {% block event %}class="active"{% endblock %} {% block create_event %}class="active"{% endblock
+%}{% block title %}Events - Create Event{% endblock %} {% block page_content %}
+
+<div class="row clearfix">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div class="card">
+            <div class="header">
+                <h2>
+                    New Event
+                </h2>
+            </div>
+            <div class="body">
+                <form action="" method="post" class="form" method="post" enctype="multipart/form-data">
+                    <div class="form-group  required">
+                        {{ event_form.hidden_tag() }}
+                        <div class="row clearfix">
+                            <div class="col-md-12">
+                                <div class="form-group form-float">
+                                    <div class="form-line">
+                                        {{ event_form.title(class_="form-control", placeholder="Event Name", required=True) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row clearfix">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <div class="form-line">
+                                        {{ event_form.description(class_="form-control", placeholder="Event Description", required=True) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row clearfix">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <div class="form-line">
+                                        {{ event_form.venue(class_="form-control", placeholder="Event Venue", required=True) }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <div class="form-line">
+                                        {{ event_form.location(class_="form-control", placeholder="Event Town/City/location", required=True) }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <div class="form-line">
+                                        {{ event_form.date(class_="form-control datepicker", placeholder="Event date") }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- logo
+                        <div class="row clearfix">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <div class="form-line">
+                                        {#{ event_form.logo(text="None") }#}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        End Logo -->
+                        <div class="row clearfix">
+                            <div class="col-md-3 pull-right">
+                                <div class="form-group">
+                                    <div class="form-line">
+                                        {{ event_form.submit(class_="btn btn-block btn-sm bg-orange waves-effect") }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+    {% block scripts %} {{ super() }}
+    
+    <script type="text/javascript">
+        
+        
+        $ ( document ).ready(function() {
+
+        // Data Picker Initialization
+        $('#date').bootstrapMaterialDatePicker({ format : 'dddd DD MMMM YYYY - HH:mm' });
+        });
+    
+    </script>
+
+    
+{% endblock %}    

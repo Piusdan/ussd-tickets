@@ -1,4 +1,4 @@
-from flask_wtf import Form
+from flask_wtf import FlaskForm as Form
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, ValidationError, IntegerField
 from wtforms.validators import DataRequired, Length, Optional, Email, Regexp, EqualTo
 from geopy.geocoders.googlev3 import GoogleV3
@@ -9,11 +9,11 @@ class LoginForm(Form):
     email = StringField('Email', validators=[DataRequired(), Length(1, 64)])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Keep me logged in')
-    submit = SubmitField('Log In')
+    submit = SubmitField('Sign In')
 
 
 class RegistrationForm(Form):
-    phone_number = StringField("Phone number", validators=[DataRequired(), Length(9,13)])
+    phone_number = StringField("Phone number", validators=[DataRequired(), Length(13)])
     email = StringField('Email', validators=[Optional(), Length(1, 64),
     Email()])
     city = StringField('City', validators=[DataRequired()])
@@ -22,6 +22,7 @@ class RegistrationForm(Form):
     'numbers, dots or underscores')])
     password = PasswordField('Password', validators=[DataRequired(), EqualTo('password2', message='Passwords must match.')])
     password2 = PasswordField('Confirm password', validators=[DataRequired()])
+    confirm = BooleanField('I agree to terms and conditions')
     submit = SubmitField('Register')
 
     def validate_email(self, field):
@@ -34,5 +35,8 @@ class RegistrationForm(Form):
             raise ValidationError('Username already in use.')
 
     def validate_phone_number(self, field):
+        phone_number = field.data
+        if not phone_number.startswith("+"):
+            raise ValidationError('Invalid phone number. Phone number should start with country code.')
         if User.query.filter_by(phone_number=field.data).first():
             raise ValidationError('Phone number already in use.')
