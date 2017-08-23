@@ -22,7 +22,7 @@
         <button type="button" class="btn btn-warning btn-lg">Account Balance {{ user.account.balance_available }}</button>
     </div>
     <div class="row">
-        <div class="col-xs-12 col-sm-8 col-md-6 col-lg-3">
+        <div class="col-xs-12 col-sm-8 col-md-6 col-lg-4">
             <!--Card Regular-->
             <div class="card">
                 <div class="header">
@@ -74,15 +74,17 @@
             </div>
             <!--/.Card Regular-->
         </div>
-        {% with purchases = user.account.purchases %}{% if purchases %}
-        <div class="col-lg-9 col-md-12 col-sm-12 col-xs-12">
+        <div class="col-lg-8 col-md-12 col-sm-12 col-xs-12">
             <div class="card">
                 <div class="header">
                     <h2>
                         {{ user.username }}'s Tickets
                     </h2>
                 </div>
+                
+                {% with purchases = user.account.purchases %}        
                 <div class="body">
+                        {% if has_purchases %}
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
                             <thead>
@@ -121,15 +123,18 @@
                             </tbody>
                             </tbody>
                         </table>
+                        {% else %}
+                        <h4>{{ user.username }} has no tickets yet</h4>
+                        {% endif %}
                     </div>
+                    {% endwith %}
                 </div>
-                {% else %}
-                <h4>{{ user.username }} has no tickets yet</h4>
-                {% endif %}
+
+                
 
             </div>
         </div>
-        {% endwith %}
+
     </div>
 
     {% endblock %}

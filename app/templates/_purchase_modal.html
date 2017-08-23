@@ -61,8 +61,8 @@
 
 <div class="modal fade product_view" id="product_view">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div class="card">
+            <div class="header">
                 <a href="#" data-dismiss="modal" class="class pull-right"><span class="glyphicon glyphicon-remove"></span></a>
                 <div class="col-md-3">
                     <img class="img-responsive logo" src="{{ url_for('static', filename='images/logo.jpg') }}"></img>
@@ -72,7 +72,7 @@
                     <p class="text-muted">present this ticket at the venue</p>
                 </div>
             </div>
-            <div class="modal-body">
+            <div class="body">
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-md-6">
@@ -112,31 +112,40 @@
                         </div>
                         <div class="row">
                             <div class="form-row">
-                                <div class="form-group col-md-2">
-                                    <label for="ticketNo" class="col-form-label">TICKET NO</label>
-                                    <input type="text" class="form-control" id="ticketNo" value="{{ purchase.id }}">
-                                </div>
-                                <div class="form-group col-md-2">
-                                    <label for="ticketType" class="col-form-label"> TICKET TYPE</label>
-                                    <input id="ticketType" class="form-control" type="text" value="{{ purchase.ticket.type }}">
-                                </div>
-                                <div class="form-group col-md-2">
-                                    <label for="ticketPrice" class="col-form-label">PRICE</label>
-                                    <input type="text" class="form-control" id="ticketPrice" value="{{ purchase.ticket.price }}">
-                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="ticketNo" class="col-form-label">TICKET NO</label>
+                                        <input type="text" class="form-control" id="ticketNo" value="{{ purchase.id }}">
 
-                                <div class="form-group col-md-5">
-                                    <label for="ticketCode" class="col-form-label">TICKET #</label>
-                                    <input type="text" class="form-control" id="ticketCode" value="{{ purchase.code }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="ticketType" class="col-form-label"> TICKET TYPE</label>
+                                        <input id="ticketType" class="form-control" type="text" value="{{ purchase.ticket.type }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="ticketPrice" class="col-form-label">PRICE</label>
+                                        <input type="text" class="form-control" id="ticketPrice" value="{{ purchase.ticket.price }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <label for="ticketCode" class="col-form-label">TICKET #</label>
+                                        <input type="text" class="form-control" id="ticketCode" value="{{ purchase.code }}">
+                                    </div>
                                 </div>
                             </div>
 
                         </div>
-                        <div class="space-ten"></div>
+                        <div class="row clearfix">
                         <div class="btn-ground">
                             <a href="{{ url_for('main.get_purchase', code=purchase.code) }}" type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"><span class="glyphicon glyphicon-download-alt"></span> Download</a>
                             <a href="" type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"><span class="glyphicon glyphicon-inbox"></span> Email</a>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>

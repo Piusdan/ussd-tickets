@@ -6,7 +6,7 @@ from . import main
 from ..utils import flash_errors
 from ..decorators import admin_required
 from ..controllers import async_send_message, new_user
-from ..models import User, db, Role
+from ..models import User, db, Role, Location
 from forms import EditProfileForm, EditProfileAdminForm, NewUserForm
 
 
@@ -14,11 +14,13 @@ from forms import EditProfileForm, EditProfileAdminForm, NewUserForm
 @login_required
 def get_user(id):
     user = User.query.filter_by(id=id).first_or_404()
+    has_purchases = user.account.purchases.count() > 0
+    print has_purchases
     if current_user.is_administrator() or current_user == user:
         user = user
     else:
         abort(405)
-    return render_template('users/user_profile.html', user=user)
+    return render_template('users/user_profile.html', user=user, has_purchases=has_purchases)
 
 
 @main.route("/users")
@@ -52,16 +54,28 @@ def edit_profile():
     form = EditProfileForm(user=current_user)
     if form.validate_on_submit():
         current_user.name = form.name.data
-        current_user.location = form.location.data
+
         current_user.about_me = form.about_me.data
         current_user.email = form.email.data 
         current_user.phone_number = form.phone_number.data 
         current_user.username = form.username.data 
-        db.session.add(current_user)
-        flash('Your profile has been updated.')
+        
+        # get loaction
+        address = form.location.data
+        location = Location.query.filter_by(address=address.capitalize()).first()
+        if location:
+            location = location
+        else:
+            try:
+                location = Location(address=address)
+            except GeocoderError as exc:
+                flash('Invalid address for user', category='errors')
+        current_user.location = location
+        db.session.commit()
+        flash('Your profile has been updated.', category='success')
         return redirect(url_for('.get_user', id=current_user.id))
     form.name.data = current_user.name
-    form.location.data = current_user.location
+    form.location.data = current_user.location.city
     form.about_me.data = current_user.about_me
     form.email.data = current_user.email        
     form.phone_number.data = current_user.phone_number
@@ -84,7 +98,7 @@ def edit_profile_admin(id):
                 user.location.currency_code, form.account_balance.data)
             payload = {"message": message, "to": user.phone_number}
             async_send_message.apply_async(args=[payload], countdown=0)
-        db.session.add(user)
+        db.session.commit()
         flash('The profile has been updated.', category="successs")
         return redirect(url_for('.get_user', id=user.id))
     form.role.data = user.role_id
