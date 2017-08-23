@@ -1,21 +1,16 @@
-   <!-- /.col-lg-4 -->
-   {% for ticket in tickets %}
-   <div class="col-lg-3">
-       <div class="well well-sm">
-           Type {{ ticket.type }}<br/>
-           Price {{ ticket.price }}<br/>
-           Remaining {{ ticket.count }}<br/>
-
-       </div>
-   </div>
-   {% endfor %}
-   <!-- Colored FAB button -->
-   {% if event.can_add_tickets() %}
-   <a class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored" href="{{ url_for('main.add_ticket', event_id=event.id) }}">
-       <div id="tt4" class="material-icons">add</div>
-       <div class="mdl-tooltip" for="tt4">
-           Add tickets
-       </div>
-   </a>
-   {% endif %}
-
+<!-- /.col-lg-4 -->
+<div class="row clearfix">
+    {% for ticket in tickets %}
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="info-box">
+                    <div class="icon bg-orange">
+                            <i class="material-icons">bookmark</i>
+                        </div>
+                <div class="content">
+                    <div class="text">{{ ticket.type }} <small class="text-muted">Remaining {{ ticket.count }}<small></div>
+                    <div class="number">{{ event.location.currency_code }}.{{ ticket.price }}</div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>

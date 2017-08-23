@@ -75,6 +75,7 @@
                             </div>
                         </div>
                     </div>
+                </form>
             </div>
         </div>
     </div>
@@ -82,12 +83,10 @@
     {% block scripts %} {{ super() }}
     
     <script type="text/javascript">
-        
-        
         $ ( document ).ready(function() {
 
         // Data Picker Initialization
-        $('#date').bootstrapMaterialDatePicker({ format : 'dddd DD MMMM YYYY - HH:mm' });
+        $('#date').bootstrapMaterialDatePicker({ format : 'DD/MM/YYYY HH:mm' });
         });
     
     </script>

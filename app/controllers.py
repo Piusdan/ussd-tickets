@@ -1,6 +1,6 @@
 from . import db
 from flask import flash, redirect, url_for
-from .models import User, Ticket, Event, Purchase, Location
+from .models import User, Ticket, Event, Purchase, Location, Role
 import uuid
 from . import celery
 from app_exceptions import GeocoderError
@@ -13,21 +13,32 @@ def new_user(payload):
     """
     create a new user
     """
-    address = payload.get("address")
+    address = payload.get("address") or None
     phone_number = payload.get("phone_number")
     username = payload.get("username")
-    email = payload.get("email")
-    password = payload.get("password")
-    location = Location.query.filter_by(address=address.capitalize()).first()
-    if location:
-        location = location
+    email = payload.get("email") or None
+    password = payload.get("password") or "admin123"
+    role_id = payload.get("role") or None
+    
+    if address is not None:    
+        location = Location.query.filter_by(address=address.capitalize()).first()
+        if location:
+            location = location
+        else:
+            try:
+                location = Location(address=address)
+            except GeocoderError as exc:
+                raise self.retry(exc=exc, countdown=5)
     else:
-        try:
-            location = Location(address=address)
-        except GeocoderError as exc:
-            raise self.retry(exc=exc, countdown=5)
-
-    user = User(phone_number=phone_number, password=password, location=location, username=username, email=email)
+        codes = {"+254" : "Kenya", "+255" : "Uganda"}
+        location = Location(country=codes[phone_number[:4]])
+            
+    user = User(phone_number=phone_number, password=password, location=location, username=username)
+    if role_id is not None:
+        role = Role.query.filter_by(id=int(role_id)).first()
+        user.role = role
+    if email is not None:
+        user.email = email
 
     db.session.add_all([user, location])
 

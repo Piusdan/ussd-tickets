@@ -28,7 +28,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True)
     phone = db.Column(db.String(64), index=True)
-    email = db.Column(db.String, unique=True, index=True)
+    email = db.Column(db.String, index=True)
 
     name = db.Column(db.String(64))
     about_me = db.Column(db.Text())
@@ -347,7 +347,7 @@ class Location(db.Model):
     codes = {
         "kenya": {
             "phone": "+254",
-            "currency": "Ksh"
+            "currency": "KES"
         },
         "uganda": {
             "phone": "+255",

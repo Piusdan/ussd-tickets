@@ -20,10 +20,10 @@
 <link href="{{ url_for('static', filename='plugins/animate-css/animate.css') }}" rel="stylesheet" />
 
 <!-- Morris Chart Css-->
-<link href="{{ url_for('static', filename='plugins/morrisjs/morris.css') }}" rel="stylesheet" />
-
+<link href="{{ url_for('static', filename='plugins/morrisjs/morris.css') }}" rel="stylesheet" /> {% block custom_css %} {% endblock %}
 <!-- datetime picker css -->
-<link href="{{ url_for('static', filename='plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css') }}" rel="stylesheet" />
+<link href="{{ url_for('static', filename='plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css') }}"
+    rel="stylesheet" />
 
 <!-- Custom Css -->
 <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
@@ -87,12 +87,9 @@
                     <div class="btn-group user-helper-dropdown">
                         <i class="material-icons" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">keyboard_arrow_down</i>
                         <ul class="dropdown-menu pull-right">
-                            <li><a href="javascript:void(0);"><i class="material-icons">person</i>Profile</a></li>
+                            <li><a href="{{ url_for('main.get_user', id=current_user.id) }}"><i class="material-icons">person</i>Profile</a></li>
                             <li role="seperator" class="divider"></li>
-                            <li><a href="javascript:void(0);"><i class="material-icons">shopping_cart</i>Sales</a></li>
-                            <li><a href="javascript:void(0);"><i class="material-icons">favorite</i>Likes</a></li>
-                            <li role="seperator" class="divider"></li>
-                            <li><a href="javascript:void(0);"><i class="material-icons">settings</i>Settings</a></li>
+                            <li><a href="{{ url_for('main.edit_profile') }}"><i class="material-icons">settings</i>Settings</a></li>
                             <li><a href="{{ url_for('auth.logout') }}"><i class="material-icons">input</i>Sign Out</a></li>
                         </ul>
                     </div>
@@ -122,46 +119,37 @@
                             <li {% block events %}{% endblock %}>
                                 <a href="{{ url_for('main.get_events') }}">View Events</a>
                             </li>
-                            <li{% block event_statistics %}{% endblock %}>
-                                <a href="#">Statistics</a>
-                    </li>
-                    </ul>
+                        </ul>
                     </li>
 
                     <li>
-                        <li>
-                            <a href="javascript:void(0);" class="menu-toggle"><i class="material-icons">textsms</i>
+                        <a href="javascript:void(0);" class="menu-toggle"><i class="material-icons">textsms</i>
                                         <span>SMS Campaigns</span>
                                     </a>
-                            <ul class="ml-menu">
-                                <li {% block start_campaign %}{% endblock %}>
-                                    <a href="#">Start Campaign</a>
-                                </li>
-                                <li{% block view_campaigns%} %}{% endblock %}>
-                                    <a href="#">View Campaigns</a>
-                        </li>
-                        <li{%block campaign_statistics %} {% endblock %}>
-                            <a href="#">Statistics</a>
+                        <ul class="ml-menu">
+                            <li {% block start_campaign %}{% endblock %}>
+                                <a href="#">Start Campaign</a>
+                            </li>
+                            <li{% block view_campaigns%} %}{% endblock %}>
+                                <a href="#">View Campaigns</a>
                     </li>
+
                     </ul>
                     </li>
-
-                    <li>
-
-                        <a href="javascript:void(0);" class="menu-toggle">
-                            <i class="material-icons">supervisor_account</i>
-                            <span>Users</span>
-                        </a>
-                        <ul class="ml-menu">
-                            <li{% block add_user %}{% endblock %}>
-                                <a href="#">Add User</a>
-                    </li>
-                    <li{% block all_users %}{% endblock %}>
-                        <a href="#">All Users</a>
+                    <li {% block users %}{% endblock %}>
+                            <a href="javascript:void(0);" class="menu-toggle">
+                                    <i class="material-icons">supervisor_account</i>
+                                    <span>Members</span>
+                            </a>
+                            <ul class="ml-menu">
+                                <li {% block add_user %}{% endblock %}>
+                                    <a href="{{ url_for('main.add_user') }}">Add Member</a>
+                                </li>
+                                <li {% block all_users %}{% endblock %}>
+                                    <a href="{{ url_for('main.get_users') }}">All Members</a>
+                                </li>
+                            </ul>
                         </li>
-                        </ul>
-                        </li>
-
                 </ul>
             </div>
             <!-- #Menu -->
@@ -176,8 +164,7 @@
         <!-- #END# Left Sidebar -->
     </section>
     <section class="content">
-        {% include '_get_flashed_messages.html' %}
-        {% block page_content %}{% endblock %}
+        {% include '_get_flashed_messages.html' %} {% block page_content %}{% endblock %}
     </section>
 </div>
 {% endblock %} {% block scripts %}
@@ -206,12 +193,12 @@
 
 <!-- Jquery CountTo Plugin Js -->
 <script src="{{ url_for('static', filename='plugins/jquery-countto/jquery.countTo.js') }}"></script>
-
+{% block table_scripts %} {% endblock %}
 
 <!-- Custom Js -->
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 <script src="{{ url_for('static', filename='js/index.js') }}"></script>
-
+{% block custom_scipts %} {% endblock %}
 <!-- Demo Js -->
 <script src="{{ url_for('static', filename='js/demo.js') }}"></script>
 

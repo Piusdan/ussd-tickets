@@ -1,25 +1,33 @@
-{% extends "base.html" %} {% block title %}{{ user.username }} | Update Profile [Admin]{% endblock %}{% block users %}class="active"{% endblock %} {% block all_users %}class="active"{% endblock %}
+{% extends "base.html" %} {% block users %}class="active"{% endblock %} {% block add_user %}class="active"{% endblock %}
 {% import "bootstrap/wtf.html" as wtf %}
 
 {% block page_content %}
+{#{ wtf.quick_form(form) }#}
 
 <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
 <div class="card">
-        <div class="header"><h4>{{ user.username }}</h4></div>
+        <div class="header"><h4>Register a new membership</h4></div>
         <div class="body container-fluid">
             <form id="sign_up" method="post" action="" role="form" name="register">
                 {{ form.hidden_tag() }}
-                <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 pull-left">
-                        
                 <div class="input-group">
                     <span class="input-group-addon">
-                        <i class="material-icons">attach_money</i>
+                        <i class="material-icons">email</i>
                     </span>
                     <div class="form-line">
-                        {{ form.account_balance(class_="form-control", required=True)}}
+                        {{ form.email(class_="form-control", placeholder="Email Address (example@gmail.com)", required=True)}}
                     </div>
                 </div>
-                                    <div class="input-group">
+                <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="material-icons">phone</i>
+                        </span>
+                        <div class="form-line">
+                            {{ form.phone_number(class_="form-control", placeholder="Phone Number (+254 7XXXXXXXX)", required=True)}}
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 pull-left">
+                <div class="input-group">
                         <span class="input-group-addon">
                             <i class="material-icons">location_city</i>
                         </span>

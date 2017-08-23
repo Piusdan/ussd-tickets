@@ -28,12 +28,11 @@ def add_ticket(event_id):
         ticket.event_id = event_id
         db.session.add(ticket)
         db.session.commit()
-        flash("Ticket added.", category="msg")
+        flash("Ticket added.", category="success")
         return redirect(url_for(".get_event", id=event_id))
     else:
         flash_errors(form)
-
-    return render_template('events/create_ticket.html', form=form, event=event, tickets=event.tickets)
+    abort(405)
 
 @main.route('/verify_ticket/<string:ticket_hash>')
 @login_required

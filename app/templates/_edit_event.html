@@ -1,26 +1,106 @@
-<style>
-    .event_logo {
-        height: 100%;
-        width: 100%;
-        display: inline;
-    }
-</style>
-<div class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true"
-    id="edit">
-    <div class="modal-dialog" role="form">
-        <div class="modal-content">
-            <div class="modal-header">
-                    <div class="col-sm-2">
-                            <img class="img-responsive event_logo" src="{{ event.logo_url }}"></img>
-                        </div>
-                <h5 class="modal-title text-info" id="exampleModalLabel">Edit {{ event.title }}</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                      </button>
+<div class="modal fade" id="defaultModal" tabindex="-1" role="dialog" id="edit">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="card">
+            <div class="header">
+                <div class="container-fluid">
+                    <style>
+                        .event_logo {
+                            width: 100%;
+                            height: 50px;
+                        }
+                    </style>
+                <div class="col-sm-1">
+                    <img class="img-responsive event_logo" src="{{ event.logo_url }}"></img>
+                </div>
+                <div class="col-sm-5">
+                <h4 class="modal-title text-info" id="defaultModalLabel">Edit {{ event.title }}</h4>
+                </div>
             </div>
+            </div>
+            <div class="body">
+                <div class="body">
+                    <form action="" method="post" class="form" method="post" enctype="multipart/form-data">
+                        <div class="form-group  required">
+                            {{ event_form.hidden_tag() }}
+                            <div class="row clearfix">
+                                <div class="col-md-12">
+                                    <div class="form-group input-group">
+                                        <span class="input-group-addon">
+                                                    <i class="material-icons">subtitles</i>
+                                                </span>
+                                        <div class="form-line">
+                                            {{ event_form.title(class_="form-control", placeholder="Event Name", required=True) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row clearfix">
+                                <div class="col-md-12">
+                                    <div class="form-group input-group">
+                                        <span class="input-group-addon">
+                                                    <i class="material-icons">text_fields</i>
+                                                </span>
 
-            <div class="modal-body">
-                    {{ wtf.quick_form(form, button_map={"submit": "success"}) }}
+                                        <div class="form-line">
+                                            {{ event_form.description(class_="form-control", placeholder="Event Description", required=True) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row clearfix">
+                                <div class="col-md-4">
+                                    <div class="form-group input-group">
+                                        <span class="input-group-addon">
+                                                    <i class="material-icons">location_on</i>
+                                                </span>
+
+                                        <div class="form-line">
+                                            {{ event_form.venue(class_="form-control", placeholder="Event Venue", required=True) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group input-group">
+                                        <span class="input-group-addon">
+                                                    <i class="material-icons">location_city</i>
+                                                </span>
+
+                                        <div class="form-line">
+                                            {{ event_form.location(class_="form-control", placeholder="Event Town/City/location", required=True) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group input-group">
+                                        <span class="input-group-addon">
+                                                    <i class="material-icons">access_time</i>
+                                                </span>
+
+                                        <div class="form-line">
+                                            {{ event_form.date(class_="form-control datepicker", placeholder="Event date") }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                                <div class="row clearfix">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            <div class="form-line">
+                                                {{ event_form.submit(class_="btn btn-block btn-sm bg-orange waves-effect") }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button type="button" class="btn btn-block waves-effect" data-dismiss="modal">CLOSE</button>
+                                    </div>
+
+                            </div>
+                    </form>
+
+                    </div>
+                </div>
             </div>
         </div>
     </div>
