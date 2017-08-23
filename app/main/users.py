@@ -35,9 +35,10 @@ def get_users():
 def add_user():
     form = NewUserForm()
     if form.validate_on_submit():
-        payload = {"email": form.email.data,
+        payload = {"username": form.username.data,
                    "phone_number": form.phone_number.data,
-                   "role": form.role.data
+                   "role": form.role.data,
+                   "account_balance": form.account_balance.data
                    }
         new_user(payload)
         flash('New member added.', category="success")

@@ -81,10 +81,10 @@
                         {{ user.username }}'s Tickets
                     </h2>
                 </div>
-                
-                {% with purchases = user.account.purchases %}        
+
+                {% with purchases = user.account.purchases %}
                 <div class="body">
-                        {% if has_purchases %}
+                    {% if has_purchases %}
                     <div class="table-responsive">
                         <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
                             <thead>
@@ -93,15 +93,17 @@
                                     <th>Code</th>
                                     <th>Type</th>
                                     <th>Event Name</th>
+                                    <th>Reedemed</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
                             <tfoot>
                                 <tr>
                                     <th>#</th>
-                                    <th>Name</th>
-                                    <th>Phone Number</th>
-                                    <th>Email</th>
+                                    <th>Code</th>
+                                    <th>Type</th>
+                                    <th>Event Name</th>
+                                    <th>Reedemed</th>
                                     <th>Action</th>
                                 </tr>
                             </tfoot>
@@ -112,6 +114,7 @@
                                     <td>{{ purchase.code }}</td>
                                     <td>{{ purchase.ticket.type }}</td>
                                     <td class="center">{{ purchase.ticket.event.title }}</td>
+                                    <td class="center">{{ purchase.confirmed }}</td>
                                     <td class="center">
                                         <!-- Accent-colored raised button with ripple -->
                                         <button type="button" class="mdl-button mdl-js-button mdl-js-ripple-effect" data-toggle="modal" data-target="#product_view"><i class="fa fa-search"></i> Quick View</button>
@@ -130,7 +133,7 @@
                     {% endwith %}
                 </div>
 
-                
+
 
             </div>
         </div>

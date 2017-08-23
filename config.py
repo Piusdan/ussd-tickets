@@ -4,6 +4,7 @@ import uuid
 basedir = os.path.abspath(os.path.dirname(__file__))
 mysecret = uuid.uuid4()
 mysecret = str(mysecret)
+
 class Config:
     """
     Base configuration class for our application

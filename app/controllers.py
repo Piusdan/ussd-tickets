@@ -14,6 +14,7 @@ def new_user(payload):
     create a new user
     """
     address = payload.get("address") or None
+    account_balance = payload.get("account_balance") or None
     phone_number = payload.get("phone_number")
     username = payload.get("username")
     email = payload.get("email") or None
@@ -39,10 +40,18 @@ def new_user(payload):
         user.role = role
     if email is not None:
         user.email = email
+        
+    if account_balance is not None:
+        user.account.balance  = int(account_balance)
+        message = "Cash Value Solution\nYour account has been credited with {}. {}".format(
+            user.location.currency_code, form.account_balance.data)
+        payload = {"message": message, "to": user.phone_number}
+        async_send_message.apply_async(args=[payload], countdown=0)
+
 
     db.session.add_all([user, location])
 
-    db.session.commit()
+    db.session.commit()        
     return True
 
 

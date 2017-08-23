@@ -65,3 +65,10 @@ class ElecticronicTicketing:
 
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
+
+# TODO ask for 2 modes of payments i.e cash value account or deduction from phone
+# TODO cash value should give you points
+# 0.5% points for every value transactions
+# reedemable points through cash value 
+# send reedemable points
+# view most transactions

@@ -1,0 +1,5 @@
+> Add number of tickets before checking out
+> confirm tickets check outs
+> reedemable points 0.5%
+> stop receiving event tickets
+> editing ticket values

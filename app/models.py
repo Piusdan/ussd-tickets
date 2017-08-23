@@ -294,7 +294,7 @@ class Purchase(db.Model):
     url = db.Column(db.String(64))
     ticket_id = db.Column(db.Integer, db.ForeignKey('tickets.id'))
     account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
-
+    confirmed = db.Column(db.Boolean, default=False)
 
 class Ticket(db.Model):
     __tablename__ = "tickets"

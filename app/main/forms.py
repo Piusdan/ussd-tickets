@@ -51,10 +51,12 @@ class EditProfileAdminForm(Form):
 class NewUserForm(Form):
     phone_number = StringField('Phone Number', validators=[
                                DataRequired(), Length(13)])
-    email = StringField('Email', validators=[
-                        DataRequired(), Length(1, 64), Email()])
+    account_balance = IntegerField('Top Up')
     role = SelectField('Role', coerce=int)
     submit = SubmitField('Submit')
+    username = StringField('Username', validators=[DataRequired(), Length(1, 64), Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
+                                                                                         'Usernames must have only letters, '
+                                                                                         'numbers, dots or underscores')])
 
     def __init__(self, *args, **kwargs):
         super(NewUserForm, self).__init__(*args, **kwargs)
@@ -67,9 +69,9 @@ class NewUserForm(Form):
         if User.query.filter_by(phone_number=field.data).first():
             raise ValidationError('Phone number already in use.')
 
-    def validate_email(self, field):
-        if User.query.filter_by(email=field.data).first():
-            raise ValidationError('Email already registered.')
+    def validate_username(self, field):
+        if User.query.filter_by(username=field.data).first():
+            raise ValidationError('Username already in use.')
 
 
 class CreateEventForm(Form):

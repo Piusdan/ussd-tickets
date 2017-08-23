@@ -12,10 +12,10 @@
                 {{ form.hidden_tag() }}
                 <div class="input-group">
                     <span class="input-group-addon">
-                        <i class="material-icons">email</i>
+                        <i class="material-icons">person</i>
                     </span>
                     <div class="form-line">
-                        {{ form.email(class_="form-control", placeholder="Email Address (example@gmail.com)", required=True)}}
+                        {{ form.username(class_="form-control", placeholder="Username", required=True)}}
                     </div>
                 </div>
                 <div class="input-group">
@@ -26,6 +26,14 @@
                             {{ form.phone_number(class_="form-control", placeholder="Phone Number (+254 7XXXXXXXX)", required=True)}}
                         </div>
                     </div>
+                    <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="material-icons">attach_money</i>
+                            </span>
+                            <div class="form-line">
+                                {{ form.account_balance(class_="form-control",placeholder="Top up", required=True)}}
+                            </div>
+                        </div>
                     <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 pull-left">
                 <div class="input-group">
                         <span class="input-group-addon">
