@@ -1,14 +1,20 @@
 from flask_wtf import FlaskForm as Form
-from wtforms import StringField, SubmitField, TextAreaField, BooleanField, SelectField, IntegerField, DateTimeField, FileField, SelectFieldBase
-from wtforms.validators import Length, DataRequired, Email, Regexp, ValidationError, Optional
+from wtforms import (StringField, SubmitField, TextAreaField,
+                     BooleanField, SelectField, IntegerField,
+                     DateTimeField, FileField, SelectFieldBase)
+from wtforms.validators import (Length, DataRequired,
+                                Email, Regexp, ValidationError, Optional)
 
 from ..models import Role, User, Event, Ticket
 
 
 class EditProfileForm(Form):
-    username = StringField('Username', validators=[DataRequired(), Length(1, 64), Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
-                                                                                         'Usernames must have only letters, '
-                                                                                         'numbers, dots or underscores')])
+    username = StringField('Username',
+                           validators=[DataRequired(),
+                                       Length(1, 64),
+                                       Regexp(
+                               '^[A-Za-z][A-Za-z0-9_.]*$', 0,
+                               'Usernames must have only letters numbers, dots or underscores')])
     phone_number = StringField('Change Phone Number', validators=[
                                DataRequired(), Length(13)])
     email = StringField('Change Email', validators=[
@@ -54,9 +60,12 @@ class NewUserForm(Form):
     account_balance = IntegerField('Top Up')
     role = SelectField('Role', coerce=int)
     submit = SubmitField('Submit')
-    username = StringField('Username', validators=[DataRequired(), Length(1, 64), Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
-                                                                                         'Usernames must have only letters, '
-                                                                                         'numbers, dots or underscores')])
+    username = StringField('Username',
+                           validators=[DataRequired(),
+                                       Length(1, 64),
+                                       Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
+                                              'Usernames must have only letters, '
+                                              'numbers, dots or underscores')])
 
     def __init__(self, *args, **kwargs):
         super(NewUserForm, self).__init__(*args, **kwargs)
@@ -101,7 +110,7 @@ class EditEventForm(Form):
                         Length(0, 64), DataRequired()])
     date = DateTimeField(
         "Event Date", format="%d/%m/%Y %H:%M", validators=[DataRequired()])
-    submit = SubmitField('Submit')
+    submit = SubmitField('Update')
 
 
 class CreateTicketForm(Form):
@@ -116,3 +125,20 @@ class CreateTicketForm(Form):
             int(field.data)
         except:
             raise ValidationError("Price must be a valid integer.")
+
+
+class EditTicketForm(Form):
+    price = StringField('Price of Ticket', validators=[DataRequired()])
+    count = IntegerField("Number of Tickets Available",
+                         validators=[DataRequired()])
+    submit = SubmitField('Update')
+
+    def validate_price(self, field):
+        try:
+            int(field.data)
+        except:
+            raise ValidationError("Price must be a valid integer.")
+
+    def __init__(self, ticket, *args, **kwargs):
+        super(EditTicketForm, self).__init__(*args, **kwargs)
+        self.ticket = ticket

@@ -3,3 +3,4 @@
 > reedemable points 0.5%
 > stop receiving event tickets
 > editing ticket values
+> control image sizes, preset image sizes

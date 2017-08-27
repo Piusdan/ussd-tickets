@@ -6,6 +6,7 @@
                 <th>Purchaser Name</th>
                 <th>Ticket Type</th>
                 <th>Ticket Price</th>
+                <th>Confirmed</th>
                 <th>Ticket #</th>
             </tr>
         </thead>
@@ -15,6 +16,7 @@
                 <th>Purchaser Name</th>
                 <th>Ticket Type</th>
                 <th>Ticket Price</th>
+                <th>Confirmed</th>
                 <th>Ticket #</th>
             </tr>
         </tfoot>
@@ -26,6 +28,7 @@
                 <td>{{ purchase.ticket.type }}</td>
 
                 <td>{{ purchase.ticket.price }}</td>
+                <td>{{ purchase.confirmed }}</td>
                 <td><a href="{{ url_for('main.get_purchase', code=purchase.code) }}">{{ purchase.code }}</a></td>
             </tr>
             {% endfor %}

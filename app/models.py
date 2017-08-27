@@ -129,43 +129,7 @@ class User(UserMixin, db.Model):
             return None
         return User.query.get(data['id'])
 
-    # TODO Serialise this classes
-    def to_json(self):
-        """
-        :return a json serialised object : 
-        """
-        to_json = {
-            'id': self.id,
-            'name': self.name,
-            'email': self.email,
-            'phone_number': self.phone_number,
-            'role': self.role.name,
-            'url': url_for('api.get_user', id=self.id, _external=True)
-        }
-        return to_json
-
-    @staticmethod
-    def from_json(json_data):
-        # takes a json object and returns an db model
-        # validate email
-        # validate phone_number
-        name = json_data.get('name', '')
-        password = json_data.get('password')
-        phone_number = json_data.get('phone_number')
-        email = json_data.get('email')
-        if password is None or phone_number is None:
-            raise SignupError("Missing password or phone number fields")
-        try:
-            assert (User.query.filter_by(
-                phone_number=phone_number).first() is None)
-            if email:
-                assert (User.query.filter_by(email=email).first() is None)
-            new_user = User(name=name, phone_number=phone_number,
-                            email=email, password=password)
-            return new_user
-        except AssertionError as e:
-            raise SignupError("Phone number or email already exists")
-
+    
 
 class Role(db.Model):
     """
@@ -201,12 +165,6 @@ class Role(db.Model):
             role.default = roles[r][1]
             db.session.add(role)
         db.session.commit()
-
-    def to_json(self):
-        to_json = {
-            'name': self.name
-        }
-
 
 class Permission:
     BUY_TICKET = 0x01
@@ -251,28 +209,6 @@ class Event(db.Model):
     def day(self):
         return self.date.strftime('%B %d, %y')
 
-    def to_json(self):
-        json_data = {}
-        json_data.setdefault('id', self.id)
-        json_data.setdefault('description', self.description)
-        json_data.setdefault('date', self.date)
-        json_data.setdefault('event_url', url_for(
-            'api.get_event', id=self.id, _external=True))
-        json_data.setdefault('organiser_url', url_for(
-            'api.get_user', id=self.organiser_id, _external=True))
-        return json_data
-
-    @staticmethod
-    def from_json(json_data):
-        desc = json_data.get('description', '')
-        date = json_data.get('date', '')
-        if date is None:
-            return ValueError("Event must have a date")
-        if desc is None:
-            return ValueError("Please provide a description for your event")
-        event = Event(description=desc, date=parse(date))
-        return event
-
 
 class Account(db.Model):
     __tablename__ = "accounts"
@@ -296,6 +232,16 @@ class Purchase(db.Model):
     account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
     confirmed = db.Column(db.Boolean, default=False)
 
+    def to_json(self):
+        json_data = {}
+        json_data.setdefault('count', self.count)
+        json_data.setdefault('type', self.ticket.type)
+        json_data["PurchaserUserName"] = self.account.holder.username 
+        json_data["Event Name"] = self.ticket.event.title
+        json_data["Event Date"] = self.ticket.event.date
+        return json_data
+
+
 class Ticket(db.Model):
     __tablename__ = "tickets"
     id = db.Column(db.Integer, primary_key=True)
@@ -308,16 +254,6 @@ class Ticket(db.Model):
     def __repr__(self):
         return "<Type> {} <Price> {}".format(self.type, self.price)
 
-    def to_json(self):
-        json_data = {}
-        json_data.setdefault('id', self.id)
-        json_data.setdefault('price', self.price)
-        json_data.setdefault('type', self.type)
-        json_data.setdefault('event_url', url_for(
-            'api.get_event', id=self.event_id, _external=True))
-        json_data.setdefault('ticket_url', url_for(
-            'api.get_ticket', id=self.id, _external=True))
-        return json_data
     @property
     def price_code(self):
         return self.event.location.currency_code + ". " + str(self.price)

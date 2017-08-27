@@ -1,16 +1,37 @@
 <!-- /.col-lg-4 -->
 <div class="row clearfix">
-    {% for ticket in tickets %}
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-            <div class="info-box">
-                    <div class="icon bg-orange">
-                            <i class="material-icons">bookmark</i>
+    {% for edit_ticket_form in edit_ticket_forms %}
+    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+        <div class="card">
+            <div class="header">
+                <h5>{{ edit_ticket_form.ticket.type }} ticket</h5>
+            </div>
+            <div class="body">
+                <form id="sign_up" method="post" action="" role="form" name="register">
+                    {{ edit_ticket_form.hidden_tag() }}
+                   
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                                            <i class="material-icons">attach_money</i>
+                                        </span>
+                        <div class="form-line">
+                            {{ edit_ticket_form.price(class_="form-control", placeholder="Price " + event.location.currency_code,required=True, autofocus=True)}}
                         </div>
-                <div class="content">
-                    <div class="text">{{ ticket.type }} <small class="text-muted">Remaining {{ ticket.count }}<small></div>
-                    <div class="number">{{ event.location.currency_code }}.{{ ticket.price }}</div>
-                </div>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                                                <i class="material-icons">group</i>
+                                            </span>
+                        <div class="form-line">
+                            {{ edit_ticket_form.count(class_="form-control", placeholder="Number of Tickets",required=True, autofocus=True)}}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        {{ edit_ticket_form.submit(class_="btn btn-lnk btn-sm bg-orange waves-effect") }}
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
     {% endfor %}
 </div>

@@ -84,7 +84,8 @@ class MobileWallet:
             # Send B2c
             payload = {"productName": current_app.config["PRODUCT_NAME"],
                        "phoneNumber": self.get_phone_number(), "currencyCode": currency_code,
-                       "amount": int(self.user_response), "reason": "Mobile Wallet Withdrawal", "name": self.current_user().username, }
+                       "amount": int(self.user_response), "reason": "Mobile Wallet Withdrawal",
+                       "name": self.current_user().username, }
             async_checkoutb2c.apply_async(args=[payload], countdown=5)
 
         else:
