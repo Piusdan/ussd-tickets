@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 2f4eca86137d
+Revision ID: 66476b9d1a1b
 Revises: 
-Create Date: 2017-08-14 14:00:41.281190
+Create Date: 2017-08-28 00:08:11.647537
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '2f4eca86137d'
+revision = '66476b9d1a1b'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -36,10 +36,9 @@ def upgrade():
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=64), nullable=True),
-    sa.Column('phone', sa.String(length=64), nullable=True),
+    sa.Column('phone_number', sa.String(length=64), nullable=True),
     sa.Column('email', sa.String(), nullable=True),
     sa.Column('name', sa.String(length=64), nullable=True),
-    sa.Column('about_me', sa.Text(), nullable=True),
     sa.Column('member_since', sa.DateTime(), nullable=True),
     sa.Column('last_seen', sa.DateTime(), nullable=True),
     sa.Column('avatar_hash', sa.String(length=32), nullable=True),
@@ -53,28 +52,31 @@ def upgrade():
     sa.UniqueConstraint('username')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
-    op.create_index(op.f('ix_users_phone'), 'users', ['phone'], unique=True)
+    op.create_index(op.f('ix_users_phone_number'), 'users', ['phone_number'], unique=True)
     op.create_table('accounts',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('balance', sa.Integer(), nullable=True),
+    sa.Column('points', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('events',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('title', sa.Integer(), nullable=True),
+    sa.Column('name', sa.Integer(), nullable=True),
     sa.Column('description', sa.String(length=64), nullable=True),
     sa.Column('date', sa.DateTime(), nullable=True),
     sa.Column('logo_url', sa.String(length=64), nullable=True),
+    sa.Column('closed', sa.Boolean(), nullable=True),
     sa.Column('organiser_id', sa.Integer(), nullable=True),
     sa.Column('location_id', sa.Integer(), nullable=True),
+    sa.Column('venue', sa.String(length=64), nullable=True),
     sa.ForeignKeyConstraint(['location_id'], ['locations.id'], ),
     sa.ForeignKeyConstraint(['organiser_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_events_description'), 'events', ['description'], unique=False)
-    op.create_index(op.f('ix_events_title'), 'events', ['title'], unique=False)
+    op.create_index(op.f('ix_events_name'), 'events', ['name'], unique=False)
     op.create_table('tickets',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('count', sa.Integer(), nullable=True),
@@ -89,8 +91,10 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('count', sa.Integer(), nullable=True),
     sa.Column('code', sa.String(length=64), nullable=True),
+    sa.Column('url', sa.String(length=64), nullable=True),
     sa.Column('ticket_id', sa.Integer(), nullable=True),
     sa.Column('account_id', sa.Integer(), nullable=True),
+    sa.Column('confirmed', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['account_id'], ['accounts.id'], ),
     sa.ForeignKeyConstraint(['ticket_id'], ['tickets.id'], ),
     sa.PrimaryKeyConstraint('id'),
@@ -104,11 +108,11 @@ def downgrade():
     op.drop_table('purchases')
     op.drop_index(op.f('ix_tickets_type'), table_name='tickets')
     op.drop_table('tickets')
-    op.drop_index(op.f('ix_events_title'), table_name='events')
+    op.drop_index(op.f('ix_events_name'), table_name='events')
     op.drop_index(op.f('ix_events_description'), table_name='events')
     op.drop_table('events')
     op.drop_table('accounts')
-    op.drop_index(op.f('ix_users_phone'), table_name='users')
+    op.drop_index(op.f('ix_users_phone_number'), table_name='users')
     op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
     op.drop_index(op.f('ix_roles_default'), table_name='roles')

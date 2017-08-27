@@ -3,7 +3,7 @@ from flask import current_app, g
 
 from .. import gateway
 from .. import db
-from utils import respond, make_gateway, session_exists
+from utils import respond, session_exists
 from tasks import async_checkoutb2c, async_checkoutc2b, async_purchase_airtime
 
 class MobileWallet:
