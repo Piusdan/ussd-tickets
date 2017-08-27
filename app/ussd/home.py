@@ -1,9 +1,9 @@
-from africastalking.AfricasTalkingGateway import AfricasTalkingGateway, AfricasTalkingGatewayException
-from flask import current_app, g
-
 from .. import redis
-from .. import gateway
-from utils import respond, update_session, session_exists, promote_session, demote_session, get_events, current_user, get_phone_number
+from utils import (respond, update_session,
+                   session_exists, promote_session,
+                   demote_session, get_events,
+                   current_user, get_phone_number)
+
 from tasks import async_send_account_balance
 
 class Home:
@@ -31,7 +31,8 @@ class Home:
         # upgrade user level and serve home menu
         promote_session(self.session_id)
         # serve the menu
-        menu_text = "CON Cash Value Solutions Mobile Wallet\nHello {}.\nChoose a service\n".format(current_user().username)
+        menu_text = "CON Cash Value Solutions Mobile Wallet\nHello {}.\n" \
+                    "Choose a service\n".format(current_user().username)
         menu_text += " 1. Top up Account\n"
         menu_text += " 2. Withdraw Money\n"
         menu_text += " 3. Buy Airtime\n"
@@ -70,7 +71,7 @@ class Home:
         return respond(menu_text)
 
     def check_balance(self):
-        payload = {"phoneNumber":current_user().phone_number, "message": "Your account balance is {}".format(current_user().account.balance_available)}
+        payload = {"phoneNumber":current_user().phone_number}
         async_send_account_balance.apply_async(ags=[payload], countdown=0)
         return respond("END We are sending your account balance shortly")
 

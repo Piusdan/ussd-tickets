@@ -40,18 +40,10 @@ def ussd_callback():
         menu = RegistrationMenu(
             session_id=session_id, phone_number=phone_number, user_response=user_response)
         level = session_exists(session_id) or 0
-        print "level {}".format(level)
+        # print "level {}".format(level)
         menus = {
-            # params = (session_id, phone_number=phone_number)
             0: menu.get_number,
-            21: menu.get_email,
-            22: menu.get_username,
-            23: menu.get_city,
-            24: menu.get_password,
-            # params = (session_id, phone_number=phone_number,
-            # user_response=user_response)
-            # params = (session_id, phone_number=phone_number,
-            # user_response=user_response)
+            21: menu.get_username,
             "default": menu.register_default,  # params = (session_id)
 
         }
@@ -81,8 +73,6 @@ def ussd_callback():
                     return menus.get(user_response)()
                 else:
                     return menus.get("default")()
-
-
             # if level is between 9 and 12 serve high level response
             elif level <= 12:
                 menu = MobileWallet(user_response,session_id)

@@ -27,11 +27,10 @@ class User(UserMixin, db.Model):
     # core details
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True)
-    phone = db.Column(db.String(64), index=True)
-    email = db.Column(db.String, index=True)
+    phone_number = db.Column(db.String(64), index=True, unique=True)
+    email = db.Column(db.String, index=True, unique=True)
 
     name = db.Column(db.String(64))
-    about_me = db.Column(db.Text())
 
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
@@ -94,14 +93,6 @@ class User(UserMixin, db.Model):
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
-
-    @property
-    def phone_number(self):
-        return self.location.country_code + self.phone
-
-    @phone_number.setter
-    def phone_number(self, phone_number):
-        self.phone = phone_number[len(phone_number) - 9:]
 
     # user loader
     @login_manager.user_loader
@@ -184,11 +175,12 @@ class AnonymousUser(AnonymousUserMixin):
 class Event(db.Model):
     __tablename__ = "events"
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.Integer, index=True)
+    name = db.Column(db.Integer, index=True)
     description = db.Column(db.String(64), index=True)
 
     date = db.Column(db.DateTime)
     logo_url = db.Column(db.String(64))
+    closed = db.Column(db.Boolean, default=False)
 
     tickets = db.relationship('Ticket', backref='event', lazy='dynamic')
     organiser_id = db.Column(db.Integer, db.ForeignKey('users.id'))
@@ -215,7 +207,9 @@ class Account(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     balance = db.Column(db.Integer, default=0)
+    points = db.Column(db.Integer, default=0)
     purchases = db.relationship('Purchase', backref='account', lazy='dynamic')
+
 
     @property
     def balance_available(self):
@@ -282,11 +276,9 @@ class Location(db.Model):
 
     codes = {
         "kenya": {
-            "phone": "+254",
             "currency": "KES"
         },
         "uganda": {
-            "phone": "+255",
             "currency": "Ugx"
         }
     }

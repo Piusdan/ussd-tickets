@@ -1,12 +1,17 @@
-from africastalking.AfricasTalkingGateway import AfricasTalkingGateway, AfricasTalkingGatewayException
 from flask import current_app, make_response, g
 from ..controllers import get_event_tickets_query
 from .. import redis
 from ..models import User, AnonymousUser, Event, Ticket
 
 def db_get_user(id_or_phone_number):
+    """
+    Given a user id or phone number
+    get the user or return an anymous user if no such user exists
+    :param id_or_phone_number: 
+    :return: 
+    """
     if id_or_phone_number.startswith("+"):
-        user = User.query.filter_by(phone=id_or_phone_number[4:]).first()
+        user = User.query.filter_by(phone_number=id_or_phone_number).first()
     else:
         user = User.query.filter_by(id=id_or_phone_number).first()
     if user:
@@ -15,6 +20,12 @@ def db_get_user(id_or_phone_number):
         return AnonymousUser()
 
 def respond(menu_text, pretext=True):
+    """
+    :param menu_text: menu text to display
+    :param pretext: set to False if you dont want to include
+    a predifined header
+    :return: a ussd response 
+    """
     if pretext:
         menu_text = menu_text[:3] +" " + "Cash Value Solution\n" + menu_text[3:].lstrip()
     response = make_response(menu_text, 200)
@@ -22,17 +33,22 @@ def respond(menu_text, pretext=True):
     return response
 
 
-def make_gateway(api_key, user_name, sandbox=False):
-    if sandbox:
-        return AfricasTalkingGateway(username=user_name, apiKey=api_key,environment="sandbox")
-    else:
-        return AfricasTalkingGateway(username=user_name, api_key=api_key)
-
-
 def add_session(session_id):
-   return redis.set(session_id, 0)
+    """
+    
+    :param session_id: the current session id 
+    :return: registeres the current session level at 0
+    
+    """
+    return redis.set(session_id, 0)
 
 def session_exists(session_id):
+    """
+    check if this is a valid session
+    :param session_id: a unique identifier for the session
+    :return: the current session level or None
+    if none exists
+    """
     level = redis.get(session_id)
     if level:
         return int(level)
@@ -40,22 +56,44 @@ def session_exists(session_id):
         return level
 
 def demote_session(session_id, level=1):
+    """
+    reduces the current user session level by a specified degree
+    :param session_id: the unique ssession identifier
+    :param level: degree
+    :return: the current level after the decremental operation
+    """
     if (session_exists(session_id) > 0):
         return redis.decr(session_id, level)
     return session_exists(session_id)
 
 def update_session(session_id, level=0):
+    """
+    Upgrades the session to specified level
+    :param session_id: 
+    :param level: 
+    :return: the new session level
+    """
     return redis.set(session_id, level)
 
 
 def promote_session(session_id, level=1):
+    """
+    increment the current session
+    depreciated use update_session
+    :param session_id: 
+    :param level: 
+    :return: 
+    """
     return redis.incr(session_id, level)
 
 def add_user(phone_number, value):
     value = ":" + value
-    redis.append(phone_number, value)
+    value = redis.get(phone_number) + value
+    redis.set(phone_number, value)
     return redis.get(phone_number)
 
+def reset_user(phone_number):
+    return redis.delete(phone_number)
 
 def get_user(phone_number):
     resp = redis.get(phone_number)
