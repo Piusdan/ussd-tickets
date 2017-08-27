@@ -13,6 +13,21 @@ def new_user(payload):
     """
     create a new user
     """
+    codes = {"+254": "Kenya", "+255": "Uganda"}
+
+    if payload.get("ussd"):
+        phone_number = payload.get("phone_number")
+        username = payload.get("username")
+        location = Location(country=codes[phone_number[:4]])
+        user = User(username=username, phone_number=phone_number, location=location)
+        db.session.add(user)
+        db.session.commit()
+    else:
+        async_create_user(payload=payload)
+
+
+@celery.task(bind=True, default_retry_delay=1 * 2)
+def async_create_user(self, payload):
     address = payload.get("address") or None
     account_balance = payload.get("account_balance") or None
     phone_number = payload.get("phone_number")
@@ -20,8 +35,8 @@ def new_user(payload):
     email = payload.get("email") or None
     password = payload.get("password") or "admin123"
     role_id = payload.get("role") or None
-    
-    if address is not None:    
+
+    if address is not None:
         location = Location.query.filter_by(address=address.capitalize()).first()
         if location:
             location = location
@@ -44,16 +59,10 @@ def new_user(payload):
     if account_balance is not None:
         user.account.balance  = int(account_balance)
         message = "Cash Value Solution\nYour account has been credited with {}. {}".format(
-            user.location.currency_code, form.account_balance.data)
-        payload = {"message": message, "to": user.phone_number}
-        async_send_message.apply_async(args=[payload], countdown=0)
-
-
+            user.location.currency_code, account_balance)
     db.session.add_all([user, location])
-
-    db.session.commit()        
-    return True
-
+    db.session.commit()
+    gateway.sendMessage(to_=phone_number, message_=message)
 
 def new_event(payload):
     """
