@@ -1,16 +1,17 @@
-from flask import Flask
-from flask_redis import  Redis
-from flask_sqlalchemy import SQLAlchemy
 from celery import Celery
-from flask_wkhtmltopdf import Wkhtmltopdf
-from flask_qrcode import QRcode
+from flask import Flask
 from flask_bootstrap import Bootstrap, WebCDN
-from flask_uploads import configure_uploads, UploadSet, IMAGES
 from flask_login import LoginManager
 from flask_moment import Moment
+from flask_qrcode import QRcode
+from flask_redis import Redis
+from flask_sqlalchemy import SQLAlchemy
+from flask_uploads import configure_uploads, UploadSet, IMAGES
+from flask_wkhtmltopdf import Wkhtmltopdf
 
+from app.gateway import Gateway
 from config import config, Config
-from gateway import Gateway
+
 db = SQLAlchemy()
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 
@@ -19,6 +20,9 @@ bootsrap = Bootstrap()
 
 # redis
 redis = Redis()
+
+#cache
+cache = Redis()
 
 htmltopdf = Wkhtmltopdf()
 
@@ -62,6 +66,7 @@ def create_app(config_name):
 
     # initialise redis
     redis.init_app(app)
+    cache.init_app(app, 'CACHE')
 
     htmltopdf._init_app(app)
 

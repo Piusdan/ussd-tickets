@@ -1,5 +1,6 @@
 from datetime import datetime
 import hashlib
+import cPickle as pickle
 from dateutil.parser import parse
 from geopy.geocoders import googlev3
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -7,6 +8,7 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import url_for, request
 
 from flask_sqlalchemy import current_app
+from sqlalchemy.ext.serializer import dumps
 from flask_login import UserMixin, AnonymousUserMixin
 
 from app_exceptions import GeocoderError
@@ -41,7 +43,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
 
     # account details for mobile wallet
-    account = db.relationship('Account', backref="holder", uselist=False)
+    account = db.relationship('Account', backref="holder", uselist=False, lazy='subquery')
 
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
 
@@ -120,7 +122,23 @@ class User(UserMixin, db.Model):
             return None
         return User.query.get(data['id'])
 
-    
+    def to_bin(self):
+        return dumps(self)
+
+
+class Account(db.Model):
+    __tablename__ = "accounts"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    balance = db.Column(db.Float, default=0.0)
+    points = db.Column(db.Float, default=0.0)
+    purchases = db.relationship('Purchase', backref='account', lazy='subquery')
+
+
+    @property
+    def balance_available(self):
+        return self.holder.location.currency_code + ". " + str(self.balance)
+
 
 class Role(db.Model):
     """
@@ -171,6 +189,9 @@ class AnonymousUser(AnonymousUserMixin):
     def is_administrator(self):
         return False
 
+    def to_bin(self):
+        return pickle.dumps(self)
+
 
 class Event(db.Model):
     __tablename__ = "events"
@@ -182,7 +203,7 @@ class Event(db.Model):
     logo_url = db.Column(db.String(64))
     closed = db.Column(db.Boolean, default=False)
 
-    tickets = db.relationship('Ticket', backref='event', lazy='dynamic')
+    tickets = db.relationship('Ticket', backref='event', lazy='subquery')
     organiser_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     location_id = db.Column(db.Integer, db.ForeignKey('locations.id'))
@@ -200,20 +221,6 @@ class Event(db.Model):
     @property
     def day(self):
         return self.date.strftime('%B %d, %y')
-
-
-class Account(db.Model):
-    __tablename__ = "accounts"
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    balance = db.Column(db.Integer, default=0)
-    points = db.Column(db.Integer, default=0)
-    purchases = db.relationship('Purchase', backref='account', lazy='dynamic')
-
-
-    @property
-    def balance_available(self):
-        return self.holder.location.currency_code + ". " + str(self.balance)
 
 
 class Purchase(db.Model):
@@ -240,7 +247,7 @@ class Ticket(db.Model):
     __tablename__ = "tickets"
     id = db.Column(db.Integer, primary_key=True)
     count = db.Column(db.Integer)
-    price = db.Column(db.Integer)
+    price = db.Column(db.Float)
     type = db.Column(db.String(64), default='regular', index=True)
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'))
     purchases = db.relationship('Purchase', backref='ticket', lazy='dynamic')
@@ -271,15 +278,15 @@ class Location(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     country = db.Column(db.String(64))
     city = db.Column(db.String(64))
-    users = db.relationship('User', backref='location', lazy='dynamic')
-    events = db.relationship('Event', backref='location', lazy='dynamic')
+    users = db.relationship('User', backref='location')
+    events = db.relationship('Event', backref='location')
 
     codes = {
         "kenya": {
             "currency": "KES"
         },
         "uganda": {
-            "currency": "Ugx"
+            "currency": "UGX"
         }
     }
 

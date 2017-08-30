@@ -12,14 +12,14 @@ class Gateway(AfricasTalkingGateway):
         # africastalking.gateway(username, apikey, environment)
         # this enables us to initialise one gateway to use throughout the app
         # # sandbox
-        # self.username    = 'sandbox'
-        # self.apiKey      = 'ba45842273aed6928fe00afcaddd697755535b7d3d9ad8ec4986727543ff7ea5'
-        # self.environment = 'sandbox'
+        self.username    = 'sandbox'
+        self.apiKey      = 'ba45842273aed6928fe00afcaddd697755535b7d3d9ad8ec4986727543ff7ea5'
+        self.environment = 'sandbox'
 
         # # prod
-        self.username    = 'darklotus'
-        self.apiKey      = '4dfa0101c9f701cd894e63211176faebd664633b2906908cb65310f6748bfdee'
-        self.environment = 'production'
+        # self.username    = 'darklotus'
+        # self.apiKey      = '4dfa0101c9f701cd894e63211176faebd664633b2906908cb65310f6748bfdee'
+        # self.environment = 'production'
  
         self.HTTP_RESPONSE_OK       = 200
         self.HTTP_RESPONSE_CREATED  = 201

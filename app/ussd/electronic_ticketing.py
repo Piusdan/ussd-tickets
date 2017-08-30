@@ -2,8 +2,7 @@ from uuid import uuid1
 
 from flask import  url_for
 
-from ..models import db
-from utils import respond, update_session, session_exists, promote_session, demote_session, get_events, current_user, get_phone_number, get_event_tickets, get_ticket
+from utils import respond, update_session, current_user, get_event_tickets, get_ticket
 from ..controllers import async_buy_ticket
 from .. import redis
 
@@ -68,7 +67,7 @@ class ElecticronicTicketing:
 
 # TODO ask for 2 modes of payments i.e cash value account or deduction from phone
 # TODO cash value should give you points
-# 0.5% points for every value transactions
-# reedemable points through cash value 
-# send reedemable points
-# view most transactions
+# TODO 0.5% points for every value transactions
+# TODO reedemable points through cash value
+# TODO send reedemable points
+# TODO view most transactions

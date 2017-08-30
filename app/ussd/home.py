@@ -2,7 +2,7 @@ from .. import redis
 from utils import (respond, update_session,
                    session_exists, promote_session,
                    demote_session, get_events,
-                   current_user, get_phone_number)
+                   current_user)
 
 from tasks import async_send_account_balance
 
@@ -71,27 +71,30 @@ class Home:
         return respond(menu_text)
 
     def check_balance(self):
-        payload = {"phoneNumber":current_user().phone_number}
-        async_send_account_balance.apply_async(ags=[payload], countdown=0)
+        payload = {"user": current_user().to_bin()}
+        async_send_account_balance.apply_async(args=[payload], countdown=0)
         return respond("END We are sending your account balance shortly")
 
     def buy_event_tickets(self, page=1):
-        menu_text = "CON Events\n"
-        events, pagination = get_events(user=current_user())
-        event_list = ""
-        for index, event in enumerate(events):
-            index+=1
-            menu_text += str(index) + ". " + str(event.title) + "\n"
-            event_list += str(index) + ":" + str(event.id) + ","
-        even = "events"+self.session_id
-        redis.set(even, event_list)
 
-        if pagination.has_next:
-            menu_text += "98. More"
+        events, pagination = get_events()
+        if events:
+            menu_text = "CON Events\n"
+            event_list = ""
+            for index, event in enumerate(events):
+                index+=1
+                menu_text += str(index) + ". " + str(event.title) + "\n"
+                event_list += str(index) + ":" + str(event.id) + ","
+            # cache events stored
+            even = "events"+self.session_id
+            redis.set(even, event_list)
 
-
-        # Update sessions to level 30
-        update_session(self.session_id, 30)
+            if pagination.has_next:
+                menu_text += "98. More"
+            # Update sessions to level 30
+            update_session(self.session_id, 30)
+        else:
+            menu_text = "CON No events to display."
 
         return respond(menu_text)
 

@@ -1,23 +1,22 @@
 from flask import current_app, make_response, g
-from ..controllers import get_event_tickets_query
-from .. import redis
-from ..models import User, AnonymousUser, Event, Ticket
 
-def db_get_user(id_or_phone_number):
+from app import redis, db
+from ..models import User, AnonymousUser, Event, Ticket, Location
+from ..controllers import get_event_tickets_query
+from .tasks import validate_cache, set_cache
+
+def db_get_user(phone_number):
     """
     Given a user id or phone number
     get the user or return an anymous user if no such user exists
     :param id_or_phone_number: 
     :return: 
     """
-    if id_or_phone_number.startswith("+"):
-        user = User.query.filter_by(phone_number=id_or_phone_number).first()
-    else:
-        user = User.query.filter_by(id=id_or_phone_number).first()
-    if user:
-        return user
-    else:
-        return AnonymousUser()
+    user = User.query.filter_by(phone_number=phone_number).first()
+    if user is None:
+        user = AnonymousUser()
+    set_cache(phone_number, user)
+    return user
 
 def respond(menu_text, pretext=True):
     """
@@ -99,11 +98,11 @@ def get_user(phone_number):
     resp = redis.get(phone_number)
     return tuple(resp.split(":")[-2:])
 
-def get_events(user, page=1):
+def get_events(page=1):
     page = page
     pagination = Event.query.order_by(Event.date.desc()).paginate(page, per_page=current_app.config[
         'USSD_EVENTS_PER_PAGE'], error_out=False)
-    events = filter(lambda event: event.location.country == user.location.country, pagination.items)
+    events = pagination.items
     return events, pagination
 
 def get_event_tickets(event_id, session_id=None):
@@ -130,3 +129,17 @@ def get_phone_number():
 
 def get_ticket(ticket_id):
     return Ticket.query.filter_by(id=ticket_id).first()
+
+def new_user(payload):
+    codes = {"+254": "Kenya", "+255": "Uganda"}
+
+    phone_number = payload.get("phone_number")
+    username = payload.get("username")
+    location = Location(country=codes[phone_number[:4]])
+    user = User(username=username, phone_number=phone_number, location=location)
+    db.session.add(user)
+    db.session.commit()
+    validate_cache(user)
+    return True
+
+

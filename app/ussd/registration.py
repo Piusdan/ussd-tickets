@@ -1,5 +1,4 @@
-from ..controllers import new_user
-from utils import (respond, update_session, session_exists)
+from utils import (respond, update_session, session_exists, new_user)
 from ..models import User
 
 
@@ -47,6 +46,5 @@ class RegistrationMenu:
     @staticmethod
     def register_default():
         menu_text = "END Apologies something went wrong \n"
-
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)

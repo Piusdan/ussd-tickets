@@ -11,19 +11,9 @@ from app import gateway
 # @celery.task(bind=True, default_retry_delay=1 * 2)
 def new_user(payload):
     """
-    create a new user
+    creates a new user
     """
-    codes = {"+254": "Kenya", "+255": "Uganda"}
-
-    if payload.get("ussd"):
-        phone_number = payload.get("phone_number")
-        username = payload.get("username")
-        location = Location(country=codes[phone_number[:4]])
-        user = User(username=username, phone_number=phone_number, location=location)
-        db.session.add(user)
-        db.session.commit()
-    else:
-        async_create_user(payload=payload)
+    async_create_user(payload=payload)
 
 
 @celery.task(bind=True, default_retry_delay=1 * 2)

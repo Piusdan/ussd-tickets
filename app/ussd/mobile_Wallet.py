@@ -45,12 +45,11 @@ class MobileWallet:
         # Alert user of incoming Mpesa checkout
         menu_text = "END We are sending you the MPESA checkout in a moment...\n"
 
-        # todo un hardcode this!
-        currency_code = "KES"
         amount = int(self.user_response)
 
-        payload = {"phone_number": self.get_phone_number(
-        ), "amount": amount, "currency_code": currency_code}
+        payload = {"user": self.current_user().to_bin(),
+                   "amount": amount
+                   }
         async_checkoutc2b.apply_async(args=[payload], countdown=5)
 
         return respond(menu_text)

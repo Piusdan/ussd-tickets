@@ -1,5 +1,6 @@
+import json
 
-from flask import request, g
+from flask import request, g, jsonify
 
 from ..models import User, AnonymousUser
 from .utils import respond, add_session, session_exists, promote_session, demote_session, update_session
@@ -8,16 +9,13 @@ from registration import RegistrationMenu
 from mobile_Wallet import MobileWallet
 from home import Home
 from electronic_ticketing import ElecticronicTicketing
-from .decorators import validate_ussd_user
-
+from .tasks import async_c2b_callback
 
 @ussd.route('/', methods=['POST', 'GET'])
 def index():
     return respond("END connection ok")
 
-
-
-@ussd.route('/callback', methods=['POST'])
+@ussd.route('/ussd-callback', methods=['POST'])
 def ussd_callback():
     """
     Handles post call back from AT
@@ -131,4 +129,18 @@ def ussd_callback():
             # serve home menu
             return menu.home()
 
-
+@ussd.route('/payments-callback', methods=['GET', 'POST'])
+def c2b_callback():
+    import cPickle as pk
+    api_payload = request.get_json()
+    if api_payload.get('status') == 'Success':
+        # do this async
+        payload= {"api_payload": pk.dumps(api_payload)}
+        async_c2b_callback.apply_async(args=[payload], countdown=0)
+        response = jsonify({"mesage": "recieved"})
+        # print response
+    else:
+        response = jsonify({"mesage": "failed"})
+        # print response
+    response.status_code = 200
+    return response

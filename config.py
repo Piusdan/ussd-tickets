@@ -40,7 +40,7 @@ class Config:
     SSL_DISABLE = True
 
     # mobile payments conf
-    DEPOSIT_METADATA = {"sacco": "Nerds", "productId": "321"}
+    DEPOSIT_METADATA = {"paymentType": "Deposit", "productId": "001"}
 
     UPLOADS_DEFAULT_DEST = os.environ.get('UPLOADED_IMAGES_DEST') or os.path.join(basedir, 'app/media')
 
@@ -52,6 +52,8 @@ class Config:
     REDIS_HOST = os.environ.get("REDIS_HOST") or "localhost"
     REDIS_PORT = os.environ.get("REDIS_DB") or "6379"
     REDIS_DB = "1"
+    CACHE_URL = 'redis://localhost:6379/2'
+
 
     @staticmethod
     def init_app(app):
@@ -65,6 +67,7 @@ class DevelopmentConfig(Config):
 
     # set true for debugging pruposes
     DEBUG = True
+    SQLALCHEMY_RECORD_QUERIES = True
 
     # configure database url
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
