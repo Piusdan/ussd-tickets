@@ -1,8 +1,5 @@
-import json
 from flask import current_app, g
 
-from .. import gateway
-from .. import db
 from utils import respond, session_exists
 from tasks import async_checkoutb2c, async_checkoutc2b, async_purchase_airtime
 
@@ -70,21 +67,22 @@ class MobileWallet:
     def withdrawal_checkout(self):
         amount = int(self.user_response)
 
+        # check if user has enogh money in his account to withdraw the specified amount
         if self.get_balance() > amount:
-            self.current_user().account.balance -= amount
-            db.session.commit()
+            user = self.current_user()
+            code = current_app.config['CODES'].get(user.phone_number[:4])
+            currency_code = code.get('currency')
 
-            currency_code = "KES"
-
-            menu_text = "END We are sending your withdrawal of\n"
+            menu_text = "END We are sending your withdrawal of "
             menu_text += " {} {}/- shortly... \n".format(
                 currency_code, self.user_response)
 
             # Send B2c
             payload = {"productName": current_app.config["PRODUCT_NAME"],
-                       "phoneNumber": self.get_phone_number(), "currencyCode": currency_code,
-                       "amount": int(self.user_response), "reason": "Mobile Wallet Withdrawal",
-                       "name": self.current_user().username, }
+                       "phone_number": self.get_phone_number(),
+                       "amount": int(self.user_response),
+                       "currency_code": currency_code
+                       }
             async_checkoutb2c.apply_async(args=[payload], countdown=5)
 
         else:

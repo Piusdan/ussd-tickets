@@ -8,6 +8,7 @@ from flask_redis import Redis
 from flask_sqlalchemy import SQLAlchemy
 from flask_uploads import configure_uploads, UploadSet, IMAGES
 from flask_wkhtmltopdf import Wkhtmltopdf
+from raven.contrib.flask import Sentry
 
 from app.gateway import Gateway
 from config import config, Config
@@ -23,6 +24,9 @@ redis = Redis()
 
 #cache
 cache = Redis()
+
+# error logger
+sentry = Sentry(dsn='https://6b6279f612c34c54bd48af36027000c4:4662a687b9724f79ad0dc98c13277028@sentry.io/210848')
 
 htmltopdf = Wkhtmltopdf()
 
@@ -63,6 +67,9 @@ def create_app(config_name):
     login_manager.init_app(app)
 
     moment.init_app(app)
+
+    # initialise error logger
+    sentry.init_app(app)
 
     # initialise redis
     redis.init_app(app)

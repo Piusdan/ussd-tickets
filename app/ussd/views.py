@@ -1,9 +1,8 @@
-import json
-
 from flask import request, g, jsonify
 
-from ..models import User, AnonymousUser
-from .utils import respond, add_session, session_exists, promote_session, demote_session, update_session
+from ..models import AnonymousUser
+from .utils import (respond, add_session,
+                    session_exists)
 from . import ussd
 from registration import RegistrationMenu
 from mobile_Wallet import MobileWallet

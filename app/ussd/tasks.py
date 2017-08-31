@@ -14,7 +14,7 @@ def async_checkoutc2b(self, payload):
     currency_code = Location.query.get(user.location_id).currency_code
     amount = payload["amount"]
     metadata = {
-        "payment_type": "Deposit",
+        "reason": "Deposit",
         "phone_number":user.phone_number
     }
     # print metadata
@@ -35,20 +35,42 @@ def async_checkoutc2b(self, payload):
 
 @celery.task(bind=True, default_retry_delay=30 * 60)
 def async_checkoutb2c(self, payload):
+    user = User.query.filter_by(payload["phone_number"]).first()
+    reason = 'BusinessPayment'
     recipients = [
-        {"phoneNumber": payload["phoneNumber"],
-         "currencyCode": payload["currencyCode"],
-         "amount": payload["amount"], "metadata":
+        {"phoneNumber": payload["phone_number"],
+         "currencyCode": payload["currency_code"],
+         "amount": payload["amount"],
+         "reason": reason,
+         "metadata":
          {
-            "name": payload["name"],
-            "reason": payload["reason"]
+            "phone_number": user.phone_number,
+            "reason": "Withdraw"
         }
         }
     ]
 
     try:
-        gateway.mobilePaymentB2CRequest(
+        response= gateway.mobilePaymentB2CRequest(
             productName_=current_app.config["PRODUCT_NAME"], recipients_=recipients)
+
+        if response['status'] == 'Queued':
+            transaction_id = response['transactionID']
+            amount = payload["amount"]
+            user.account.balance -= amount
+            db.session.commit()
+            amount = user.location.currency_code + " " + str(amount)
+            message = "{transaction_id} You have withdrawn {amount} from" \
+                      " your Cash value wallet," \
+                      "Your new account balance is {balance}".format(
+                transaction_id=transaction_id,
+                amount=amount,
+                balance=user.account.balance)
+        else:
+            message = "Dear {username}, network is experiencing problems please try again later"
+            print response['errorMessage']
+
+        gateway.sendMessage(to_=user.phone_number, message_=message)
     except Exception as exc:
         raise self.retry(exc=exc, countdown=5)
 
@@ -57,7 +79,8 @@ def async_purchase_airtime(self, payload):
     try:
         resp = gateway.sendAirtime([payload])
         if resp[0].get('errorMessage') != 'None':
-            gateway.sendMessage(to_=payload["phone_number"], message_=resp[0]['errorMessage'])
+            gateway.sendMessage(to_=payload["phone_number"],
+                                message_=resp[0]['errorMessage'])
     except Exception as exc:
         gateway.sendMessage(to_=payload["phoneNumber"], message_="Network "
                                                                  "experiencing problems,\n"
@@ -104,17 +127,30 @@ def set_cache(phone_number, user):
 
 @celery.task(bind=True, default_retry_delay=2*1)
 def async_c2b_callback(self, payload):
+
     api_payload = cPickle.loads(str(payload["api_payload"]))
     category = api_payload.get('category')  # 'MobileCheckout'
-    if category == 'MobileCheckout':
-        value = api_payload.get('value')  # e.g 'KES 100.0000'
-        metadata = api_payload.get('requestMetadata')
-        transactionDate = api_payload.get('transactionDate')
-        transactionFee = api_payload.get('transactionFee')[:3] + " "
-        transactionFee += str(float(api_payload.get('transactionFee')[3:]))  # e.g 'KES 1.0000'
-        transaction_id = api_payload.get('transactionId')
 
-        if metadata.get("payment_type") == "Deposit":
+    value = api_payload.get('value')  # e.g 'KES 100.0000'
+    metadata = api_payload.get('requestMetadata')
+    transactionDate = api_payload.get('transactionDate')
+    transactionFee = api_payload.get('transactionFee')[:3] + " "
+    transactionFee += str(
+        float(
+            api_payload.get(
+                'transactionFee')[3:]
+        )
+    )  # e.g 'KES 1.0000'
+    transaction_id = api_payload.get('transactionId')
+
+    currency_code = value[:3]
+    amount = value[3:].lstrip()  # split value to get amount
+    amount = float(amount)  # convert to a floating point
+    phone_number = metadata["phone_number"]
+    user = User.query.filter_by(phone_number=phone_number).first()
+
+    if category == 'MobileCheckout':
+        if metadata.get("reason") == "Deposit":
             currency_code = value[:3]
             amount = value[3:].lstrip()  # split value to get amount
             amount = float(amount)  # convert to a floating point
@@ -132,10 +168,23 @@ def async_c2b_callback(self, payload):
                 balance=balance,
                 transaction_id=transaction_id,
                 transactionFee=transactionFee)
-            # send message to notify user of deposit
-            db.session.commit()
-            validate_cache(user)
-            gateway.sendMessage(to_=user.phone_number, message_=message)
-            print "recived"
-    else:
-        print "None"
+
+    if category == "MobileB2C":
+        if metadata.get("reason") == "Withdraw":
+            user.account.balance -= amount
+            amount = "{} {}".format(currency_code, amount)
+            balance = "{} {}".format(currency_code, user.account.balance)
+            message = "{transaction_id} Confirmed, You have withdrawn {amount} " \
+                      "from your Cash value wallet, Transaction fee is {transactionFee}, " \
+                      "Your new account balance is {balance}".format(
+                username=user.username,
+                amount=amount,
+                balance=balance,
+                transaction_id=transaction_id,
+                transactionFee=transactionFee)
+
+    db.session.commit()
+    validate_cache(user)
+    # notify user of the transaction
+    gateway.sendMessage(to_=user.phone_number, message_=message)
+    print "recived"

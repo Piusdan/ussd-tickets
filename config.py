@@ -31,6 +31,16 @@ class Config:
     WEB_EVENTS_PER_PAGE = 8
     TICKET_TYPES = ["Regular", "VVIP", "VIP"]
 
+    CODES = {
+        "+254": {
+            "currency": "KES"
+        },
+        "+255": {
+            "currency": "UGX"
+        }
+    }
+
+
     # general application conf
     VALHALLA_ADMIN = os.environ.get('VALHALLA_ADMIN')
     SECRET_KEY = os.environ.get('SECRET_KEY') or mysecret
@@ -89,29 +99,30 @@ class ProductionConfig(Config):
     """
     Configuration for production mode
     """
-    @classmethod
-    def init_app(cls, app):
-        Config.init_app(app)
-
-        # email errors to admin
-        import logging
-        from logging.handlers import SMTPHandler
-        credentials = None
-        secure = None
-        if getattr(cls, 'MAIL_USERNAME', None) is not None:
-            credentials = (cls.MAIL_USERNAME, cls.MAIL_PASSWORD)
-            if getattr(cls, 'MAIL_USE_TLS', None):
-                secure = ()
-        mail_handler = SMTPHandler(
-            mailhost=(cls.MAIL_SERVER, cls.MAIL_PORT),
-            fromaddr=cls.VALHALLA_MAIL_SENDER,
-            toaddrs=[cls.VALHALLA_ADMIN_MAIL],
-            subject = cls.VALHALLA_MAIL_SUBJECT_PREFIX + ' Application Error',
-            credentials=credentials,
-            secure=secure
-        )
-        mail_handler.setLevel(logging.ERROR)
-        app.logger.addHandler(mail_handler)
+    # using Sentry for this
+    # @classmethod
+    # def init_app(cls, app):
+    #     Config.init_app(app)
+    #
+    #     # email errors to admin
+    #     import logging
+    #     from logging.handlers import SMTPHandler
+    #     credentials = None
+    #     secure = None
+    #     if getattr(cls, 'MAIL_USERNAME', None) is not None:
+    #         credentials = (cls.MAIL_USERNAME, cls.MAIL_PASSWORD)
+    #         if getattr(cls, 'MAIL_USE_TLS', None):
+    #             secure = ()
+    #     mail_handler = SMTPHandler(
+    #         mailhost=(cls.MAIL_SERVER, cls.MAIL_PORT),
+    #         fromaddr=cls.VALHALLA_MAIL_SENDER,
+    #         toaddrs=[cls.VALHALLA_ADMIN_MAIL],
+    #         subject = cls.VALHALLA_MAIL_SUBJECT_PREFIX + ' Application Error',
+    #         credentials=credentials,
+    #         secure=secure
+    #     )
+    #     mail_handler.setLevel(logging.ERROR)
+    #     app.logger.addHandler(mail_handler)
     # set database url
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
                               'sqlite:///' + os.path.join(basedir,'data-sqlite')
