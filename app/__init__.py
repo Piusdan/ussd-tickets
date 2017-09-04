@@ -27,7 +27,8 @@ redis = Redis()
 cache = Redis()
 
 # error logger
-sentry = Sentry(dsn='https://6b6279f612c34c54bd48af36027000c4:4662a687b9724f79ad0dc98c13277028@sentry.io/210848')
+sentry = Sentry(dsn='https://6b6279f612c34c54bd48af36027000c4:4662a687b'
+                    '9724f79ad0dc98c13277028@sentry.io/210848')
 
 htmltopdf = Wkhtmltopdf()
 
@@ -61,8 +62,6 @@ def create_app(config_name):
         from flask_sslify import SSLify
         sslify = SSLify(app)
 
-    # initialise extensions
-    db.init_app(app)
 
     # initialise login manager
     login_manager.init_app(app)
@@ -93,6 +92,9 @@ def create_app(config_name):
 
     # Africastalking gateway
     gateway.init_app(app)
+
+    # initialise extensions
+    db.init_app(app)
 
     # register blueprints
 

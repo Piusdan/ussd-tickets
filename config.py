@@ -10,6 +10,7 @@ class Config:
     Base configuration class for our application
     """
     NAME = "Base"
+
     USSD_CONFIG = 'production'
     AT_APIKEY = os.environ.get('AT_APIKEY')
     AT_USERNAME = os.environ.get('AT_USERNAME')
@@ -53,7 +54,9 @@ class Config:
     # mobile payments conf
     DEPOSIT_METADATA = {"paymentType": "Deposit", "productId": "001"}
 
-    UPLOADS_DEFAULT_DEST = os.environ.get('UPLOADED_IMAGES_DEST') or os.path.join(basedir, 'app/media')
+    UPLOADS_DEFAULT_DEST = os.environ.get(
+        'UPLOADED_IMAGES_DEST') \
+                           or os.path.join(basedir, 'app/media')
 
     # celery conf
     CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL') or "redis://localhost:6379/0"
@@ -66,8 +69,8 @@ class Config:
     CACHE_URL = 'redis://localhost:6379/2'
 
 
-    @staticmethod
-    def init_app(app):
+    @classmethod
+    def init_app(cls, app):
         pass
 
 
@@ -75,13 +78,11 @@ class DevelopmentConfig(Config):
     """
     Configuration variables for development mode
     """
-
     # set true for debugging pruposes
     NAME = "Dev"
     DEBUG = True
     SQLALCHEMY_RECORD_QUERIES = True
-    DATABASE_URL = 'postgresql://postgres:postgres@0.0.0.0/5432/valhalla'
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:postgres@0.0.0.0/5432/valhalla'
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://valhalla:valhalla@localhost/valhalla_dev_db'
 
 class UnitTestingConfig(Config):
     """

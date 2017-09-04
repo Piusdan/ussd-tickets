@@ -5,14 +5,15 @@ Creates a shell context for the app
 """
 import os
 from flask_script import Manager, Shell
-from flask_migrate import  Migrate, MigrateCommand
+from flask_migrate import MigrateCommand, Migrate
 
 from app import create_app, db
 from app.models import User, Role, Event, Ticket, Account, Location, Purchase
 
 app = create_app(os.environ.get('VALHALLA_CONFIG') or 'default')
-manager = Manager(app)
 migrate = Migrate(app, db)
+manager = Manager(app)
+print app.config
 
 COV = None
 if os.environ.get('VALHALLA_COVERAGE'):
