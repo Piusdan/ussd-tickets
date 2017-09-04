@@ -5,7 +5,7 @@ from dateutil.parser import parse
 from geopy.geocoders import googlev3
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from flask import url_for, request
+from flask import request
 
 from flask_sqlalchemy import current_app
 from sqlalchemy.ext.serializer import dumps
@@ -47,7 +47,7 @@ class User(UserMixin, db.Model):
 
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
 
-    location_id = db.Column(db.Integer, db.ForeignKey('locations.id'))
+    location = db.relationship('Location', backref="user", uselist=False, lazy='subquery')
 
     # relationship to events user has organised
     events = db.relationship('Event', backref='organiser', lazy='dynamic')
@@ -206,17 +206,20 @@ class Event(db.Model):
     tickets = db.relationship('Ticket', backref='event', lazy='subquery')
     organiser_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
-    location_id = db.Column(db.Integer, db.ForeignKey('locations.id'))
+    db.relationship('Location', backref="event", uselist=False, lazy='subquery')
     venue = db.Column(db.String(64))
 
     def __repr__(self):
-        return "<Event {}>".format(self.title)
+        return "<Event {}>".format(self.name)
 
     def can_add_tickets(self):
         if self.tickets.count() == len(current_app.config["TICKET_TYPES"]):
             return False
         else:
             return True
+
+    def to_bin(self):
+        return pickle.dumps(self)
 
     @property
     def day(self):
@@ -278,8 +281,8 @@ class Location(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     country = db.Column(db.String(64))
     city = db.Column(db.String(64))
-    users = db.relationship('User', backref='location')
-    events = db.relationship('Event', backref='location')
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    event_id = db.Column(db.Integer, db.ForeignKey("events.id"))
 
     codes = {
         "kenya": {

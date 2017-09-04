@@ -22,7 +22,9 @@ if os.environ.get('VALHALLA_COVERAGE'):
 
 
 def make_shell_context():
-    return dict(app=app, User=User, Role=Role, Ticket=Ticket, Event=Event, Account=Account, Location=Location, db=db, Purchase=Purchase)
+    return dict(app=app, User=User, Role=Role, Ticket=Ticket,
+                Event=Event, Account=Account,
+                Location=Location, db=db, Purchase=Purchase)
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 

@@ -9,6 +9,7 @@ class Config:
     """
     Base configuration class for our application
     """
+    NAME = "Base"
     USSD_CONFIG = 'production'
     AT_APIKEY = os.environ.get('AT_APIKEY')
     AT_USERNAME = os.environ.get('AT_USERNAME')
@@ -76,12 +77,11 @@ class DevelopmentConfig(Config):
     """
 
     # set true for debugging pruposes
+    NAME = "Dev"
     DEBUG = True
     SQLALCHEMY_RECORD_QUERIES = True
-
-    # configure database url
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
-                              'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
+    DATABASE_URL = 'postgresql://postgres:postgres@0.0.0.0/5432/valhalla'
+    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:postgres@0.0.0.0/5432/valhalla'
 
 class UnitTestingConfig(Config):
     """
@@ -99,35 +99,19 @@ class ProductionConfig(Config):
     """
     Configuration for production mode
     """
-    # using Sentry for this
-    # @classmethod
-    # def init_app(cls, app):
-    #     Config.init_app(app)
-    #
-    #     # email errors to admin
-    #     import logging
-    #     from logging.handlers import SMTPHandler
-    #     credentials = None
-    #     secure = None
-    #     if getattr(cls, 'MAIL_USERNAME', None) is not None:
-    #         credentials = (cls.MAIL_USERNAME, cls.MAIL_PASSWORD)
-    #         if getattr(cls, 'MAIL_USE_TLS', None):
-    #             secure = ()
-    #     mail_handler = SMTPHandler(
-    #         mailhost=(cls.MAIL_SERVER, cls.MAIL_PORT),
-    #         fromaddr=cls.VALHALLA_MAIL_SENDER,
-    #         toaddrs=[cls.VALHALLA_ADMIN_MAIL],
-    #         subject = cls.VALHALLA_MAIL_SUBJECT_PREFIX + ' Application Error',
-    #         credentials=credentials,
-    #         secure=secure
-    #     )
-    #     mail_handler.setLevel(logging.ERROR)
-    #     app.logger.addHandler(mail_handler)
-    # set database url
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-                              'sqlite:///' + os.path.join(basedir,'data-sqlite')
+    NAME = "Prod"
+    SQLALCHEMY_DATABASE_URI = "postgresql://" \
+                              "{DB_USER}:" \
+                              "{DB_PASS}@{DB_HOST}:" \
+                              "5432/{DB_NAME}".format(
+        **{"DB_USER": os.environ.get("DB_USER"),
+           "DB_PASS": os.environ.get("DB_PASS"),
+           "DB_HOST": os.environ.get("DB_HOST"),
+           "DB_NAME": os.environ.get("DB_NAME")
+           })
 
 class HerokuConfig(ProductionConfig):
+    NAME = "Heroku"
     @classmethod
     def init_app(cls, app):
         ProductionConfig.init_app(app)

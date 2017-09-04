@@ -26,6 +26,7 @@ class MobileWallet:
         return self.current_user().phone_number
 
     def buy_airtime(self):
+        # TODO buying airtime need be fixed
         menu_text = "END Please wait as we load your account"
         # Create an instance of our gateway
         # Search DB and the Send Airtime
@@ -96,7 +97,6 @@ class MobileWallet:
         menu_text = "END Apologies, something went wrong... \n"
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
-
     # end level 10
 
     @staticmethod

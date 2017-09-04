@@ -1,3 +1,4 @@
+import cPickle as pickle
 from flask import current_app, make_response, g
 
 from app import redis, db
@@ -25,8 +26,9 @@ def respond(menu_text, pretext=True):
     a predifined header
     :return: a ussd response 
     """
-    if pretext:
-        menu_text = menu_text[:3] +" " + "Cash Value Solution\n" + menu_text[3:].lstrip()
+    header = menu_text[:3] + " Cash Value Solutions\n".upper()
+    body = menu_text[3:].title()
+    menu_text = header + body.lstrip()
     response = make_response(menu_text, 200)
     response.headers['Content-Type'] = "text/plain"
     return response
@@ -105,21 +107,22 @@ def get_events(page=1):
     events = pagination.items
     return events, pagination
 
-def get_event_tickets(event_id, session_id=None):
+def get_event_tickets_text(tickets, session_id):
     # get event tickets
     menu_text = ""
-    ticket_list= ""
-    event = Event.query.filter_by(id=event_id).first()
-    tickets = get_event_tickets_query(event_id=event_id).all()
+    # a dictionary mapping of tickets to the displayed number
+    ticket_cache_dict = {}
+    # only select tickets whose count is more than 0
     tickets = filter(lambda ticket: ticket.count > 0, tickets)
     for index, ticket in enumerate(tickets):
-        index+=1
-        ticket_list += str(index) + ":" + str(ticket.id) + ","
+        index += 1
+        ticket_cache_dict[str(index)] = ticket
         menu_text += "{}. {} {}".format(index, ticket.type, ticket.price_code) + "\n"
-    tick = "tickets"+session_id
-    redis.set(tick, ticket_list)
+
+    ticket_cache_key = "tickets" + session_id
+    redis.set(ticket_cache_key, pickle.dumps(ticket_cache_dict))
     
-    return event, menu_text
+    return menu_text
 
 def current_user():
     return g.current_user
@@ -141,5 +144,8 @@ def new_user(payload):
     db.session.commit()
     validate_cache(user)
     return True
+
+def get_cached_dict(key):
+    return pickle.loads(redis.get(key))
 
 

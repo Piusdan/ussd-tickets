@@ -1,7 +1,7 @@
 import cPickle
 from flask import current_app
 
-from app import db, cache
+from app import db, cache, redis
 from ..models import User, Location
 from .. import gateway
 from .. import celery
@@ -93,9 +93,9 @@ def async_send_account_balance(self, payload):
     location = Location.query.get(user.location_id)
     balance = "{currency_code} {balance}".format(currency_code=location.currency_code,
                                                   balance=user.account.balance)
-    message = "Dear {username}, Your account balance is {balance}," \
-              " Cash Value points balance {points}.\n" \
-              "Keep using our services and gain more points.".format(
+    message = "Dear {username}, Your Account Balance Is {balance}," \
+              " Cash Value Points Balance {points}.\n" \
+              "Keep Using Our Services To Gain More Points.".format(
             username=user.username,
             balance=balance,
             points=user.account.points)
@@ -188,3 +188,8 @@ def async_c2b_callback(self, payload):
     # notify user of the transaction
     gateway.sendMessage(to_=user.phone_number, message_=message)
     print "recived"
+
+@celery.task(bind=True, default_retry_delay=2*1)
+def async_mobile_wallet_purchse(self, payload):
+    pass
+

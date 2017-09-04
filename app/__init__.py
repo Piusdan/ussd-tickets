@@ -14,6 +14,7 @@ from app.gateway import Gateway
 from config import config, Config
 
 db = SQLAlchemy()
+
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 
 # bootsrap

@@ -1,8 +1,13 @@
 from uuid import uuid1
+import cPickle as pickle
 
 from flask import  url_for
 
-from utils import respond, update_session, current_user, get_event_tickets, get_ticket
+from utils import (respond, update_session,
+                   current_user,
+                   get_event_tickets_text,
+                   get_cached_dict)
+
 from ..controllers import async_buy_ticket
 from .. import redis
 
@@ -12,15 +17,17 @@ class ElecticronicTicketing:
         self.session_id = session_id
 
     def view_event(self):
-        even = "events"+self.session_id
-        events = redis.get(even).split(",")
-        for event in events[:-1]:
-            if event[0] == self.user_reponse:
-                id = int(event.split(":")[1])
-        
-        event, tickets= get_event_tickets(event_id=id, session_id=self.session_id)
+        event_list_key = "events" + self.session_id
+        serialized_events_dict = redis.get(event_list_key)
+        events_dict = pickle.loads(serialized_events_dict)
+        event = events_dict.get(self.user_reponse)
+        if event is None:
+            return self.invalid_response()
+        tickets = event.tickets
         if tickets:
-            menu_text = "CON {}\n{}".format(event.title, tickets)
+            menu_text = "CON {event_title}\n{text}".format(
+                event_title = event.title,
+            text=get_event_tickets_text(tickets, self.session_id))
         else:
             menu_text = "END {} has no tickets available at the moment".format(event.title)
         # Update sessions to level 32
@@ -28,15 +35,13 @@ class ElecticronicTicketing:
         return respond(menu_text)
 
     def buy_ticket(self):
-        tick = "tickets" + self.session_id
-        ticket_ids = redis.get(tick).split(",")
-        print "tickets {}".format(ticket_ids)
-        # if ticket_ids:
-        for ticket_id in ticket_ids[:-1]:
-            if ticket_id[0] == self.user_reponse:
-                id = int(ticket_id.split(":")[1])
+        ticket_cached_key = "tickets" + self.session_id
+        tickets_dict = get_cached_dict(ticket_cached_key)
+        ticket = tickets_dict.get(self.user_reponse)
 
-        ticket = get_ticket(id)
+        if ticket is None:
+            return self.invalid_response()
+
         ticket.price = int(ticket.price)
         if ticket.price < current_user().account.balance:
             menu_text = "END Your request to purchase {}'s {} ticket worth {} is being processed\nYou will receive a confirmatory SMS shortly\nThank you".format(
@@ -64,10 +69,3 @@ class ElecticronicTicketing:
 
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
-
-# TODO ask for 2 modes of payments i.e cash value account or deduction from phone
-# TODO cash value should give you points
-# TODO 0.5% points for every value transactions
-# TODO reedemable points through cash value
-# TODO send reedemable points
-# TODO view most transactions

@@ -1,9 +1,10 @@
+import cPickle as pickle
+
 from .. import redis
 from utils import (respond, update_session,
                    session_exists, promote_session,
                    demote_session, get_events,
                    current_user)
-
 from tasks import async_send_account_balance
 
 class Home:
@@ -31,16 +32,16 @@ class Home:
         # upgrade user level and serve home menu
         promote_session(self.session_id)
         # serve the menu
-        menu_text = "CON Cash Value Solutions Mobile Wallet\nHello {}.\n" \
-                    "Choose a service\n".format(current_user().username)
+        header = "CON"
+        menu_text = "Hello {}, choose a service\n".format(current_user().username)
         menu_text += " 1. Top up Account\n"
         menu_text += " 2. Withdraw Money\n"
         menu_text += " 3. Buy Airtime\n"
         menu_text += " 4. Account Balance\n"
         menu_text += " 5. Buy Event Tickets\n"
-
+        menu_text = header + menu_text
         # print the response on to the page so that our gateway can read it
-        return respond(menu_text, pretext=False)
+        return respond(menu_text)
 
 
     def deposit(self):
@@ -76,25 +77,23 @@ class Home:
         return respond("END We are sending your account balance shortly")
 
     def buy_event_tickets(self, page=1):
-
         events, pagination = get_events()
         if events:
             menu_text = "CON Events\n"
-            event_list = ""
+            event_dict = {}    # a mapping of events to the displayed number used to chache events
             for index, event in enumerate(events):
                 index+=1
                 menu_text += str(index) + ". " + str(event.title) + "\n"
-                event_list += str(index) + ":" + str(event.id) + ","
+                event_dict[str(index)] = event
             # cache events stored
-            even = "events"+self.session_id
-            redis.set(even, event_list)
-
+            event_list_key = "events" + self.session_id
+            redis.set(event_list_key, pickle.dumps(event_dict))
             if pagination.has_next:
                 menu_text += "98. More"
             # Update sessions to level 30
             update_session(self.session_id, 30)
         else:
-            menu_text = "CON No events to display."
+            menu_text = "END No events to display."
 
         return respond(menu_text)
 

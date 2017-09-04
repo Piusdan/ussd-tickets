@@ -182,6 +182,6 @@ def async_buy_ticket(self, payload):
 def async_send_message(self, payload):
     try:
         resp = gateway.sendMessage(to_=[payload["to"]], message_=payload["message"])
-    except Exception:
+    except Exception as exc:
         raise self.retry(exc=exc, countdown=5)
         
