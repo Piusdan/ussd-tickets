@@ -13,9 +13,10 @@ from app.models import User, Role, Event, Ticket, Account, Location, Purchase
 app = create_app(os.environ.get('VALHALLA_CONFIG') or 'default')
 migrate = Migrate(app, db)
 manager = Manager(app)
-print app.config
+app.logger.info(str(app.config))
 
 COV = None
+
 if os.environ.get('VALHALLA_COVERAGE'):
     import coverage
     COV = coverage.coverage(branch=True, include='app/*')
@@ -26,6 +27,7 @@ def make_shell_context():
     return dict(app=app, User=User, Role=Role, Ticket=Ticket,
                 Event=Event, Account=Account,
                 Location=Location, db=db, Purchase=Purchase)
+
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 

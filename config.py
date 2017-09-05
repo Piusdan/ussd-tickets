@@ -20,21 +20,21 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUB_MEMCHACHE = False
 
-
-    # sqlalchemy conf
+    # sql alchemy conf
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SSL_DISABLE = True
+
+    # redis conf
+    REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT = os.getenv("REDIS_DB", "6379")
+    REDIS_DB = "1"
+    CACHE_HOST = os.getenv("REDIS_HOST", "localhost")
+    CACHE_PORT = os.getenv("REDIS_DB", "6379")
+    CACHE_DB = "2"
 
     # celery conf
     CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', "redis://localhost:6379/0")
     CELERY_RESULT_BACKEND = os.getenv('CELERY_BROKER_URL', "redis://localhost:6379/0")
-
-    # redis conf
-    # TODO fix this plus the celery config
-    REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-    REDIS_PORT = os.getenv("REDIS_DB", "6379")
-    REDIS_DB = "1"
-    CACHE_URL = os.getenv('CACHE_URL', 'redis://localhost:6379/2')
 
     # application configuration
     ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER')
@@ -57,7 +57,7 @@ class Config(object):
     USSD_CONFIG = 'production'
     AT_APIKEY = os.getenv('AT_APIKEY', 'ba45842273aed6928fe00afcaddd697755535b7d3d9ad8ec4986727543ff7ea5')
     AT_USERNAME = os.getenv('AT_USERNAME', 'sandbox')
-    AT_ENVIRONMENT = os.getenv('AT_ENVIRONMENT', "sandbox")
+    AT_ENVIRONMENT = os.getenv('AT_ENVIRONMENT', 'sandbox')
     SMS_CODE = os.getenv('AT_SMSCODE', None)
     PRODUCT_NAME = os.getenv('AT_PRODUCT_NAME', 'Mobile Wallet')
 
@@ -79,6 +79,7 @@ class Config(object):
             "country": "Uganda"
         }
     }
+
 
 class DevelopmentConfig(Config):
     """Configuration for development options"""
