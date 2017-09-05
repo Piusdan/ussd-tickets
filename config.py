@@ -1,107 +1,103 @@
-import os
-import uuid
+# -*- coding: utf-8 -*-
+"""
+    config
+    ~~~~~~
+    Provides the flask config options
+"""
 
+import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-mysecret = uuid.uuid4()
-mysecret = str(mysecret)
+
 
 class Config(object):
-    """
-    Base configuration class for our application
-    """
-    NAME = "Base"
+    """general configurations"""
 
-    USSD_CONFIG = 'production'
-    AT_APIKEY = os.environ.get('AT_APIKEY')
-    AT_USERNAME = os.environ.get('AT_USERNAME')
-    SMS_CODE = os.environ.get('AT_SMSCODE')
-    PRODUCT_NAME = os.environ.get('AT_PRODUCT_NAME') or "tus"
-    SERVER_NAME = os.getenv('SERVER_NAME') or 'localhost:8000'
+    # flask specific conf
+    HOST = '0.0.0.0'
+    DEBUG = False
+    TESTING = False
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    DEBUB_MEMCHACHE = False
 
 
-    VALHALLA_ADMIN_MAIL = os.environ.get('VALHALLA_ADMIN_MAIL')
-    VALHALLA_MAIL_SUBJECT_PREFIX = "[Cash Value Solutions]"
-    VALHALLA_MAIL_SENDER = 'Cash Value Solutions <cashvaluesolutions@gmail.com>'
+    # sqlalchemy conf
+    SQLALCHEMY_COMMIT_ON_TEARDOWN = True
+    SSL_DISABLE = True
+
+    # celery conf
+    CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', "redis://localhost:6379/0")
+    CELERY_RESULT_BACKEND = os.getenv('CELERY_BROKER_URL', "redis://localhost:6379/0")
+
+    # redis conf
+    # TODO fix this plus the celery config
+    REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT = os.getenv("REDIS_DB", "6379")
+    REDIS_DB = "1"
+    CACHE_URL = os.getenv('CACHE_URL', 'redis://localhost:6379/2')
+
+    # application configuration
+    ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER')
+    SECRET_KEY = os.getenv('SECRET_KEY', 'mysecret')
+
+    ADMIN_MAIL = os.getenv('VALHALLA_ADMIN_MAIL')          # admins email address
+    MAIL_SUBJECT_PREFIX = "[Cash Value Solutions]"
+    MAIL_SENDER = 'Cash Value Solutions <cashvaluesolutions@gmail.com>'
     MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
 
-
-    USSD_EVENTS_PER_PAGE = 5
-    WEB_EVENTS_PER_PAGE = 8
-    TICKET_TYPES = ["Regular", "VVIP", "VIP"]
-
-    CODES = {
-        "+254": {
-            "currency": "KES"
-        },
-        "+255": {
-            "currency": "UGX"
-        }
-    }
-
-
-    # general application conf
-    VALHALLA_ADMIN = os.environ.get('VALHALLA_ADMIN')
-    SECRET_KEY = os.environ.get('SECRET_KEY') or mysecret
-
-    # sqlalchemy conf
-    SQLALCHEMY_COMMIT_ON_TEARDOWN = True
-    SSL_DISABLE = True
-
-    # mobile payments conf
-    DEPOSIT_METADATA = {"paymentType": "Deposit", "productId": "001"}
-
     UPLOADS_DEFAULT_DEST = os.environ.get(
         'UPLOADED_IMAGES_DEST') \
                            or os.path.join(basedir, 'app/media')
 
-    # celery conf
-    CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL') or "redis://localhost:6379/0"
-    CELERY_RESULT_BACKEND = os.environ.get('CELERY_BROKER_URL') or "redis://localhost:6379/0"
+    # configuration specific to AT gateways
+    USSD_CONFIG = 'production'
+    AT_APIKEY = os.getenv('AT_APIKEY', 'ba45842273aed6928fe00afcaddd697755535b7d3d9ad8ec4986727543ff7ea5')
+    AT_USERNAME = os.getenv('AT_USERNAME', 'sandbox')
+    AT_ENVIRONMENT = os.getenv('AT_ENVIRONMENT', "sandbox")
+    SMS_CODE = os.getenv('AT_SMSCODE', None)
+    PRODUCT_NAME = os.getenv('AT_PRODUCT_NAME', 'Mobile Wallet')
 
-    # redis conf
-    REDIS_HOST = os.environ.get("REDIS_HOST") or "localhost"
-    REDIS_PORT = os.environ.get("REDIS_DB") or "6379"
-    REDIS_DB = "1"
-    CACHE_URL = 'redis://localhost:6379/2'
+    # for pagination of responses
+    USSD_EVENTS_PER_PAGE = 5
+    WEB_EVENTS_PER_PAGE = 8
 
+    # ticket types allowed
+    TICKET_TYPES = ["Regular", "VVIP", "VIP"]
 
-    @classmethod
-    def init_app(cls, app):
-        pass
-
+    # country codes
+    CODES = {
+        "+254": {
+            "currency": "KES",
+            "country": "Kenya"
+        },
+        "+255": {
+            "currency": "UGX",
+            "country": "Uganda"
+        }
+    }
 
 class DevelopmentConfig(Config):
-    """
-    Configuration variables for development mode
-    """
-    NAME = "Dev"
-    # set true for debugging pruposes
-    DEBUG = True
-    SQLALCHEMY_RECORD_QUERIES = True
+    """Configuration for development options"""
+
     SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://valhalla:valhalla@localhost/valhalla_dev_db'
+    DEBUG = True
+    DEBUG_MEMCACHE = False
 
-class UnitTestingConfig(Config):
-    """
-    Configuration for testing mode
-    """
+
+class TestingConfig(Config):
+    """testing configurations"""
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    DEBUG = True
     TESTING = True
+    DEBUG_MEMCACHE = False
 
-    # neccesary for code coverage tests uncomment to run unnitests
-    
-    # set database url
-    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
-                              'sqlite:///' + os.path.join(basedir,'data-test.sqlite')
 
 class ProductionConfig(Config):
-    """
-    Configuration for production mode
-    """
-    NAME = "Prod"
+    """Production configuration options"""
     SQLALCHEMY_DATABASE_URI = "postgresql://" \
                               "{DB_USER}:" \
                               "{DB_PASS}@{DB_HOST}:" \
@@ -112,32 +108,11 @@ class ProductionConfig(Config):
            "DB_NAME": os.environ.get("DB_NAME")
            })
 
-class HerokuConfig(ProductionConfig):
-    NAME = "Heroku"
-    @classmethod
-    def init_app(cls, app):
-        ProductionConfig.init_app(app)
-
-        # log to stderr
-        import logging
-        from logging import StreamHandler
-        file_handler = StreamHandler()
-        file_handler.setLevel(logging.WARNING)
-        app.logger.addHandler(file_handler)
-
-        # hanle proxy server headers
-        from werkzeug.contrib.fixers import ProxyFix
-        app.wsgi_app = ProxyFix(app.wsgi_app)
-
-    SSL_DISABLE = bool(os.environ.get('SSL_DISABLE'))
-
-
 
 config = {
-    'development': DevelopmentConfig,
-    'production': ProductionConfig,
-    'heroku': HerokuConfig,
-    'testing': UnitTestingConfig,
+    "development": DevelopmentConfig,
+    "testing": TestingConfig,
+    "production": ProductionConfig,
 
-    'default': DevelopmentConfig
+    "default": DevelopmentConfig
 }
