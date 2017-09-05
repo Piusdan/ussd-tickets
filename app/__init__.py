@@ -11,7 +11,7 @@ from flask_wkhtmltopdf import Wkhtmltopdf
 from raven.contrib.flask import Sentry
 
 from app.gateway import Gateway
-from config import config, Config
+from config import Config, config
 
 db = SQLAlchemy()
 
@@ -54,9 +54,9 @@ def create_app(config_name):
     app = Flask(__name__)
 
     # apply configurations from config file
-    app.config.from_object(config[config_name])
-
-
+    app_config = config[config_name]
+    app.config.from_object(app_config)
+    app_config.init_app(app)
 
     if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
         from flask_sslify import SSLify

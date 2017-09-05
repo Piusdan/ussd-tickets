@@ -1,11 +1,12 @@
 import os
 import uuid
 
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 mysecret = uuid.uuid4()
 mysecret = str(mysecret)
 
-class Config:
+class Config(object):
     """
     Base configuration class for our application
     """
@@ -78,8 +79,8 @@ class DevelopmentConfig(Config):
     """
     Configuration variables for development mode
     """
-    # set true for debugging pruposes
     NAME = "Dev"
+    # set true for debugging pruposes
     DEBUG = True
     SQLALCHEMY_RECORD_QUERIES = True
     SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://valhalla:valhalla@localhost/valhalla_dev_db'
@@ -137,5 +138,6 @@ config = {
     'production': ProductionConfig,
     'heroku': HerokuConfig,
     'testing': UnitTestingConfig,
+
     'default': DevelopmentConfig
 }

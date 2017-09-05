@@ -1,9 +1,9 @@
 **.pyc
 **.sqlite
-.idea/**
-**/.vscode/**
 **/media/**
 app/app
 app/.coverage
 Test Results - tests.html
 requirements
+.idea/
+.vscode/
