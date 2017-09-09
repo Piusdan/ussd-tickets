@@ -5,7 +5,6 @@ from flask_login import login_required
 import pdfkit
 
 from . import main
-from app import htmltopdf
 from .forms import CreateEventForm, CreateTicketForm
 from .. import photos, db
 from ..utils import flash_errors

@@ -1,4 +1,4 @@
-from flask import request, g, jsonify
+from flask import request, g, jsonify, current_app as app
 
 from ..models import AnonymousUser
 from .utils import (respond, add_session,
@@ -10,9 +10,11 @@ from home import Home
 from electronic_ticketing import ElecticronicTicketing
 from .tasks import async_c2b_callback
 
+
 @ussd.route('/', methods=['POST', 'GET'])
 def index():
     return respond("END connection ok")
+
 
 @ussd.route('/ussd-callback', methods=['POST'])
 def ussd_callback():
@@ -29,13 +31,20 @@ def ussd_callback():
     text_array = text.split("*")
     user_response = text_array[len(text_array) - 1]
 
+    app.logger.info("received call back from user {phone_number}".format(
+        phone_number=phone_number
+    ))
+
+
     # 5. Check if the user is regitered
-  	# 6. Check if the user is available (yes)->Serve the menu; (no)->Register the user
+    #  6. Check if the user is available (yes)->Serve the menu;
+    # (no)->Register the user
     if isinstance(g.current_user, AnonymousUser):
         # create a menu instance
 
         menu = RegistrationMenu(
-            session_id=session_id, phone_number=phone_number, user_response=user_response)
+            session_id=session_id, phone_number=phone_number,
+            user_response=user_response)
         level = session_exists(session_id) or 0
         # print "level {}".format(level)
         menus = {
@@ -127,6 +136,7 @@ def ussd_callback():
 
             # serve home menu
             return menu.home()
+
 
 @ussd.route('/payments-callback', methods=['GET', 'POST'])
 def c2b_callback():

@@ -5,6 +5,7 @@ from geopy.geocoders.googlev3 import GoogleV3
 
 from ..models import User
 
+
 class LoginForm(Form):
     email = StringField('Email', validators=[DataRequired(), Length(1, 64)])
     password = PasswordField('Password', validators=[DataRequired()])

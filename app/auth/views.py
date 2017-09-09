@@ -8,6 +8,7 @@ from ..controllers import new_user
 from .forms import LoginForm, RegistrationForm
 from ..utils import flash_errors
 
+
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -49,6 +50,7 @@ def register():
         flash_errors(form)
 
     return render_template('auth/register.html', form=form)
+
 
 @auth.before_app_request
 def before_request():

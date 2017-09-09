@@ -55,7 +55,7 @@ class User(UserMixin, db.Model):
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
         if self.role is None:
-            if self.email == current_app.config['VALHALLA_ADMIN_MAIL']:
+            if self.phone_number == current_app.config['ADMIN_PHONENUMBER']:
                 self.role = Role.query.filter_by(permissions=0xff).first()
             else:
                 self.role = Role.query.filter_by(default=True).first()
@@ -174,6 +174,7 @@ class Role(db.Model):
             role.default = roles[r][1]
             db.session.add(role)
         db.session.commit()
+
 
 class Permission:
     BUY_TICKET = 0x01

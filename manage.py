@@ -5,16 +5,18 @@ Creates a shell context for the app
 """
 import os
 from flask_script import Manager, Shell
-from flask_migrate import  Migrate, MigrateCommand
+from flask_migrate import MigrateCommand, Migrate
 
 from app import create_app, db
 from app.models import User, Role, Event, Ticket, Account, Location, Purchase
 
 app = create_app(os.environ.get('VALHALLA_CONFIG') or 'default')
-manager = Manager(app)
 migrate = Migrate(app, db)
+manager = Manager(app)
+app.logger.info("initialising app")
 
 COV = None
+
 if os.environ.get('VALHALLA_COVERAGE'):
     import coverage
     COV = coverage.coverage(branch=True, include='app/*')
@@ -25,8 +27,23 @@ def make_shell_context():
     return dict(app=app, User=User, Role=Role, Ticket=Ticket,
                 Event=Event, Account=Account,
                 Location=Location, db=db, Purchase=Purchase)
+
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
+
+
+@manager.command
+def add_roles():
+    from flask_migrate import upgrade
+    from app.models import Role
+
+    # migrate db to latest version
+    app.logger.info("migrating database to latest state")
+    upgrade()
+
+    # create user roles
+    app.logger.info("adding user roles")
+    Role.insert_roles()
 
 
 @manager.command

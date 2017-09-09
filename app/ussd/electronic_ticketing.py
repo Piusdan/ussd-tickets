@@ -44,7 +44,11 @@ class ElecticronicTicketing:
 
         ticket.price = int(ticket.price)
         if ticket.price < current_user().account.balance:
-            menu_text = "END Your request to purchase {}'s {} ticket worth {} is being processed\nYou will receive a confirmatory SMS shortly\nThank you".format(
+            menu_text = "END Your request to purchase {}'s " \
+                        "{} ticket worth {} " \
+                        "is being processed\n" \
+                        "You will receive a confirmatory SMS shortly\n" \
+                        "Thank you".format(
                 ticket.event.title,
                 ticket.type,
                 ticket.price_code)
@@ -52,7 +56,10 @@ class ElecticronicTicketing:
             print code
 
             url = url_for('main.get_purchase', code=code, _external=True)
-            payload = {"user":current_user().id, "ticket":ticket.id, "number":1, "ussd":True, "code":code, "url":url}
+            payload = {"user":current_user().id,
+                       "ticket":ticket.id,
+                       "number":1, "ussd":True,
+                       "code":code, "url":url}
             async_buy_ticket.apply_async(args=[payload], countdown=0)
         else:
             menu_text = "END You have insufficient funds to purchase this ticket\n" \
