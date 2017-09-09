@@ -27,9 +27,9 @@ class Gateway(AfricasTalkingGateway):
 
         cls.username = app.config['AT_USERNAME']
         cls.apikey = app.config['AT_APIKEY']
-        # cls.environment = app.config['AT_ENVIRONMENT']
-        cls.HTTP_RESPONSE_OK       = 200
-        cls.HTTP_RESPONSE_CREATED  = 201
+        cls.environment = app.config['AT_ENVIRONMENT']
+        cls.HTTP_RESPONSE_OK = 200
+        cls.HTTP_RESPONSE_CREATED = 201
  
         # Turn this on if you run into problems. It will print the raw HTTP response from our server
         cls.Debug= False

@@ -8,6 +8,7 @@ from . import ussd
 from app import cache
 from .tasks import async_validate_cache
 
+
 def validate_ussd_user(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -24,6 +25,7 @@ def validate_ussd_user(func):
         async_validate_cache.apply_async(args=[payload], countdown=0)
         return func(*args, **kwargs)
     return wrapper
+
 
 @ussd.before_request
 @validate_ussd_user

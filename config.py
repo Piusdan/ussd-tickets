@@ -33,11 +33,13 @@ class Config(object):
     CACHE_DB = "2"
 
     # celery conf
-    CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', "redis://localhost:6379/0")
-    CELERY_RESULT_BACKEND = os.getenv('CELERY_BROKER_URL', "redis://localhost:6379/0")
+    CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL',
+                                  "redis://localhost:6379/0")
+    CELERY_RESULT_BACKEND = os.getenv('CELERY_BROKER_URL',
+                                      "redis://localhost:6379/0")
 
     # application configuration
-    ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER')
+    ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER', '+254703554404')
     SECRET_KEY = os.getenv('SECRET_KEY', 'mysecret')
 
     ADMIN_MAIL = os.getenv('VALHALLA_ADMIN_MAIL')          # admins email address
@@ -51,11 +53,15 @@ class Config(object):
 
     UPLOADS_DEFAULT_DEST = os.environ.get(
         'UPLOADED_IMAGES_DEST') \
-                           or os.path.join(basedir, 'app/media')
+                           or os.path.join(
+        basedir, 'app/media')
 
     # configuration specific to AT gateways
     USSD_CONFIG = 'production'
-    AT_APIKEY = os.getenv('AT_APIKEY', 'ba45842273aed6928fe00afcaddd697755535b7d3d9ad8ec4986727543ff7ea5')
+    AT_APIKEY = os.getenv('AT_APIKEY',
+                          'ba45842273aed6928fe00'
+                          'afcaddd697755535b7d3d9'
+                          'ad8ec4986727543ff7ea5')
     AT_USERNAME = os.getenv('AT_USERNAME', 'sandbox')
     AT_ENVIRONMENT = os.getenv('AT_ENVIRONMENT', 'sandbox')
     SMS_CODE = os.getenv('AT_SMSCODE', None)
@@ -84,7 +90,9 @@ class Config(object):
 class DevelopmentConfig(Config):
     """Configuration for development options"""
 
-    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://valhalla:valhalla@localhost/valhalla_dev_db'
+    SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://' \
+                              'valhalla:valhalla@localhost' \
+                              '/valhalla_dev_db'
     DEBUG = True
     DEBUG_MEMCACHE = False
 

@@ -8,7 +8,7 @@
 
 from celery import Celery
 from flask import Flask
-from flask_bootstrap import Bootstrap, WebCDN
+from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_moment import Moment
 from flask_qrcode import QRcode
@@ -47,7 +47,6 @@ login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
 
 
-
 def create_app(config_mode=None, config_file=None):
     app = Flask(__name__)
 
@@ -57,6 +56,7 @@ def create_app(config_mode=None, config_file=None):
         app.config.from_pyfile(config_file)
 
     db.init_app(app)
+    login_manager.init_app(app)
     moment.init_app(app)
     sentry.init_app(app)
     redis.init_app(app)

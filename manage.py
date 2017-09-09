@@ -13,7 +13,7 @@ from app.models import User, Role, Event, Ticket, Account, Location, Purchase
 app = create_app(os.environ.get('VALHALLA_CONFIG') or 'default')
 migrate = Migrate(app, db)
 manager = Manager(app)
-app.logger.info(str(app.config))
+app.logger.info("initialising app")
 
 COV = None
 
@@ -30,6 +30,20 @@ def make_shell_context():
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
+
+
+@manager.command
+def add_roles():
+    from flask_migrate import upgrade
+    from app.models import Role
+
+    # migrate db to latest version
+    app.logger.info("migrating database to latest state")
+    upgrade()
+
+    # create user roles
+    app.logger.info("adding user roles")
+    Role.insert_roles()
 
 
 @manager.command
