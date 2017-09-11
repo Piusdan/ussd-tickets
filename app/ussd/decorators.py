@@ -1,7 +1,7 @@
 from functools import wraps
 import cPickle
 
-from flask import g, request
+from flask import g, request, current_app
 
 from utils import db_get_user
 from . import ussd
@@ -13,10 +13,11 @@ def validate_ussd_user(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         phone_number = request.values.get("phoneNumber")
-        # try get from cache
+        current_app.logger.info("Trying to fectch from cache")
         user = cache.get(phone_number)
         if user is None:
             # print "To db"
+            current_app.logger.info("Not found in cache Fetching from db")
             g.current_user = db_get_user(phone_number)
         else:
             g.current_user = cPickle.loads(user)

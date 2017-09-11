@@ -1,14 +1,14 @@
 from flask import request, g, jsonify, current_app as app
 
 from ..models import AnonymousUser
-from .utils import (respond, add_session,
-                    session_exists)
 from . import ussd
+from tasks import async_c2b_callback
+from utils import respond
+from session import add_session, get_level
 from registration import RegistrationMenu
 from mobile_Wallet import MobileWallet
 from home import Home
 from electronic_ticketing import ElecticronicTicketing
-from .tasks import async_c2b_callback
 
 
 @ussd.route('/', methods=['POST', 'GET'])
@@ -18,124 +18,94 @@ def index():
 
 @ussd.route('/ussd-callback', methods=['POST'])
 def ussd_callback():
-    """
-    Handles post call back from AT
-
-    :return:
+    """Handles post call back from AT
     """
 
-    # GET values from the AT's POST request
-    session_id = request.values.get("sessionId", None)
-    phone_number = request.values.get("phoneNumber", None)
-    text = request.values.get("text", "default")
-    text_array = text.split("*")
-    user_response = text_array[len(text_array) - 1]
+    session_id = request.values.get("sessionId")
+    phone_number = request.values.get("phoneNumber")
+    text = request.values.get("text")
+    text_array = text.split("*")  # split chained response from AT gateway
+    user_response = text_array[len(text_array) - 1]  # get the latest response
 
     app.logger.info("received call back from user {phone_number}".format(
         phone_number=phone_number
     ))
 
+    add_session(session_id)  # save user's ussd journey
 
-    # 5. Check if the user is regitered
-    #  6. Check if the user is available (yes)->Serve the menu;
-    # (no)->Register the user
-    if isinstance(g.current_user, AnonymousUser):
-        # create a menu instance
-
+    if isinstance(g.current_user, AnonymousUser):  # register anonymous user
         menu = RegistrationMenu(
             session_id=session_id, phone_number=phone_number,
             user_response=user_response)
-        level = session_exists(session_id) or 0
-        # print "level {}".format(level)
+        level = get_level(session_id) or 0
         menus = {
             0: menu.get_number,
             21: menu.get_username,
-            "default": menu.register_default,  # params = (session_id)
-
+            "default": menu.register_default
         }
         return menus.get(level)()
-    else:
-        # 7. Serve the Services Menu
-        if session_exists(session_id):
-            level = session_exists(session_id)
-            # if level is less than 2 serve lower level menus
-            # print level
-            if level < 2:
-
-                menu = Home(
-                    session_id=session_id)
-                # initialise menu dict
-                menus = {
-                    "0": menu.home,
-                    "1": menu.deposit,
-                    "2": menu.withdraw,
-                    "3": menu.buy_airtime,
-                    "4": menu.check_balance,
-                    "5": menu.buy_event_tickets,
-                    "default": menu.default_menu
-                }
-                # serve menu
-                if user_response in menus.keys():
-                    return menus.get(user_response)()
-                else:
-                    return menus.get("default")()
-            # if level is between 9 and 12 serve high level response
-            elif level <= 12:
-                menu = MobileWallet(user_response,session_id)
-                # initialise menu dict
-                menus = {
-                    9: {
-                        "0": menu.deposit_checkout,
-                        "default": menu.invalid_response
-                    },
-                    10: {
-                        "0": menu.withdrawal_checkout,
-                        "default": menu.invalid_response
-                    },
-                    11: {
-                        "0": menu.buy_airtime,
-                        "default": menu.invalid_response
-
-                    }
-                }
-                if user_response.isdigit():
-                        return menus[level].get("0")()
-                else:
-                    return menus[level].get("default")()
-
-            elif level <= 35:
-                menu = ElecticronicTicketing(user_response, session_id)
-                menus = {
-                    30: {
-                        "0": menu.view_event,
-                        "default": menu.invalid_response
-                    },
-                    31: {
-                        "0": menu.more_events,
-                        "default": menu.invalid_response
-                    },
-                    32: {
-                        "0": menu.buy_ticket,
-                        "default": menu.invalid_response
-                    }
-                }
-                if user_response.isdigit():
-                        return menus[level].get("0")()
-                else:
-                    return menus[level].get("default")()
-
-
-            else:
-                return Home.class_menu(session_id)
-        else:
-            # add a new session level
-            add_session(session_id=session_id)
-            # create a menu instance
+    else:  # serve appropriate menu for registered user
+        level = get_level(session_id)
+        if level < 2:
 
             menu = Home(session_id=session_id)
+            menus = {
+                "0": menu.home,
+                "1": menu.deposit,
+                "2": menu.withdraw,
+                "3": menu.buy_airtime,
+                "4": menu.check_balance,
+                "5": menu.buy_event_tickets,
+                "default": menu.default_menu
+            }
+            if user_response in menus.keys():
+                return menus.get(user_response)()
+            else:
+                return menus.get("default")()
+        elif level <= 12:  # mobile wallet
+            menu = MobileWallet(user_response,session_id)
+            menus = {
+                9: {
+                    "0": menu.deposit_checkout,
+                    "default": menu.invalid_response
+                },
+                10: {
+                    "0": menu.withdrawal_checkout,
+                    "default": menu.invalid_response
+                },
+                11: {
+                    "0": menu.buy_airtime,
+                    "default": menu.invalid_response
+                    }
+                }
+            if user_response.isdigit():
+                        return menus[level].get("0")()
+            else:
+                return menus[level].get("default")()
 
-            # serve home menu
-            return menu.home()
+        elif level <= 35:  # Electronic ticketing
+            menu = ElecticronicTicketing(user_response, session_id)
+            menus = {
+                30: {
+                    "0": menu.view_event,
+                    "default": menu.invalid_response
+                },
+                31: {
+                    "0": menu.more_events,
+                    "default": menu.invalid_response
+                },
+                32: {
+                    "0": menu.buy_ticket,
+                    "default": menu.invalid_response
+                }
+            }
+            if user_response.isdigit():
+                    return menus[level].get("0")()
+            else:
+                return menus[level].get("default")()
+
+        else:   # serve default menu
+                return Home.class_menu(session_id)
 
 
 @ussd.route('/payments-callback', methods=['GET', 'POST'])

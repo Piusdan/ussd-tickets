@@ -74,7 +74,7 @@ class Config(object):
     # ticket types allowed
     TICKET_TYPES = ["Regular", "VVIP", "VIP"]
 
-    # country codes
+    # country codesgit
     CODES = {
         "+254": {
             "currency": "KES",
@@ -107,15 +107,11 @@ class TestingConfig(Config):
 
 class ProductionConfig(Config):
     """Production configuration options"""
-    SQLALCHEMY_DATABASE_URI = "postgresql://" \
-                              "{DB_USER}:" \
-                              "{DB_PASS}@{DB_HOST}:" \
-                              "5432/{DB_NAME}".format(
-        **{"DB_USER": os.environ.get("DB_USER"),
-           "DB_PASS": os.environ.get("DB_PASS"),
-           "DB_HOST": os.environ.get("DB_HOST"),
-           "DB_NAME": os.environ.get("DB_NAME")
-           })
+    SQLALCHEMY_DATABASE_URI = "postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}".\
+        format(**{"DB_USER": os.environ.get("DB_USER"),
+                  "DB_PASS": os.environ.get("DB_PASS"),
+                  "DB_HOST": os.environ.get("DB_HOST"),
+                  "DB_NAME": os.environ.get("DB_NAME")})
 
 
 config = {

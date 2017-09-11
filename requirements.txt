@@ -24,4 +24,3 @@ redis
 SQLAlchemy
 WTForms
 blinker
-pdfkit
