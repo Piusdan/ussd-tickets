@@ -1,26 +1,25 @@
-from utils import (respond, update_session, session_exists, new_user)
 from ..models import User
+from utils import respond,new_user
+from base_menu import Menu
 
-
-class RegistrationMenu:
+class RegistrationMenu(Menu):
     """
     Serves registration callbacks
     """
-    def __init__(self, phone_number, session_id, user_response):
+    def __init__(self, phone_number, **kwargs):
         """
         new member registration menu
-        :param phone_number: 
-        :param session_id: 
-        :param user_response: 
+        :param phone_number: user's phone number 
+        :param session_id: AT session ID
+        :param user_response: Response from user
         """
-        self.session_id = session_id
-        self.user = User.query.filter_by(phone_number=phone_number).first()
-        self.session = session_exists(self.session_id)
-        self.user_response = user_response
+        super(RegistrationMenu, self).__init__(**kwargs)
         self.phone_number = phone_number
+
     def get_number(self):
         # promote the user a higher session level
-        update_session(self.session_id, 21)
+        self.set_level(21)
+        self.update_session()
         menu_text = "CON Please choose a Username\n"
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
@@ -36,15 +35,15 @@ class RegistrationMenu:
             else:
                 new_user(payload)
                 # graduate user level
-                update_session(self.session_id)
+                self.set_level(0)
+                self.update_session()
                 menu_text = "CON Registration Succesfull\n Press 0 to continue"
         else:
             menu_text = "CON Username not supposed to be empty. Please enter your username \n"
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
 
-    @staticmethod
-    def register_default():
+    def register_default(self):
         menu_text = "END Apologies something went wrong \n"
         # Print the response onto the page so that our gateway can read it
-        return respond(menu_text)
+        return respond(menu_text, self.session_id)

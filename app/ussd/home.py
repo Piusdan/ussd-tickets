@@ -1,27 +1,14 @@
 import cPickle as pickle
 
 from .. import redis
-from utils import (respond, update_session,
-                   session_exists, promote_session,
-                   demote_session, get_events,
-                   current_user)
+from utils import (respond, get_events, current_user)
 from tasks import async_send_account_balance
+from base_menu import Menu
 
-class Home:
+class Home(Menu):
     """
     serve the main menu
     """
-    def __init__(self, session_id):
-        """
-        initialises the Menu class
-        :param user, session_id
-        sets the user and session_id to be used by the menus
-        """
-        self.session_id = session_id
-        self.session = session_exists(session_id)
-        self.session_id = session_id
-
-
     def home(self):
         """
         If user level is zero or zero
@@ -30,7 +17,9 @@ class Home:
         """
 
         # upgrade user level and serve home menu
-        promote_session(self.session_id)
+        self.set_level(1)
+        self.update_session()
+
         # serve the menu
         header = "CON"
         menu_text = "Hello {}, choose a service\n".format(current_user().username)
@@ -43,67 +32,76 @@ class Home:
         # print the response on to the page so that our gateway can read it
         return respond(menu_text)
 
-
     def deposit(self):
-        # as how much and Launch teh Mpesa Checkout to the user
+        # TODO add various deposit methods
+        # ask how much and Launch the Mpesa Checkout to the user
         menu_text = "CON Enter amount you wish to deposit\n"
 
         # Update sessions to level 9
-        update_session(self.session_id, 9)
+        self.set_level(9)
+        self.update_session()
         # print the response on to the page so that our gateway can read it
         return respond(menu_text)
 
     def withdraw(self):
+        # TODO add various chekcout channels
         # Ask how much and Launch B2C to the user
         menu_text = "CON Enter amount you wish to withdraw\n"
 
         # Update sessions to level 10
-        update_session(self.session_id, 10)
+        self.set_level(10)
+        self.update_session()
 
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
 
     def buy_airtime(self):
+        #TODO add various payment modes
         # 9e.Send user airtime
         menu_text = "CON Enter amount you wish to buy.\n"
 
-        update_session(self.session_id, 11)       
+        self.set_level(11)
+        self.update_session()
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
 
     def check_balance(self):
+        #TODO Send in session
         payload = {"user": current_user().to_bin()}
         async_send_account_balance.apply_async(args=[payload], countdown=0)
-        return respond("END We are sending your account balance shortly")
+        return respond("END We are sending "
+                       "your account balance shortly",
+                       session_id=self.session_id)
 
     def buy_event_tickets(self, page=1):
         events, pagination = get_events()
         if events:
             menu_text = "CON Events\n"
-            event_dict = {}    # a mapping of events to the displayed number used to chache events
+            event_dict = {}    # a mapping of events to the
+            # displayed number used to chache events
             for index, event in enumerate(events):
                 index+=1
                 menu_text += str(index) + ". " + str(event.title) + "\n"
                 event_dict[str(index)] = event
             # cache events stored
-            event_list_key = "events" + self.session_id
-            redis.set(event_list_key, pickle.dumps(event_dict))
+            self.session_dict.setdefault('events', event_dict)
             if pagination.has_next:
                 menu_text += "98. More"
             # Update sessions to level 30
-            update_session(self.session_id, 30)
+            self.set_level(30)
+            self.update_session()
         else:
             menu_text = "END No events to display."
 
         return respond(menu_text)
-
 
     def default_menu(self):
         # Return user to Main Menu & Demote user's level
         menu_text = "CON You have to choose a service.\n"
         menu_text += "Press 0 to go back to main menu.\n"
         # demote
-        update_session(self.session_id, 0)
+        self.set_level(0)
+        self.update_session()
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
 
@@ -112,7 +110,4 @@ class Home:
         # Return user to Main Menu & Demote user's level
         menu_text = "CON You have to choose a service.\n"
         menu_text += "Press 0 to go back to main menu.\n"
-        # demote
-        demote_session(session_id=session_id)
-        # Print the response onto the page so that our gateway can read it
         return respond(menu_text)

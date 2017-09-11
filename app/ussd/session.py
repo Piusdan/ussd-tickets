@@ -11,10 +11,9 @@ def add_session(session_id):
     :rtype: bool
     """
     session_dict = {}
-    session_dict.setdefault('level', None)
+    session_dict.setdefault('level', 0)
     session_dict.setdefault('response', None)
-    pickle.dumps(session_dict)
-    return redis.set(session_id, session_dict, ex=300)
+    return redis.set(session_id, pickle.dumps(session_dict), ex=300)
 
 
 def get_session(session_id):
@@ -35,8 +34,19 @@ def update_session(session_id, session_dict):
     :rtype: bool
     """
     serialised_session_dict = pickle.dumps(session_dict)
-    return redis.append(session_id, serialised_session_dict)
+    return redis.set(session_id, serialised_session_dict, ex=300)
+
 
 def get_level(session_id):
     session_dict = get_session(session_id)
     return session_dict.get('level', None)
+
+
+def expire_session(session_id, ex=10):
+    """Set the expiration of the key to ex seconds
+    :param session_id: unique session identifier
+    :param ex: time in seconds
+    :return: True
+    :rtype: bool
+    """
+    return redis.expire(session_id, ex)

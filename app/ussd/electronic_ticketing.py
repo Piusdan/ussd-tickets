@@ -1,26 +1,26 @@
 from uuid import uuid1
-import cPickle as pickle
 
 from flask import  url_for
 
-from utils import (respond, update_session,
-                   current_user,
-                   get_event_tickets_text,
-                   get_cached_dict)
-
 from ..controllers import async_buy_ticket
-from .. import redis
+from utils import (respond,current_user,
+                   get_event_tickets_text)
+from session import get_session, update_session
+from base_menu import Menu
 
-class ElecticronicTicketing:
-    def __init__(self, user_response, session_id):
-        self.user_reponse = user_response
-        self.session_id = session_id
+
+class ElecticronicTicketing(Menu):
+
+    def get_events(self):
+        return self.session_dict.get('events')
+
+    def get_tickets(self):
+        return self.session_dict.get('tickets')
 
     def view_event(self):
         event_list_key = "events" + self.session_id
-        serialized_events_dict = redis.get(event_list_key)
-        events_dict = pickle.loads(serialized_events_dict)
-        event = events_dict.get(self.user_reponse)
+        events_dict = self.get_events()
+        event = events_dict.get(self.user_response)
         if event is None:
             return self.invalid_response()
         tickets = event.tickets
@@ -31,17 +31,16 @@ class ElecticronicTicketing:
         else:
             menu_text = "END {} has no tickets available at the moment".format(event.title)
         # Update sessions to level 32
-        update_session(self.session_id, 32)
+        self.session_id.level = 32
+        self.update_session()
         return respond(menu_text)
 
     def buy_ticket(self):
-        ticket_cached_key = "tickets" + self.session_id
-        tickets_dict = get_cached_dict(ticket_cached_key)
-        ticket = tickets_dict.get(self.user_reponse)
-
+        # TODO add payment options
+        tickets_dict = self.get_tickets()
+        ticket = tickets_dict.get(self.user_response)
         if ticket is None:
             return self.invalid_response()
-
         ticket.price = int(ticket.price)
         if ticket.price < current_user().account.balance:
             menu_text = "END Your request to purchase {}'s " \
@@ -72,7 +71,7 @@ class ElecticronicTicketing:
     def invalid_response(self):
         menu_text = "CON Your entered an invalid reponse\nPress 0 to go back\n"
 
-        update_session(self.session_id, 0)
-
+        self.set_level(0)
+        self.update_session()
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)

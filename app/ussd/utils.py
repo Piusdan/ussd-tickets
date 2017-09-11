@@ -4,7 +4,7 @@ from flask import current_app, make_response, g
 from ..models import User, AnonymousUser, Event, Ticket, Location
 from .tasks import validate_cache, set_cache
 from app import db
-from session import get_session, update_session
+from session import get_session, update_session, expire_session
 
 
 def db_get_user(phone_number):
@@ -21,13 +21,15 @@ def db_get_user(phone_number):
     return user
 
 
-def respond(menu_text, pretext=True):
+def respond(menu_text, session_id=None, pretext=True):
     """
     :param menu_text: menu text to display
-    :param pretext: set to False if you dont want to include
-    a predifined header
+    :param pretext: set to False if you don't want to include a predifined header
+    :param session_id: include this if you wish to stop tracking the user journey :Depreciated
     :return: a ussd response 
     """
+    if session_id is not None or menu_text[:3].strip().lower() == 'end':
+        expire_session(session_id)
     header = menu_text[:3] + " Cash Value Solutions\n".upper()
     body = menu_text[3:].title()
     menu_text = header + body.lstrip()

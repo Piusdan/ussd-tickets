@@ -37,7 +37,7 @@ def ussd_callback():
         menu = RegistrationMenu(
             session_id=session_id, phone_number=phone_number,
             user_response=user_response)
-        level = get_level(session_id) or 0
+        level = get_level(session_id)
         menus = {
             0: menu.get_number,
             21: menu.get_username,
@@ -46,6 +46,7 @@ def ussd_callback():
         return menus.get(level)()
     else:  # serve appropriate menu for registered user
         level = get_level(session_id)
+        print level
         if level < 2:
 
             menu = Home(session_id=session_id)
@@ -61,9 +62,10 @@ def ussd_callback():
             if user_response in menus.keys():
                 return menus.get(user_response)()
             else:
-                return menus.get("default")()
+                return menus.get("0")()
         elif level <= 12:  # mobile wallet
-            menu = MobileWallet(user_response,session_id)
+            menu = MobileWallet(session_id=session_id,
+                                user_response=user_response)
             menus = {
                 9: {
                     "0": menu.deposit_checkout,
@@ -84,7 +86,7 @@ def ussd_callback():
                 return menus[level].get("default")()
 
         elif level <= 35:  # Electronic ticketing
-            menu = ElecticronicTicketing(user_response, session_id)
+            menu = ElecticronicTicketing(session_id=session_id, user_response=user_response)
             menus = {
                 30: {
                     "0": menu.view_event,
@@ -105,7 +107,7 @@ def ussd_callback():
                 return menus[level].get("default")()
 
         else:   # serve default menu
-                return Home.class_menu(session_id)
+            return Home.class_menu(session_id)
 
 
 @ussd.route('/payments-callback', methods=['GET', 'POST'])

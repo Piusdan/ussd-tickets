@@ -1,29 +1,27 @@
 from flask import current_app, g
 
-from utils import respond, session_exists
+from base_menu import Menu
+from utils import respond
+from session import get_session
 from tasks import async_checkoutb2c, async_checkoutc2b, async_purchase_airtime
 
-class MobileWallet:
+class MobileWallet(Menu):
+    """All Mobile Wallet transactions
+    includes
+    airtime purchase
+    withdrawal request
+    deposit request
     """
-    Serves high level callbacks
-    """
 
-    def __init__(self, user_response, session_id):
-        """
-
-        """
-        self.session_id = session_id
-        self.session = session_exists(self.session_id)
-        self.user_response = user_response
-
+    @property
     def current_user(self):
         return g.current_user
 
-    def get_balance(self):
-        return self.current_user().account.balance
+    def balance(self):
+        return self.current_user.account.balance
 
     def get_phone_number(self):
-        return self.current_user().phone_number
+        return self.current_user.phone_number
 
     def buy_airtime(self):
         # TODO buying airtime need be fixed
@@ -45,32 +43,31 @@ class MobileWallet:
 
         amount = int(self.user_response)
 
-        payload = {"user": self.current_user().to_bin(),
+        payload = {"user": self.current_user.to_bin(),
                    "amount": amount
                    }
         async_checkoutc2b.apply_async(args=[payload], countdown=5)
 
         return respond(menu_text)
 
-    def invalid_response(self):
+    @staticmethod
+    def invalid_response():
         menu_text = "CON Please enter a valid amount\n"
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
 
-    def default_deposit_checkout(self):
+    @staticmethod
+    def default_deposit_checkout():
         menu_text = "END Apologies, something went wrong... \n"
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
 
-    # end level 9
-
-    # level 10
     def withdrawal_checkout(self):
         amount = int(self.user_response)
-
-        # check if user has enogh money in his account to withdraw the specified amount
-        if self.get_balance() > amount:
-            user = self.current_user()
+        # check if user has enough money in his account to
+        #  withdraw the specified amount
+        if self.balance > amount:
+            user = self.current_user
             code = current_app.config['CODES'].get(user.phone_number[:4])
             currency_code = code.get('currency')
 
@@ -87,17 +84,17 @@ class MobileWallet:
             async_checkoutb2c.apply_async(args=[payload], countdown=5)
 
         else:
-            # Alert user of insufficient fundsb
+            # Alert user of insufficient funds
             menu_text = "END Sorry, you don't have sufficient\n"
             menu_text += " funds in your account \n"
 
         return respond(menu_text)
 
-    def withdrawal_default(self):
+    @staticmethod
+    def withdrawal_default():
         menu_text = "END Apologies, something went wrong... \n"
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
-    # end level 10
 
     @staticmethod
     def default_mobilewallet_response():
@@ -106,8 +103,5 @@ class MobileWallet:
 
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
-
-        # end higher level responses
-
 
 
