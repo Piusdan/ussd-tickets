@@ -2,8 +2,8 @@ from flask import current_app, g
 
 from base_menu import Menu
 from utils import respond
-from session import get_session
-from tasks import async_checkoutb2c, async_checkoutc2b, async_purchase_airtime
+from payments import payments
+from tasks import async_checkoutb2c, async_purchase_airtime
 
 class MobileWallet(Menu):
     """All Mobile Wallet transactions
@@ -24,11 +24,9 @@ class MobileWallet(Menu):
         return self.current_user.phone_number
 
     def buy_airtime(self):
-        # TODO buying airtime need be fixed
         menu_text = "END Please wait as we load your account"
-        # Create an instance of our gateway
-        # Search DB and the Send Airtime
-        amount = "KES " + self.user_response
+        amount = "{currency} {amount}".format(currency=self.current_user.location.currency_code,
+                                              amount=self.user_response)
         phone_number = self.get_phone_number()
 
         # Search DB and the Send Airtime
@@ -37,17 +35,32 @@ class MobileWallet(Menu):
         
         return respond(menu_text)
 
-    def deposit_checkout(self):
-        # Alert user of incoming Mpesa checkout
-        menu_text = "END We are sending you the MPESA checkout in a moment...\n"
-
+    def deposit_channel(self):
+        menu_text = "CON Please choose your payment method\n"
+        menu_text += "1. Mpesa\n"
+        menu_text += "2. MTN Money\n"
+        menu_text += "3. Airtel Money\n"
         amount = int(self.user_response)
+        self.session_dict.setdefault('deposit_amount', amount)
+        self.set_level(9)
+        self.update_session()
+        return respond(menu_text)
 
-        payload = {"user": self.current_user.to_bin(),
-                   "amount": amount
-                   }
-        async_checkoutc2b.apply_async(args=[payload], countdown=5)
-
+    def deposit_checkout(self):
+        amount = self.session_dict["deposit_amount"]
+        metadata = {"phone_number": self.current_user.phone_number,
+                    "reason": "Deposit"
+                    }
+        if self.user_response in payments.keys():
+            mode = payments[self.user_response](user=self.current_user,
+                                                amount=amount,
+                                                metadata=metadata)
+            menu_text = "END We are sending you the {name} checkout in a moment...\n".format(
+                name=mode
+            )
+            mode.execute()
+        else:
+            menu_text = "END Service currently unavailable, please try other payment options"
         return respond(menu_text)
 
     @staticmethod

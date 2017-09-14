@@ -26,12 +26,12 @@ class ElecticronicTicketing(Menu):
         tickets = event.tickets
         if tickets:
             menu_text = "CON {event_title}\n{text}".format(
-                event_title = event.title,
+                event_title = event.name,
             text=get_event_tickets_text(tickets, self.session_id))
         else:
-            menu_text = "END {} has no tickets available at the moment".format(event.title)
+            menu_text = "END {} has no tickets available at the moment".format(event.name)
         # Update sessions to level 32
-        self.session_id.level = 32
+        self.session_dict['level'] = 32
         self.update_session()
         return respond(menu_text)
 

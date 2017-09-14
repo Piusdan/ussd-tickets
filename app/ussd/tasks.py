@@ -1,24 +1,18 @@
 import cPickle
 from flask import current_app
 
-from app import db, cache, redis
+from app import db, cache, gateway
 from ..models import User, Location
-from .. import gateway
 from .. import celery
 
 
 @celery.task(bind=True, default_retry_delay=30 * 60)
-def async_checkoutc2b(self, payload):
+def async_mpesa_checkoutc2b(self, payload):
     serialized_user = payload["user"]
     user = cPickle.loads(str(serialized_user))
-    currency_code = Location.query.get(user.location_id).currency_code
+    currency_code = user.location.currency_code
     amount = payload["amount"]
-    metadata = {
-        "reason": "Deposit",
-        "phone_number":user.phone_number
-    }
-    # print metadata
-    # pass to gateway
+    metadata = cPickle.loads(str(payload["metadata"]))
     try:
         # send the user a mobile checkout
         transaction_id = gateway.initiateMobilePaymentCheckout(
@@ -31,6 +25,21 @@ def async_checkoutc2b(self, payload):
         print transaction_id
     except Exception as exc:
         raise self.retry(exc=exc, countdown=5)
+
+
+@celery.task(bind=True, default_retry_delay=30 * 60)
+def async_cvswallet_checkout(self, payload):
+    amount = payload["amount"]
+    metadata = payload['metadata']
+    user = User.query.filter_by(phone_number=metadata['phone_number']).first()
+    if user:
+        user.account.balance -= amount
+        user.account.points = float(amount*0.5)
+        db.session.commit()
+        try:
+            gateway.sendMessage(to_=user.phone_number, message_=metadata['message'])
+        except Exception as exc:
+            raise self.retry(exc=exc, countdown=5)
 
 
 @celery.task(bind=True, default_retry_delay=30 * 60)
@@ -74,6 +83,7 @@ def async_checkoutb2c(self, payload):
     except Exception as exc:
         raise self.retry(exc=exc, countdown=5)
 
+
 @celery.task(bind=True, default_retry_delay=2*1)
 def async_purchase_airtime(self, payload):
     try:
@@ -86,11 +96,12 @@ def async_purchase_airtime(self, payload):
                                                                  "experiencing problems,\n"
                                                                  "Kindly try again later")
 
+
 @celery.task(bind=True, default_retry_delay=2*1)
 def async_send_account_balance(self, payload):
     user_bin = str(payload["user"])
     user = cPickle.loads(user_bin)
-    location = Location.query.get(user.location_id)
+    location = user.location
     balance = "{currency_code} {balance}".format(currency_code=location.currency_code,
                                                   balance=user.account.balance)
     message = "Dear {username}, Your Account Balance Is {balance}," \
@@ -107,6 +118,7 @@ def async_send_account_balance(self, payload):
             to_=user.phone_number,
             message_="Network experiencing problems.\nKindly try again later")
 
+
 @celery.task(bind=True, default_retry_delay=2*1)
 def async_validate_cache(self, payload):
     phone_number = payload["phone_number"]
@@ -118,16 +130,19 @@ def async_validate_cache(self, payload):
         print "deleted"
     print "Validated"
 
+
 def validate_cache(user):
     phone_number = user.phone_number
     cache.set(phone_number, user.to_bin())
 
+
 def set_cache(phone_number, user):
     cache.set(phone_number, user.to_bin())
 
-@celery.task(bind=True, default_retry_delay=2*1)
-def async_c2b_callback(self, payload):
 
+@celery.task(bind=True, default_retry_delay=2*1)
+def async_mpesa_c2b_callback(self, payload):
+    message = None
     api_payload = cPickle.loads(str(payload["api_payload"]))
     category = api_payload.get('category')  # 'MobileCheckout'
 
@@ -182,12 +197,16 @@ def async_c2b_callback(self, payload):
                 balance=balance,
                 transaction_id=transaction_id,
                 transactionFee=transactionFee)
+        if metadata.get("reason") == "Purchase":
+            message = payload['message']
 
     db.session.commit()
     validate_cache(user)
-    # notify user of the transaction
-    gateway.sendMessage(to_=user.phone_number, message_=message)
+    if message is not None:
+        # notify user of the transaction
+        gateway.sendMessage(to_=user.phone_number, message_=message)
     print "recived"
+
 
 @celery.task(bind=True, default_retry_delay=2*1)
 def async_mobile_wallet_purchse(self, payload):

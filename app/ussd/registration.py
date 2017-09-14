@@ -6,15 +6,6 @@ class RegistrationMenu(Menu):
     """
     Serves registration callbacks
     """
-    def __init__(self, phone_number, **kwargs):
-        """
-        new member registration menu
-        :param phone_number: user's phone number 
-        :param session_id: AT session ID
-        :param user_response: Response from user
-        """
-        super(RegistrationMenu, self).__init__(**kwargs)
-        self.phone_number = phone_number
 
     def get_number(self):
         # promote the user a higher session level

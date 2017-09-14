@@ -30,7 +30,10 @@ def respond(menu_text, session_id=None, pretext=True):
     """
     if session_id is not None or menu_text[:3].strip().lower() == 'end':
         expire_session(session_id)
-    header = menu_text[:3] + " Cash Value Solutions\n".upper()
+    if pretext:
+        header = menu_text[:3] + " Cash Value Solutions\n".upper()
+    else:
+        header = menu_text[:3] + " "
     body = menu_text[3:].title()
     menu_text = header + body.lstrip()
     response = make_response(menu_text, 200)

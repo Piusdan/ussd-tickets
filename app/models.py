@@ -1,7 +1,6 @@
 from datetime import datetime
 import hashlib
 import cPickle as pickle
-from dateutil.parser import parse
 from geopy.geocoders import googlev3
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -43,11 +42,12 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
 
     # account details for mobile wallet
-    account = db.relationship('Account', backref="holder", uselist=False, lazy='subquery')
+    account = db.relationship('Account', backref="holder", uselist=False, lazy='subquery', cascade='all, delete-orphan')
 
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
 
-    location = db.relationship('Location', backref="user", uselist=False, lazy='subquery')
+    country = db.Column(db.String(64))
+    city = db.Column(db.String(64))
 
     # relationship to events user has organised
     events = db.relationship('Event', backref='organiser', lazy='dynamic')
@@ -96,6 +96,14 @@ class User(UserMixin, db.Model):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    @property
+    def currency_code(self):
+        return Location.currency_code(self.country)
+
+    @property
+    def country_code(self):
+        return Location.country_code(self.country)
+
     # user loader
     @login_manager.user_loader
     def load_user(user_id):
@@ -141,7 +149,7 @@ class Account(db.Model):
 
 
 class Role(db.Model):
-    """
+    """Set User Role
     Anonymous - Unknown user
     user - basic permission, can register for events
     moderator - moderates events to check their eligibility
@@ -197,17 +205,18 @@ class AnonymousUser(AnonymousUserMixin):
 class Event(db.Model):
     __tablename__ = "events"
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Integer, index=True)
+    name = db.Column(db.String, index=True)
     description = db.Column(db.String(64), index=True)
 
     date = db.Column(db.DateTime)
     logo_url = db.Column(db.String(64))
     closed = db.Column(db.Boolean, default=False)
 
-    tickets = db.relationship('Ticket', backref='event', lazy='subquery')
+    tickets = db.relationship('Ticket', backref='event', lazy='subquery', cascade='all, delete-orphan')
     organiser_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
-    db.relationship('Location', backref="event", uselist=False, lazy='subquery')
+    country = db.Column(db.String(64))
+    city = db.Column(db.String(64))
     venue = db.Column(db.String(64))
 
     def __repr__(self):
@@ -226,6 +235,14 @@ class Event(db.Model):
     def day(self):
         return self.date.strftime('%B %d, %y')
 
+    @property
+    def currency_code(self):
+        return Location.currency_code(self.country)
+
+    @property
+    def country_code(self):
+        return Location.country_code(self.country)
+
 
 class Purchase(db.Model):
     __tablename__ = "purchases"
@@ -236,15 +253,6 @@ class Purchase(db.Model):
     ticket_id = db.Column(db.Integer, db.ForeignKey('tickets.id'))
     account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
     confirmed = db.Column(db.Boolean, default=False)
-
-    def to_json(self):
-        json_data = {}
-        json_data.setdefault('count', self.count)
-        json_data.setdefault('type', self.ticket.type)
-        json_data["PurchaserUserName"] = self.account.holder.username 
-        json_data["Event Name"] = self.ticket.event.title
-        json_data["Event Date"] = self.ticket.event.date
-        return json_data
 
 
 class Ticket(db.Model):
@@ -261,30 +269,10 @@ class Ticket(db.Model):
 
     @property
     def price_code(self):
-        return self.event.location.currency_code + ". " + str(self.price)
-    
-    @staticmethod
-    def from_json(json_data):
-        type = json_data.get('type', None)
-        event_id = json_data.get('event_id', None)
-        price = json_data.get("price")
-        if event_id is None:
-            raise (ValueError('A ticket must be associated with an event'))
-        ticket = Ticket(event_id=event_id, price=price)
-        if type is None:
-            raise (ValueError('Please specify the ticket type'))
-        ticket.type = type
-        return ticket
+        return self.event.currency_code + ". " + str(self.price)
 
 
-class Location(db.Model):
-    __tablename__ = "locations"
-    id = db.Column(db.Integer, primary_key=True)
-    country = db.Column(db.String(64))
-    city = db.Column(db.String(64))
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    event_id = db.Column(db.Integer, db.ForeignKey("events.id"))
-
+class Location():
     codes = {
         "kenya": {
             "currency": "KES"
@@ -293,27 +281,10 @@ class Location(db.Model):
             "currency": "UGX"
         }
     }
+    @classmethod
+    def currency_code(cls, country):
+        return cls.codes.get(country.lower()).get("currency")
 
-    @property
-    def address(self):
-        return self.city
-
-    @address.setter
-    def address(self, city):
-        try:
-            geocoder = googlev3.GoogleV3()
-            location = str(geocoder.geocode(city).address)
-            self.city, self.country = location.split(", ")
-        except:
-            raise GeocoderError
-
-    @property
-    def currency_code(self):
-        return self.codes.get(self.country.lower()).get("currency")
-
-    @property
-    def country_code(self):
-        return self.codes.get(self.country.lower()).get("phone")
-
-    def __repr__(self):
-        return "{} {}".format(self.city, self.country)
+    @classmethod
+    def country_code(cls, country):
+        return cls.codes.get(country.lower()).get("phone")

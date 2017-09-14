@@ -2,7 +2,7 @@ from flask import request, g, jsonify, current_app as app
 
 from ..models import AnonymousUser
 from . import ussd
-from tasks import async_c2b_callback
+from tasks import async_mpesa_c2b_callback
 from utils import respond
 from session import add_session, get_level
 from registration import RegistrationMenu
@@ -52,21 +52,28 @@ def ussd_callback():
             menu = Home(session_id=session_id)
             menus = {
                 "0": menu.home,
-                "1": menu.deposit,
-                "2": menu.withdraw,
-                "3": menu.buy_airtime,
-                "4": menu.check_balance,
-                "5": menu.buy_event_tickets,
+                "1": menu.events,
+                "2": menu.mobilewallet,
+                "3": menu.utility,
+                "4": menu.airtime,
+                "5": menu.bank_account,
+                "6": menu.fees,
+                "7": menu.payments,
+                "8": menu.pay_tv,
                 "default": menu.default_menu
             }
             if user_response in menus.keys():
                 return menus.get(user_response)()
             else:
                 return menus.get("0")()
-        elif level <= 12:  # mobile wallet
+        elif level <= 18:  # mobile wallet
             menu = MobileWallet(session_id=session_id,
                                 user_response=user_response)
             menus = {
+                6: {
+                    "0": menu.deposit_channel,
+                    "default": menu.invalid_response
+                },
                 9: {
                     "0": menu.deposit_checkout,
                     "default": menu.invalid_response
@@ -101,6 +108,8 @@ def ussd_callback():
                     "default": menu.invalid_response
                 }
             }
+            if user_response == "0":
+                return menu.end_session()
             if user_response.isdigit():
                     return menus[level].get("0")()
             else:
@@ -117,7 +126,7 @@ def c2b_callback():
     if api_payload.get('status') == 'Success':
         # do this async
         payload= {"api_payload": pk.dumps(api_payload)}
-        async_c2b_callback.apply_async(args=[payload], countdown=0)
+        async_mpesa_c2b_callback.apply_async(args=[payload], countdown=0)
         response = jsonify({"mesage": "recieved"})
         # print response
     else:

@@ -10,6 +10,8 @@ def add_session(session_id):
     :return: True if key is set correctly
     :rtype: bool
     """
+    if redis.exists(session_id):
+        return True
     session_dict = {}
     session_dict.setdefault('level', 0)
     session_dict.setdefault('response', None)

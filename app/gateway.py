@@ -9,8 +9,7 @@ class Gateway(AfricasTalkingGateway):
     def __init__(self):
         pass
 
-    @classmethod
-    def init_app(cls, app):
+    def init_app(self, app):
         # this initialises an AfricasTalking Gateway instanse similar to calling
         # africastalking.gateway(username, apikey, environment)
         # this enables us to initialise one gateway to use throughout the app
@@ -25,11 +24,12 @@ class Gateway(AfricasTalkingGateway):
         # self.apiKey      = '4dfa0101c9f701cd894e63211176faebd664633b2906908cb65310f6748bfdee'
         # self.environment = 'production'
 
-        cls.username = app.config['AT_USERNAME']
-        cls.apikey = app.config['AT_APIKEY']
-        cls.environment = app.config['AT_ENVIRONMENT']
-        cls.HTTP_RESPONSE_OK = 200
-        cls.HTTP_RESPONSE_CREATED = 201
+        self.username = app.config['AT_USERNAME']
+        self.apiKey = app.config['AT_APIKEY']
+
+        self.environment = app.config['AT_ENVIRONMENT']
+        self.HTTP_RESPONSE_OK = 200
+        self.HTTP_RESPONSE_CREATED = 201
  
         # Turn this on if you run into problems. It will print the raw HTTP response from our server
-        cls.Debug= False
+        self.Debug= False

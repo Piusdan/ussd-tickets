@@ -31,6 +31,15 @@ def make_shell_context():
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
+@manager.command
+def reset_db():
+    db.session.commit()
+    db.session.close_all()
+    db.drop_all()
+    db.create_all()
+    Role.insert_roles()
+
+
 
 @manager.command
 def add_roles():
