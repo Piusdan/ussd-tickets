@@ -5,7 +5,7 @@ from wtforms import (StringField, SubmitField, TextAreaField,
 from wtforms.validators import (Length, DataRequired,
                                 Email, Regexp, ValidationError, Optional)
 
-from ..models import Role, User, Event, Ticket
+from app.models import Role, User, Event, Ticket
 
 
 class EditProfileForm(Form):
@@ -21,7 +21,6 @@ class EditProfileForm(Form):
                         DataRequired(), Length(1, 64), Email()])
     name = StringField('Real name', validators=[Length(0, 64)])
     location = StringField('Location', validators=[Length(0, 64)])
-    about_me = TextAreaField('About me')
     submit = SubmitField('Submit')
 
     def __init__(self, user, *args, **kwargs):
@@ -54,7 +53,7 @@ class EditProfileAdminForm(Form):
                              for role in Role.query.order_by(Role.name).all()]
 
 
-class NewUserForm(Form):
+class AddUserForm(Form):
     phone_number = StringField('Phone Number', validators=[
                                DataRequired(), Length(13)])
     account_balance = IntegerField('Top Up')
@@ -68,7 +67,7 @@ class NewUserForm(Form):
                                               'numbers, dots or underscores')])
 
     def __init__(self, *args, **kwargs):
-        super(NewUserForm, self).__init__(*args, **kwargs)
+        super(AddUserForm, self).__init__(*args, **kwargs)
         self.role.choices = [(role.id, role.name)
                              for role in Role.query.order_by(Role.name).all()]
 

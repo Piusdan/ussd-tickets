@@ -1,7 +1,9 @@
 """Payment options for the app
 """
 from cPickle import dumps
-from tasks import async_mpesa_checkoutc2b
+
+from app.ussd.tasks import async_mpesa_checkoutc2b
+
 
 class Payments():
     """Custom gateway for accepted payments

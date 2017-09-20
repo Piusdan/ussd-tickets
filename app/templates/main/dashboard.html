@@ -6,6 +6,7 @@
         <h2>DASHBOARD</h2>
     </div>
     <!-- Widgets -->
+    {% if current_user.is_administrator() %}
     <div class="row clearfix">
         <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
             
@@ -53,6 +54,11 @@
             </div>
         </div>
     </div>
-    <!-- #END# Widgets -->
+    {% else %}
+<p>Your statistics will appear here</p>
+{% endif %}
+
+
+<!-- #END# Widgets -->
 </div>
 {% endblock %}

@@ -1,12 +1,12 @@
-from functools import wraps
 import cPickle
+from functools import wraps
 
 from flask import g, request, current_app
 
-from utils import db_get_user
-from . import ussd
 from app import cache
-from .tasks import async_validate_cache
+from app.ussd.tasks import async_validate_cache
+from app.ussd.utils import db_get_user
+from . import ussd
 
 
 def validate_ussd_user(func):

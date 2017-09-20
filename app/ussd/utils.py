@@ -1,8 +1,10 @@
 from flask import current_app, make_response, g
+
 from app import db
-from ..models import User, AnonymousUser, Event, Ticket, Location
-from .tasks import validate_cache, set_cache
-from session import get_session, update_session, expire_session
+from app.models import AnonymousUser, Event, Ticket, User
+from app.ussd.tasks import validate_cache
+from app.ussd.session import get_session, update_session, expire_session
+from app.ussd.tasks import set_cache
 
 
 def db_get_user(phone_number):
@@ -79,17 +81,19 @@ def get_ticket(ticket_id):
     return Ticket.query.filter_by(id=ticket_id).first()
 
 
-def new_user(payload):
+def create_user(payload):
     codes = {"+254": "Kenya", "+255": "Uganda"}
 
     phone_number = payload.get("phone_number")
     username = payload.get("username")
-    location = Location(country=codes[phone_number[:4]])
-    user = User(username=username, phone_number=phone_number, location=location)
+
+    country = codes[phone_number[:4]]
+    user = User()
+    user.username = username
+    user.phone_number = phone_number
+    user.country = country
     db.session.add(user)
     db.session.commit()
     validate_cache(user)
     return True
-
-
 

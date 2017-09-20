@@ -1,5 +1,6 @@
+from app.ussd.utils import respond
 from session import get_session, update_session, get_level
-from utils import respond
+
 
 class Menu:
     def __init__(self, session_id=None, user_response=None, phone_number=None):

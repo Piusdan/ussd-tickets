@@ -71,6 +71,8 @@ def create_app(config_mode=None, config_file=None):
         SSLify(app)
 
     # register blueprints
+    from app.common import common as base_blueprint
+    app.register_blueprint(base_blueprint, url_prefix="/base")
     from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix="/auth")
     from app.main import main as main_blueprint

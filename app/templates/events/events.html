@@ -12,5 +12,10 @@ endblock %} {% block page_content %}
     {{ macros.pagination_widget(pagination, '.get_events') }}
 </div>
 {% else %}
+    {% if current_user.is_administrator() %}
     <a href="{{ url_for('main.create_event') }}"><button type="button" class="btn btn-warning btn-lg"><span class="fa fa-plus"></span> Add Event</button></a>
+    {% else %}
+    <p class="text-muted">No events to display</p>
+    {% endif %}
+
 {% endif %} {% endblock %}

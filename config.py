@@ -92,7 +92,7 @@ class DevelopmentConfig(Config):
 
     SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://' \
                               'valhalla:valhalla@localhost' \
-                              '/valhalla_dev_db'
+                              '/valhalla'
     DEBUG = True
     DEBUG_MEMCACHE = False
 

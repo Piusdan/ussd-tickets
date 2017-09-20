@@ -1,83 +1,59 @@
 from . import db
 from flask import flash, redirect, url_for
 from .models import User, Ticket, Event, Purchase, Location, Role
-import uuid
+
 from . import celery
 from app_exceptions import GeocoderError
 from dateutil.parser import parse
 from app import gateway
 
 
+# # @celery.task(bind=True, default_retry_delay=1 * 2)
+# def new_user(payload):
+#     """
+#     creates a new user
+#     """
+#     async_create_user(payload=payload)
+
+
 # @celery.task(bind=True, default_retry_delay=1 * 2)
-def new_user(payload):
-    """
-    creates a new user
-    """
-    async_create_user(payload=payload)
+# def async_create_user(self, payload):
+#     address = payload.get("address") or None
+#     account_balance = payload.get("account_balance") or None
+#     phone_number = payload.get("phone_number")
+#     username = payload.get("username")
+#     email = payload.get("email") or None
+#     password = payload.get("password") or "admin123"
+#     role_id = payload.get("role") or None
+#
+#     if address is not None:
+#         location = Location.query.filter_by(address=address.capitalize()).first()
+#         if location:
+#             location = location
+#         else:
+#             try:
+#                 location = Location(address=address)
+#             except GeocoderError as exc:
+#                 raise self.retry(exc=exc, countdown=5)
+#     else:
+#         codes = {"+254" : "Kenya", "+255" : "Uganda"}
+#         location = Location(country=codes[phone_number[:4]])
+#
+#     user = User(phone_number=phone_number, password=password, location=location, username=username)
+#     if role_id is not None:
+#         role = Role.query.filter_by(id=int(role_id)).first()
+#         user.role = role
+#     if email is not None:
+#         user.email = email
+#
+#     if account_balance is not None:
+#         user.account.balance  = int(account_balance)
+#         message = "Cash Value Solution\nYour account has been credited with {}. {}".format(
+#             user.location.currency_code, account_balance)
+#     db.session.add_all([user, location])
+#     db.session.commit()
+#     gateway.sendMessage(to_=phone_number, message_=message)
 
-
-@celery.task(bind=True, default_retry_delay=1 * 2)
-def async_create_user(self, payload):
-    address = payload.get("address") or None
-    account_balance = payload.get("account_balance") or None
-    phone_number = payload.get("phone_number")
-    username = payload.get("username")
-    email = payload.get("email") or None
-    password = payload.get("password") or "admin123"
-    role_id = payload.get("role") or None
-
-    if address is not None:
-        location = Location.query.filter_by(address=address.capitalize()).first()
-        if location:
-            location = location
-        else:
-            try:
-                location = Location(address=address)
-            except GeocoderError as exc:
-                raise self.retry(exc=exc, countdown=5)
-    else:
-        codes = {"+254" : "Kenya", "+255" : "Uganda"}
-        location = Location(country=codes[phone_number[:4]])
-            
-    user = User(phone_number=phone_number, password=password, location=location, username=username)
-    if role_id is not None:
-        role = Role.query.filter_by(id=int(role_id)).first()
-        user.role = role
-    if email is not None:
-        user.email = email
-        
-    if account_balance is not None:
-        user.account.balance  = int(account_balance)
-        message = "Cash Value Solution\nYour account has been credited with {}. {}".format(
-            user.location.currency_code, account_balance)
-    db.session.add_all([user, location])
-    db.session.commit()
-    gateway.sendMessage(to_=phone_number, message_=message)
-
-def new_event(payload):
-    """
-    create a new event
-    """
-    address = payload.get("location") or ""
-    date = payload.get("date")
-    venue = payload.get("venue") or ""
-    title = payload.get("title") or ""
-    description = payload.get("description") or ""
-    logo_url = payload.get("logo_url") or ""
-    location = Location.query.filter_by(address=address.capitalize()).first()
-    if location:
-        location = location
-    else:
-        try:
-            location = Location(address=address)
-        except GeocoderError as exc:
-            flash("Please enter  a valid location/city/town. If this error persits please try agin later", category='errors')
-            redirect(url_for('main.create_event'))
-    event = Event(location=location, venue=venue, date=date,
-                  title=title, description=description, logo_url=logo_url)
-    db.session.add_all([event, location])
-    db.session.commit()
-    return event
 
 
 @celery.task(bind=True, default_retry_delay=1 * 2)
@@ -178,10 +154,5 @@ def async_buy_ticket(self, payload):
     db.session.commit()
 
 
-@celery.task(bind=True, default_retry_delay=1 * 2)
-def async_send_message(self, payload):
-    try:
-        resp = gateway.sendMessage(to_=[payload["to"]], message_=payload["message"])
-    except Exception as exc:
-        raise self.retry(exc=exc, countdown=5)
+
         

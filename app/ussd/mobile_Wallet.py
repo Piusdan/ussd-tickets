@@ -1,9 +1,10 @@
 from flask import current_app, g
 
+from app.ussd.utils import respond
+from app.ussd.tasks import async_checkoutb2c, async_purchase_airtime
 from base_menu import Menu
-from utils import respond
 from payments import payments
-from tasks import async_checkoutb2c, async_purchase_airtime
+
 
 class MobileWallet(Menu):
     """All Mobile Wallet transactions

@@ -1,29 +1,9 @@
-import os
-
-from flask import render_template, abort, flash, redirect, url_for, current_app, make_response
-from flask_login import login_required
+from flask import render_template, make_response
 import pdfkit
 
-from . import main
-from .forms import CreateEventForm, CreateTicketForm
-from .. import photos, db
-from ..utils import flash_errors
-from ..decorators import admin_required
-from ..models import User, Event, Ticket, Account, Purchase
-from ..controllers import get_event_tickets_query
+from app.main import main
+from app.models import  Purchase
 
-
-# @main.route('/email_ticket/<string:ticket_hash>')
-# def mail_ticket(ticket_hash):
-#     subject = "Mail with PDF"
-#     receiver = "receiver@mail.com"
-#     mail_to_be_sent = Message(subject=subject, recipients=[receiver])
-#     mail_to_be_sent.body = "This email contains PDF."
-#     pdf = create_pdf.apply_async(args=[payload], countdown=10)
-#     # pdf = create_pdf(render_template('your/template.html'))
-#     mail_to_be_sent.attach("file.pdf", "application/pdf", pdf.getvalue())
-#     mail_ext.send(mail_to_be_sent)
-#     return redirect(url_for('other_view'))
 
 @main.route('/download/<string:code>')
 def download_ticket(code):

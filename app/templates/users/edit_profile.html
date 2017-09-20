@@ -54,15 +54,6 @@
                             
                             </div>
                         </div>
-                        <div class="input-group">
-                                <span class="input-group-addon">
-                                        <i class="material-icons">chat_bubble_outline</i>
-                                </span>
-                                <div class="form-line">
-                                    {{ form.about_me(class_="form-control", placeholder="Say Something about you",required=True, autofocus=True)}}
-                                
-                                </div>
-                            </div>
 
                     <div class="row clearfix">
                         <a type="button" class="btn btn-default btn-link btn-lg waves-effect" href="{{ url_for('.get_user', id=current_user.id)}}">Cancel</a>

@@ -2,8 +2,8 @@ import cPickle
 from flask import current_app
 
 from app import db, cache, gateway
-from ..models import User, Location
-from .. import celery
+from app.models import User, Location
+from app import celery
 
 
 @celery.task(bind=True, default_retry_delay=30 * 60)
