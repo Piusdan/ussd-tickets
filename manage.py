@@ -33,13 +33,23 @@ manager.add_command('db', MigrateCommand)
 
 @manager.command
 def reset_db():
+    app.logger.info("Prepairing to reset db")
     db.session.commit()
     db.session.close_all()
+    app.logger.info("Droping all Columns")
     db.drop_all()
+    app.logger.info("Initializing new db")
     db.create_all()
+    app.logger.info("Creating roles")
     Role.insert_roles()
+    app.logger.info("DB reset")
 
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.schema import DropTable
 
+@compiles(DropTable, "postgresql")
+def _compile_drop_table(element, compiler, **kwargs):
+    return compiler.visit_drop_table(element) + " CASCADE"
 
 @manager.command
 def add_roles():

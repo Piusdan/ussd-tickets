@@ -1,9 +1,7 @@
 from flask import current_app, make_response, g
-
-
+from app import db
 from ..models import User, AnonymousUser, Event, Ticket, Location
 from .tasks import validate_cache, set_cache
-from app import db
 from session import get_session, update_session, expire_session
 
 

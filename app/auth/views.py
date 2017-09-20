@@ -2,11 +2,10 @@ from flask import render_template, request, redirect, flash, url_for
 
 from flask_login import login_user, login_required, logout_user, current_user
 
+from app.models import db, User
+from app.utils import create_user, flash_errors
+from app.auth.forms import LoginForm, RegistrationForm
 from . import auth
-from ..models import db, User
-from ..controllers import new_user
-from .forms import LoginForm, RegistrationForm
-from ..utils import flash_errors
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -37,13 +36,17 @@ def logout():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        payload = {"email":form.email.data,
-                    "username":form.username.data,
-                    "password":form.password.data,
-                    "phone_number":form.phone_number.data,
-                    "address":form.city.data}
-        # new_user.apply_async(args=[payload], countdown=0)
-        new_user(payload)
+        email = form.email.data
+        username = form.username.data
+        password = form.password.data
+        city = form.city.data
+        # TODO create country
+        country = None
+        create_user(email=email,
+                    username=username,
+                    password=password,
+                    city=city,
+                    country=country)
         flash('You can now login.', category="success")
         return redirect(url_for('auth.login'))
     else:

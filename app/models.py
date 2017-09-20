@@ -1,7 +1,6 @@
 from datetime import datetime
 import hashlib
 import cPickle as pickle
-from geopy.geocoders import googlev3
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import request
@@ -10,12 +9,8 @@ from flask_sqlalchemy import current_app
 from sqlalchemy.ext.serializer import dumps
 from flask_login import UserMixin, AnonymousUserMixin
 
-from app_exceptions import GeocoderError
 from . import login_manager
 from . import db
-
-from app.app_exceptions import SignupError
-
 
 class User(UserMixin, db.Model):
     """
@@ -30,38 +25,33 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True)
     phone_number = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String, index=True, unique=True)
-
     name = db.Column(db.String(64))
-
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
-
-    # auth details
     token = db.Column(db.String(64))
     password_hash = db.Column(db.String(128))
-
-    # account details for mobile wallet
-    account = db.relationship('Account', backref="holder", uselist=False, lazy='subquery', cascade='all, delete-orphan')
-
-    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
-
+    # location
     country = db.Column(db.String(64))
     city = db.Column(db.String(64))
-
-    # relationship to events user has organised
+    # relationships
+    account = db.relationship('Account', backref="holder", uselist=False, lazy='subquery', cascade='all, delete-orphan')
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     events = db.relationship('Event', backref='organiser', lazy='dynamic')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
+        # assign role
         if self.role is None:
             if self.phone_number == current_app.config['ADMIN_PHONENUMBER']:
                 self.role = Role.query.filter_by(permissions=0xff).first()
             else:
                 self.role = Role.query.filter_by(default=True).first()
+        # assign an avatar hash
         if self.email is not None and self.avatar_hash is None:
             self.avatar_hash = hashlib.md5(
                 self.email.encode('utf-8')).hexdigest()
+        # create a new user account
         self.account = Account()
 
     def __repr__(self):
@@ -142,7 +132,6 @@ class Account(db.Model):
     points = db.Column(db.Float, default=0.0)
     purchases = db.relationship('Purchase', backref='account', lazy='subquery')
 
-
     @property
     def balance_available(self):
         return self.holder.location.currency_code + ". " + str(self.balance)
@@ -182,6 +171,7 @@ class Role(db.Model):
             role.default = roles[r][1]
             db.session.add(role)
         db.session.commit()
+
 
 
 class Permission:
