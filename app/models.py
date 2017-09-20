@@ -262,6 +262,7 @@ class Ticket(db.Model):
         return self.event.currency_code + ". " + str(self.price)
 
 
+
 class Location():
     codes = {
         "kenya": {
@@ -271,6 +272,7 @@ class Location():
             "currency": "UGX"
         }
     }
+
     @classmethod
     def currency_code(cls, country):
         return cls.codes.get(country.lower()).get("currency")

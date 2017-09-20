@@ -20,6 +20,21 @@ def create_user(self, username, phone_number, email, password, country, city):
                 city=city,
                 username=username,
                 email=email)
+    if city is not None:
+        try:
+            country = 
+    if address is not None:
+        location = Location.query.filter_by(address=address.capitalize()).first()
+        if location:
+            location = location
+        else:
+            try:
+                location = Location(address=address)
+            except GeocoderError as exc:
+                raise self.retry(exc=exc, countdown=5)
+    else:
+        codes = {"+254": "Kenya", "+255": "Uganda"}
+        location = Location(country=codes[phone_number[:4]])
 
     db.session.add(user)
     db.session.commit()
