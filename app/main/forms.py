@@ -137,7 +137,3 @@ class EditTicketForm(Form):
             int(field.data)
         except:
             raise ValidationError("Price must be a valid integer.")
-
-    def __init__(self, ticket, *args, **kwargs):
-        super(EditTicketForm, self).__init__(*args, **kwargs)
-        self.ticket = ticket

@@ -45,26 +45,7 @@ def get_event(id):
     types = current_app.config['TICKET_TYPES']
 
     # to help us edit tickets
-    ticket_forms = []
-    for ticket in tickets:
-        edit_ticket_form = EditTicketForm(ticket)
-        edit_ticket_form.count.data = ticket.count
-        edit_ticket_form.price.data = ticket.price
-        ticket_forms.append(edit_ticket_form)
-
-
-    # validate ticket form
-    if ticket_form.validate_on_submit():
-        ticket = Ticket(type=types[ticket_form.type.data],
-                        count=ticket_form.count.data, price=ticket_form.price.data)
-        ticket.event = event
-        db.session.add(ticket)
-        flash("Ticket added.", category="success")
-        db.session.commit()
-        return redirect(url_for('.get_event', id=event.id))
-    else:
-        flash_errors(ticket_form)
-
+    edit_ticket_form = EditTicketForm()
     # initialise validate event form
     event_form = EditEventForm()
     if event_form.validate_on_submit():
@@ -98,7 +79,7 @@ def get_event(id):
                            event_form=event_form,
                            purchases=attendees,
                            ticket_form=ticket_form,
-                           edit_ticket_forms=ticket_forms)
+                           edit_ticket_form=edit_ticket_form)
 
 
 @main.route('/event')
