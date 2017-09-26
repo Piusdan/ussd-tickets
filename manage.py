@@ -31,6 +31,7 @@ def make_shell_context():
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
+
 @manager.command
 def reset_db():
     app.logger.info("Prepairing to reset db")
@@ -47,9 +48,11 @@ def reset_db():
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.schema import DropTable
 
+
 @compiles(DropTable, "postgresql")
 def _compile_drop_table(element, compiler, **kwargs):
     return compiler.visit_drop_table(element) + " CASCADE"
+
 
 @manager.command
 def add_roles():

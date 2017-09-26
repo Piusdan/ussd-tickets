@@ -18,7 +18,7 @@ class Config(object):
     DEBUG = False
     TESTING = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    DEBUB_MEMCHACHE = False
+    DEBUG_MEMCHACHE = False
 
     # sql alchemy conf
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
@@ -39,6 +39,7 @@ class Config(object):
                                       "redis://localhost:6379/0")
 
     # application configuration
+
     ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER', '+254703554404')
     SECRET_KEY = os.getenv('SECRET_KEY', 'mysecret')
 
@@ -114,10 +115,16 @@ class ProductionConfig(Config):
                   "DB_NAME": os.environ.get("DB_NAME")})
 
 
+class HerokuConfig(Config):
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
+    DEBUG_MEMCHACHE = True
+
+
 config = {
     "development": DevelopmentConfig,
     "testing": TestingConfig,
     "production": ProductionConfig,
+    "heroku": HerokuConfig,
 
     "default": DevelopmentConfig
 }
