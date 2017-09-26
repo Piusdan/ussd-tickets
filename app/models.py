@@ -1,6 +1,6 @@
 from datetime import datetime
 import hashlib
-import cPickle as pickle
+import pickle
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import request
