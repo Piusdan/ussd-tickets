@@ -1,14 +1,14 @@
 from flask import request, g, jsonify, current_app as app
 
-from ..models import AnonymousUser
-from . import ussd
-from tasks import async_mpesa_c2b_callback
-from utils import respond
-from session import add_session, get_level
-from registration import RegistrationMenu
-from mobile_Wallet import MobileWallet
-from home import Home
+from app.ussd.utils import respond
+from app.ussd.tasks import async_mpesa_c2b_callback
 from electronic_ticketing import ElecticronicTicketing
+from home import Home
+from mobile_Wallet import MobileWallet
+from registration import RegistrationMenu
+from session import add_session, get_level
+from . import ussd
+from ..models import AnonymousUser
 
 
 @ussd.route('/', methods=['POST', 'GET'])

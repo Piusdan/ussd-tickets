@@ -54,16 +54,15 @@
                     <div class="row clearfix">
                         <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
 
-                            {% if user.name or user.location %}
+                            {% if user.name %}
                             <p>
-                                {% if user.name %}{{ user.name }}{% endif %} {% if user.location %} From <a href="http://maps.google.com/?q={{ user.location }}">
-                                        {{ user.location.country }}
+                                {% if user.name %}{{ user.name }}{% endif %} {% if user.city %} From <a href="http://maps.google.com/?q={{ user.country }}{{ user.city }}">
+                                        {{ user.city }}
                                     </a> {% endif %}
                             </p>
                             {% endif %} {% if current_user.is_administrator() %}
                             <p><a href="mailto:{{ user.email }}">{{ user.email }}</a></p>
-                            {% endif %} {% if user.about_me %}
-                            <p>{{ user.about_me }}</p>{% endif %}
+                            {% endif %}
                             <p>
                                 Member since {{ moment(user.member_since).format('L') }} Last seen {{ moment(user.last_seen).fromNow() }}
                             </p>

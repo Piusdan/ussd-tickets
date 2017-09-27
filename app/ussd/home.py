@@ -1,9 +1,7 @@
-import cPickle as pickle
-
-from .. import redis
-from utils import (respond, get_events, current_user)
-from tasks import async_send_account_balance
+from app.ussd.utils import (respond, get_events, current_user)
+from app.ussd.tasks import async_send_account_balance
 from base_menu import Menu
+
 
 class Home(Menu):
     """

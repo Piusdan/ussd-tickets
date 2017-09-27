@@ -1,8 +1,8 @@
-from ..models import User
-from utils import respond,new_user
-from base_menu import Menu
+from app.models import User
+from app.ussd.base_menu import Menu as Base
+from app.ussd.utils import respond, create_user
 
-class RegistrationMenu(Menu):
+class RegistrationMenu(Base):
     """
     Serves registration callbacks
     """
@@ -24,7 +24,7 @@ class RegistrationMenu(Menu):
             if User.query.filter_by(username=username).first():
                 menu_text = "CON Username already taken. Please choose another username.\n"
             else:
-                new_user(payload)
+                create_user(payload)
                 # graduate user level
                 self.set_level(0)
                 self.update_session()

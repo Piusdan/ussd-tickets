@@ -2,8 +2,9 @@ from flask import render_template, request, redirect, flash, url_for
 
 from flask_login import login_user, login_required, logout_user, current_user
 
-from app.models import db, User
-from app.utils import create_user, flash_errors
+from app.models import User
+from app.auth.utils import create_user
+from app.common.utils import flash_errors
 from app.auth.forms import LoginForm, RegistrationForm
 from . import auth
 
@@ -40,13 +41,11 @@ def register():
         username = form.username.data
         password = form.password.data
         city = form.city.data
-        # TODO create country
-        country = None
         create_user(email=email,
                     username=username,
                     password=password,
-                    city=city,
-                    country=country)
+                    phone_number=form.phone_number.data,
+                    city=city)
         flash('You can now login.', category="success")
         return redirect(url_for('auth.login'))
     else:

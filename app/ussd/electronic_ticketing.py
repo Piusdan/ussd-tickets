@@ -1,12 +1,11 @@
 from uuid import uuid1
 
-from flask import  url_for
+from flask import url_for
 
-from ..controllers import async_buy_ticket
-from utils import (respond,current_user,
-                   get_event_tickets_text)
-from session import get_session, update_session
+from app.ussd.utils import (respond, current_user,
+                              get_event_tickets_text)
 from base_menu import Menu
+from app.controllers import async_buy_ticket
 
 
 class ElecticronicTicketing(Menu):

@@ -11,17 +11,17 @@ from flask import (render_template,
 
 from flask_login import login_required
 
-from ..decorators import admin_required
-from ..models import Event, Ticket
-from .. import photos, db
-from ..controllers import (get_event_tickets_query,
+from app.decorators import admin_required
+from app.models import Event, Ticket
+from app import photos, db
+from app.main.utils import create_event as new_event
+from app.controllers import (get_event_tickets_query,
                            edit_event,
-                           new_event,
                            async_delete_event,
                            get_event_attendees_query)
-from . import main
-from .forms import CreateEventForm, CreateTicketForm, EditEventForm, EditTicketForm
-from ..utils import flash_errors
+from app.main import main
+from app.main.forms import CreateEventForm, CreateTicketForm, EditEventForm, EditTicketForm
+from app.common.utils import flash_errors
 
 
 @main.route('/event/<int:id>', methods=['POST', 'GET'])
@@ -35,7 +35,7 @@ def get_event(id):
 
     attendees = get_event_attendees_query(event.id).all()
 
-    # update ticket type select field
+    # # update ticket type select field
     ticket_form.type.choices = filter(lambda x: x[1] not in
                                       [ticket.type for ticket in event.tickets],
                                       [(k, v) for (k, v) in enumerate(
@@ -45,26 +45,7 @@ def get_event(id):
     types = current_app.config['TICKET_TYPES']
 
     # to help us edit tickets
-    ticket_forms = []
-    for ticket in tickets:
-        edit_ticket_form = EditTicketForm(ticket)
-        edit_ticket_form.count.data = ticket.count
-        edit_ticket_form.price.data = ticket.price
-        ticket_forms.append(edit_ticket_form)
-
-
-    # validate ticket form
-    if ticket_form.validate_on_submit():
-        ticket = Ticket(type=types[ticket_form.type.data],
-                        count=ticket_form.count.data, price=ticket_form.price.data)
-        ticket.event = event
-        db.session.add(ticket)
-        flash("Ticket added.", category="success")
-        db.session.commit()
-        return redirect(url_for('.get_event', id=event.id))
-    else:
-        flash_errors(ticket_form)
-
+    edit_ticket_form = EditTicketForm()
     # initialise validate event form
     event_form = EditEventForm()
     if event_form.validate_on_submit():
@@ -88,9 +69,9 @@ def get_event(id):
         return redirect(url_for('.get_event', id=event.id))
     else:
         flash_errors(event_form)
-    event_form.title.data = event.title
+    event_form.title.data = event.name
     event_form.description.data = event.description
-    event_form.location.data = event.location.city
+    event_form.location.data = event.city
     event_form.venue.data = event.venue
     event_form.date.data = event.date
 
@@ -98,7 +79,7 @@ def get_event(id):
                            event_form=event_form,
                            purchases=attendees,
                            ticket_form=ticket_form,
-                           edit_ticket_forms=ticket_forms)
+                           edit_ticket_form=edit_ticket_form)
 
 
 @main.route('/event')
@@ -127,16 +108,16 @@ def delete_event(event_id):
 @admin_required
 def create_event():
     form = CreateEventForm()
-    url = ""
+    filename = ""
     if form.validate_on_submit():
         try:
             filename = photos.save(request.files['logo'])
-            url = photos.url(filename)
+            filename = filename
         except:
             pass
         payload = {
-            "logo_url": url,
-            "title": form.title.data,
+            "filename": filename,
+            "name": form.title.data,
             "description": form.description.data,
             "location": form.location.data,
             "date": form.date.data,
@@ -144,7 +125,7 @@ def create_event():
         }
 
         event = new_event(payload)
-        flash("Event {} created".format(event.title), category="msg")
+        flash("Event {} created".format(event.name), category="msg")
         return redirect(url_for('.get_event', id=event.id))
     else:
         flash_errors(form)

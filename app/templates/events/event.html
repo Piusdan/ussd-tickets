@@ -1,13 +1,13 @@
  {% extends "base.html" %} {% block custom_css %}
 <!-- JQuery DataTable Css -->
 <link href="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css') }}" rel="stylesheet"> {% endblock %} {% block event %}class="active"{% endblock %} {% block events %}class="active"{% endblock %} {% import "bootstrap/wtf.html"
-as wtf %} {% import "bootstrap/wtf.html" as wtf %} {% block title %}Events - {{ event.title }}{% endblock %} {% block page_content
+as wtf %} {% import "bootstrap/wtf.html" as wtf %} {% block title %}Event - {{ event.name }}{% endblock %} {% block page_content
 %}
 <div class="container-fluid">
     <div class="row clearfix">
         <!-- Event Info -->
-        <div class="col-xs-12 col-sm-6 col-md-8 col-lg-8">
-            <div class="row clearfix">
+        <div class="col-xs-12 col-sm-12 col-md-9 col-lg-9">
+
                 <div class="card">
                     <div class="header">
                         <h2>{{ event.title }}</h2>
@@ -47,7 +47,6 @@ as wtf %} {% import "bootstrap/wtf.html" as wtf %} {% block title %}Events - {{ 
                         </div>
                     </div>
                 </div>
-            </div>
         </div>
         <!-- #END# Event Info -->
         <!-- Tickets -->
@@ -122,4 +121,5 @@ as wtf %} {% import "bootstrap/wtf.html" as wtf %} {% block title %}Events - {{ 
 <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.print.min.js') }}"></script>
 {% endblock %} {% block custom_scipts %}
 <script src="{{ url_for('static', filename='js/pages/tables/jquery-datatable.js') }}"></script>
+ <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 {% endblock %}

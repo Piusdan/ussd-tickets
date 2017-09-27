@@ -1,6 +1,6 @@
 from datetime import datetime
 import hashlib
-import cPickle as pickle
+import pickle
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import request
@@ -134,8 +134,9 @@ class Account(db.Model):
 
     @property
     def balance_available(self):
-        return self.holder.location.currency_code + ". " + str(self.balance)
-
+        currency_code = Location.currency_code(self.holder.country)
+        return "{code} {balance}".format(code=currency_code,
+                                          balance=self.balance)
 
 class Role(db.Model):
     """Set User Role
@@ -196,10 +197,10 @@ class Event(db.Model):
     __tablename__ = "events"
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, index=True)
-    description = db.Column(db.String(64), index=True)
+    description = db.Column(db.String, index=True)
 
     date = db.Column(db.DateTime)
-    logo_url = db.Column(db.String(64))
+    filename = db.Column(db.String)
     closed = db.Column(db.Boolean, default=False)
 
     tickets = db.relationship('Ticket', backref='event', lazy='subquery', cascade='all, delete-orphan')
@@ -213,13 +214,18 @@ class Event(db.Model):
         return "<Event {}>".format(self.name)
 
     def can_add_tickets(self):
-        if self.tickets.count() == len(current_app.config["TICKET_TYPES"]):
+        if len(self.tickets) == len(current_app.config["TICKET_TYPES"]):
             return False
         else:
             return True
 
     def to_bin(self):
         return pickle.dumps(self)
+
+    @property
+    def logo_url(self):
+        from app import photos
+        return photos.url(self.filename)
 
     @property
     def day(self):
@@ -271,6 +277,7 @@ class Location():
             "currency": "UGX"
         }
     }
+
     @classmethod
     def currency_code(cls, country):
         return cls.codes.get(country.lower()).get("currency")

@@ -1,29 +1,29 @@
-import os
-
-from flask import render_template, abort, flash, redirect, url_for, current_app, make_response
-from flask_login import login_required
+from flask import render_template, make_response,jsonify, request, current_app as app
+from json import dumps
 import pdfkit
 
-from . import main
-from .forms import CreateEventForm, CreateTicketForm
-from .. import photos, db
-from ..utils import flash_errors
-from ..decorators import admin_required
-from ..models import User, Event, Ticket, Account, Purchase
-from ..controllers import get_event_tickets_query
+from app import db
+from app.main import main
+from app.models import  Purchase, Ticket
 
 
-# @main.route('/email_ticket/<string:ticket_hash>')
-# def mail_ticket(ticket_hash):
-#     subject = "Mail with PDF"
-#     receiver = "receiver@mail.com"
-#     mail_to_be_sent = Message(subject=subject, recipients=[receiver])
-#     mail_to_be_sent.body = "This email contains PDF."
-#     pdf = create_pdf.apply_async(args=[payload], countdown=10)
-#     # pdf = create_pdf(render_template('your/template.html'))
-#     mail_to_be_sent.attach("file.pdf", "application/pdf", pdf.getvalue())
-#     mail_ext.send(mail_to_be_sent)
-#     return redirect(url_for('other_view'))
+@main.route('/ticket/update', methods=['POST', 'GET'])
+def edit_ticket():
+    data = request.get_json()
+    ticket_id = data.get("ticket_id")
+    ticket = Ticket.query.filter_by(id=ticket_id).first()
+    print ticket
+    if ticket is None:
+        response = jsonify(error="Invalid Ticket")
+        response.status_code = 404
+    else:
+        ticket.price = float(data.get("price"))
+        ticket.count = int(data.get("count"))
+        db.session.commit()
+        response = jsonify(data="Ticket updated")
+        response.status_code = 200
+    return response
+
 
 @main.route('/download/<string:code>')
 def download_ticket(code):
@@ -35,8 +35,10 @@ def download_ticket(code):
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['content-Disposition'] = 'inline; filename=output.pdf'
 
+
 @main.route('/ticket/<string:code>')
 def get_purchase(code):
     purchase = Purchase.query.filter_by(code=code).first()
     user = purchase.account.holder
     return render_template('events/purchase.html', purchase=purchase, user=user)
+

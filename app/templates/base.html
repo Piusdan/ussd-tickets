@@ -113,15 +113,17 @@
                             <span>Events</span>
                         </a>
                         <ul class="ml-menu">
+                            {% if current_user.is_administrator() %}
                             <li {% block create_event %}{% endblock %}>
                                 <a href="{{ url_for('main.create_event') }}">Create Event</a>
                             </li>
+                            {% endif %}
                             <li {% block events %}{% endblock %}>
                                 <a href="{{ url_for('main.get_events') }}">View Events</a>
                             </li>
                         </ul>
                     </li>
-
+                    {% if current_user.is_administrator() %}
                     <li>
                         <a href="javascript:void(0);" class="menu-toggle"><i class="material-icons">textsms</i>
                                         <span>SMS Campaigns</span>
@@ -136,20 +138,27 @@
 
                     </ul>
                     </li>
+                    {% endif %}
                     <li {% block users %}{% endblock %}>
                             <a href="javascript:void(0);" class="menu-toggle">
                                     <i class="material-icons">supervisor_account</i>
                                     <span>Members</span>
                             </a>
                             <ul class="ml-menu">
+                                {% if current_user.is_administrator() %}
                                 <li {% block add_user %}{% endblock %}>
                                     <a href="{{ url_for('main.add_user') }}">Add Member</a>
                                 </li>
+                                {% endif %}
                                 <li {% block all_users %}{% endblock %}>
+                                    {% if current_user.is_administrator() %}
                                     <a href="{{ url_for('main.get_users') }}">All Members</a>
+                                {% else %}
+                                    <a href="{{ url_for('main.get_user', id=current_user.id) }}">Profile</a>
+                                 {% endif %}
                                 </li>
                             </ul>
-                        </li>
+                    </li>
                 </ul>
             </div>
             <!-- #Menu -->
@@ -181,6 +190,10 @@
 <!-- Bootstrap Core Js -->
 <script src="{{ url_for('static', filename='plugins/bootstrap/js/bootstrap.js') }}"></script>
 
+<!-- Bootstrap Notify Plugin Js -->
+<script src="{{ url_for('static', filename='plugins/bootstrap-notify/bootstrap-notify.js') }}"></script>
+
+
 <!-- Dropzone Plugin Js -->
 <script src="{{ url_for('static', filename='plugins/dropzone/dropzone.js') }}"></script>
 
@@ -197,9 +210,9 @@
 
 <!-- Custom Js -->
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
-<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+
 {% block custom_scipts %} {% endblock %}
 <!-- Demo Js -->
 <script src="{{ url_for('static', filename='js/demo.js') }}"></script>
-
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {% endblock %}
