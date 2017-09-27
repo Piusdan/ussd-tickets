@@ -1,0 +1,102 @@
+ {% block page_content %}
+<style>
+    .ls {
+        border-left: None;
+        border-right: None;
+    }
+    .logo {
+        height: 100%;
+        width: 100%
+    }
+    .qr-img {
+        height: 100%;
+        width: 100%;
+    }
+
+</style>
+<div class="card">
+    <div class="header">
+        <div class="container-fluid">
+        <div class="col-lg-2 col-md-3 col-sm-3 col-xs-3">
+            <img class="img-responsive logo" src="{{ url_for('static', filename='images/logo.jpg') }}"></img>
+        </div>
+        <div class="col-lg-8 col-md-9 col-sm-9 col-xs-9">
+            <h3>E-Ticket<small class="text-muted"><br/>present this ticket at the venue</small></h3> 
+        </div>
+    </div>
+
+    </div>
+    <div class="container-fluid">
+        <div class="body">
+            <div class="row clearfix">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <p>Welcome to The {{ purchase.ticket.event.title }} event<br/>
+                        <h3>{{ purchase.ticket.event.description }}</h3>
+                    </p>
+                </div>
+            </div>
+            <div class="row clearfix">
+                <div class="row clearfix">
+                    <div class="col-lg-6 col-md-7 col-sm-12 col-xs-12">
+
+                        <ul class="list-group">
+                            <li class="ls list-group-item d-flex justify-content-between align-items-center">
+                                EVENT DATE
+                                <span class="text pull-right">
+                                                <span class="fa fa-calendar fa-fw" aria-hidden="true"></span>                                {{ purchase.ticket.event.day }}
+                                </span>
+                            </li>
+                            <li class="ls list-group-item d-flex justify-content-between align-items-center">
+                                LOCATION
+                                <span class="text pull-right">
+                                                <span class="fa fa-map-marker fa-fw" aria-hidden="true"></span>                                {{ purchase.ticket.event.location }}
+                                </span>
+                            </li>
+                            <li class="ls list-group-item d-flex justify-content-between align-items-center">
+                                PURCHASERUSERNAME
+                                <span class="text pull-right">
+                                                <span class="fa fa-user fa-fw" aria-hidden="true"></span>                                {{ user.username }}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-5 col-md-5 col-sm-12 col-xs-12">
+                        <img src="{{ qrcode( purchase.code ) }}" class="img-responsive qr-img">
+                    </div>
+                </div>
+                <div class="row clearfix">
+                    <div class="form-row">
+                        <div class="col-lg-2 col-md-3 col-sm-4 col-xs-4">
+                            <div class="form-group">
+                                <label for="ticketNo" class="col-form-label">TICKET NO</label>
+                                <input type="text" class="form-control" id="ticketNo" value="{{ purchase.id }}">
+
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-4 col-sm-4 col-xs-5">
+                            <div class="form-group">
+                                <label for="ticketType" class="col-form-label"> TICKET TYPE</label>
+                                <input id="ticketType" class="form-control" type="text" value="{{ purchase.ticket.type }}">
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-4 col-xs-3">
+                            <div class="form-group">
+                                <label for="ticketPrice" class="col-form-label">PRICE</label>
+                                <input type="text" class="form-control" id="ticketPrice" value="{{ purchase.ticket.price }}">
+                            </div>
+                        </div>
+                        <div class="col-lg-5 col-md-12 col-sm-12 col-xs-12">
+                            <div class="form-group">
+                                <label for="ticketCode" class="col-form-label">TICKET CODE</label>
+                                <input type="text" class="form-control" id="ticketCode" value="{{ purchase.code }}">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

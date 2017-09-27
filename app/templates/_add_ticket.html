@@ -1,0 +1,48 @@
+<div class="modal fade" id="ticketModal" tabindex="-1" role="dialog" id="edit">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="card">
+            <div class="header">
+                <h4>{{ event.title}}<small> Add ticket</small></h4>
+            </div>
+            <div class="body">
+                <form id="add_ticket" method="post" action="" role="form" name="register">
+                    {{ ticket_form.hidden_tag() }}
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                                <i class="material-icons">info</i>
+                            </span>
+                        <div class="form-line">
+                            {{ ticket_form.type(class_="form-control show-tick") }}
+
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                                        <i class="material-icons">attach_money</i>
+                                    </span>
+                        <div class="form-line">
+                            {{ ticket_form.price(class_="form-control", placeholder="Price " + event.currency_code,required=True, autofocus=True)}}
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                                            <i class="material-icons">group</i>
+                                        </span>
+                        <div class="form-line">
+                            {{ ticket_form.count(class_="form-control", placeholder="Number of Tickets",required=True, autofocus=True)}}
+
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-line">
+                            {{ ticket_form.submit(class_="btn btn-block btn-sm bg-orange waves-effect") }}
+                        </div>
+                    </div>
+
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

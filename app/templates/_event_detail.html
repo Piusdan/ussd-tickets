@@ -1,0 +1,37 @@
+ <div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover dataTable js-exportable">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Purchaser Name</th>
+                <th>Ticket Type</th>
+                <th>Ticket Price</th>
+                <th>Confirmed</th>
+                <th>Ticket #</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>No</th>
+                <th>Purchaser Name</th>
+                <th>Ticket Type</th>
+                <th>Ticket Price</th>
+                <th>Confirmed</th>
+                <th>Ticket #</th>
+            </tr>
+        </tfoot>
+        <tbody>
+            {% for purchase in purchases %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ purchase.account.holder.username }}</td>
+                <td>{{ purchase.ticket.type }}</td>
+
+                <td>{{ purchase.ticket.price }}</td>
+                <td>{{ purchase.confirmed }}</td>
+                <td><a href="{{ url_for('main.get_purchase', code=purchase.code) }}">{{ purchase.code }}</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

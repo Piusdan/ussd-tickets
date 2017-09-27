@@ -1,22 +1,77 @@
-{% extends "auth/auth_base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
-
-{% block title %}Register{% endblock %}
+{% extends "auth/auth_base.html" %}{% import "bootstrap/wtf.html" as wtf %}
+{% block title_text %}Sign Up{% endblock %}
+{% block body_attribs %} class="signup-page"{% endblock %}
+{% block main_div %}class="signup-box"{% endblock%}
+{% block logo_text%}Sign Up{% endblock %}
 {% block page_content %}
-<div class="container">
-        <div class="row">
-            <div class="col-md-4 col-md-offset-4">
-                <div class="login-panel panel panel-default">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">Create an Account</h3>
+        <div class="card">
+            <div class="body">
+                <form id="sign_up" method="post" action="" role="form" name="register">
+                    {{ form.hidden_tag() }}
+                    <div class="msg">Register a new membership</div>
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="material-icons">person</i>
+                        </span>
+                        <div class="form-line">
+                            {{ form.username(class_="form-control", placeholder="Username",required=True, autofocus=True)}}
+                        
+                        </div>
                     </div>
-                    <div class="panel-body">
-                        {{ wtf.quick_form(form, button_map={"submit": "success pull-right"}) }}
-
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="material-icons">email</i>
+                        </span>
+                        <div class="form-line">
+                            {{ form.email(class_="form-control", placeholder="Email Address", required=True)}}
+                        </div>
                     </div>
-                    <span class="text-info pull-left">Have an account?<a href="{{ url_for('auth.login')}}"> Login</a></span>
-                </div>
+                    <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="material-icons">phone</i>
+                            </span>
+                            <div class="form-line">
+                                {{ form.phone_number(class_="form-control", placeholder="+254 7XXXXXXXX", required=True)}}
+                            </div>
+                        </div>
+                    <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="material-icons">location_city</i>
+                            </span>
+                            <div class="form-line">
+                                {{ form.city(class_="form-control", placeholder="Your City", required=True, autofocus=True)}}
+                            
+                            </div>
+                        </div>
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="material-icons">lock</i>
+                        </span>
+                        <div class="form-line">
+                            {{ form.password(class_="form-control", minlength="2", placeholder="Password", required=True)}}
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="material-icons">lock</i>
+                        </span>
+                        <div class="form-line">
+                            {{ form.password2(class_="form-control", minlength="2", placeholder="Confirm Password", required=True)}}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        {{ form.confirm(id="terms", class_="filled-in chk-col-black")}}
+                        <label for="terms">I read and agree to the <a href="javascript:void(0);">terms of usage</a>.</label>
+                    </div>
+                        {{ form.submit(class_="btn btn-block btn-lg bg-black waves-effect")}}
+                    
+                    <div class="m-t-25 m-b--5 align-center">
+                        <a href="{{ url_for('auth.login') }}">You already have a membership?</a>
+                    </div>
+                </form>
             </div>
         </div>
-    </div>
+{% endblock %}
+{% block scripts %}{{ super() }}
+<script src="{{ url_for('static', filename='js/sign-up.js') }}"></script>
 {% endblock %}

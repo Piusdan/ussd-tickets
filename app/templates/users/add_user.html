@@ -1,0 +1,55 @@
+{% extends "base.html" %} {% block users %}class="active"{% endblock %} {% block add_user %}class="active"{% endblock %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block page_content %}
+{#{ wtf.quick_form(form) }#}
+
+<div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+<div class="card">
+        <div class="header"><h4>Register a new membership</h4></div>
+        <div class="body container-fluid">
+            <form id="sign_up" method="post" action="" role="form" name="register">
+                {{ form.hidden_tag() }}
+                <div class="input-group">
+                    <span class="input-group-addon">
+                        <i class="material-icons">person</i>
+                    </span>
+                    <div class="form-line">
+                        {{ form.username(class_="form-control", placeholder="Username", required=True)}}
+                    </div>
+                </div>
+                <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="material-icons">phone</i>
+                        </span>
+                        <div class="form-line">
+                            {{ form.phone_number(class_="form-control", placeholder="Phone Number (+254 7XXXXXXXX)", required=True)}}
+                        </div>
+                    </div>
+                    <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="material-icons">attach_money</i>
+                            </span>
+                            <div class="form-line">
+                                {{ form.account_balance(class_="form-control",placeholder="Top up", required=True)}}
+                            </div>
+                        </div>
+                    <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 pull-left">
+                <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="material-icons">location_city</i>
+                        </span>
+                        <div class="form-line">
+                            {{ form.role(class_="form-control show-tick", required=True, autofocus=True)}}
+                        
+                        </div>
+                    </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3 pull-right">
+                    {{ form.submit(class_="btn btn-block btn-lg bg-black waves-effect")}}
+                    </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

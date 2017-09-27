@@ -4,16 +4,19 @@ Launch script
 Creates a shell context for the app
 """
 import os
-from app import create_app, db
-from app.models import User, Role, Event, Ticket, Account, Location
 from flask_script import Manager, Shell
-from flask_migrate import  Migrate, MigrateCommand
+from flask_migrate import MigrateCommand, Migrate
+
+from app import create_app, db
+from app.models import User, Role, Event, Ticket, Account, Location, Purchase
 
 app = create_app(os.environ.get('VALHALLA_CONFIG') or 'default')
-manager = Manager(app)
 migrate = Migrate(app, db)
+manager = Manager(app)
+app.logger.info("initialising app")
 
 COV = None
+
 if os.environ.get('VALHALLA_COVERAGE'):
     import coverage
     COV = coverage.coverage(branch=True, include='app/*')
@@ -21,9 +24,62 @@ if os.environ.get('VALHALLA_COVERAGE'):
 
 
 def make_shell_context():
-    return dict(app=app, User=User, Role=Role, Ticket=Ticket, Event=Event, Account=Account, Location=Location, db=db)
+    return dict(app=app, User=User, Role=Role, Ticket=Ticket,
+                Event=Event, Account=Account,
+                Location=Location, db=db, Purchase=Purchase)
+
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
+
+
+@manager.command
+def reset_db():
+    app.logger.info("Prepairing to reset db")
+    db.session.commit()
+    db.session.close_all()
+    app.logger.info("Droping all Columns")
+    db.drop_all()
+    app.logger.info("Initializing new db")
+    db.create_all()
+    app.logger.info("Creating roles")
+    Role.insert_roles()
+    app.logger.info("DB reset")
+
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.schema import DropTable
+
+
+@compiles(DropTable, "postgresql")
+def _compile_drop_table(element, compiler, **kwargs):
+    return compiler.visit_drop_table(element) + " CASCADE"
+
+
+@manager.command
+def add_roles():
+    from flask_migrate import upgrade
+    from app.models import Role
+
+    # migrate db to latest version
+    app.logger.info("migrating database to latest state")
+    upgrade()
+
+    # create user roles
+    app.logger.info("adding user roles")
+    Role.insert_roles()
+
+
+@manager.command
+def deploy():
+    """Run deployment tasks"""
+    from flask_migrate import upgrade
+    from app.models import Role, User
+
+    # migrate db to latest version
+    upgrade()
+
+    # create user roles
+    Role.insert_roles()
+
 
 @manager.command
 def test(coverage=False):

@@ -1,77 +1,125 @@
-{% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
+ {% extends "base.html" %} {% block custom_css %}
+<!-- JQuery DataTable Css -->
+<link href="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css') }}" rel="stylesheet"> {% endblock %} {% block event %}class="active"{% endblock %} {% block events %}class="active"{% endblock %} {% import "bootstrap/wtf.html"
+as wtf %} {% import "bootstrap/wtf.html" as wtf %} {% block title %}Event - {{ event.name }}{% endblock %} {% block page_content
+%}
+<div class="container-fluid">
+    <div class="row clearfix">
+        <!-- Event Info -->
+        <div class="col-xs-12 col-sm-12 col-md-9 col-lg-9">
 
-{% block title %}Events - Create Event{% endblock %}
-
-{% block page_content %}
-<div class="row">
-    <div class="col-lg-12">
-        <div class="panel">
-            <div class="panel-heading"> <h4 class="page-header text-info">{{ event.title }}</h4></div>
-            <!-- .panel-heading -->
-            <div class="panel-body">
-                <div class="panel-group" id="accordion">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h4 class="panel-title">
-                                <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-                                    <button type="button" class="btn btn-primary btn-circle btn-sm">
-                                        <i class="fa fa-info-circle"></i>
-                                    </button>
-                                    Event Details
-                                </a>
-                            </h4>
-                        </div>
-                        <div id="collapseOne">
-                            <div class="panel-body">
-
-                                <div class="col-lg-9">
-                                    <div class="panel-body">
-                                        {% if event.logo_url %}
-                                        <div class="col-lg-3">
-                                            <img class="img img-responsive" src="{{event.logo_url}}">
-                                        </div>
-                                        {% endif %}
-                                        <div class="col-lg-6">
-                                        <p>{{ event.description }}</p>
-                                        Venue: <a href="http://maps.google.com/?q={{ event.location }}">{{ event.location }}</a><br/>Date: {{ event.date }}<br/></div>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
+                <div class="card">
+                    <div class="header">
+                        <h2>{{ event.title }}</h2>
+                        <ul class="header-dropdown m-r--5">
+                            <li class="dropdown">
+                                <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <i class="material-icons">more_vert</i>
+                        </a>
+                                <ul class="dropdown-menu pull-right">
+                                    <li><a href="javascript:void(0);" data-toggle="modal" data-target="#defaultModal">Edit</a></li>
+                                    <li><a href="javascript:void(0);" data-toggle="modal" data-target="#exampleModal">Delete</a></li>
+                                </ul>
+                            </li>
+                        </ul>
                     </div>
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h4 class="panel-title">
-                                <a class="text-info">
-                                    <button type="button" class="btn btn-primary fa fa-ticket btn-sm">
-                                        <!--<i class="fa fa-plus"></i>-->
-                                    </button>
-                                    Tickets
-                                </a>
-                            </h4>
-                        </div>
-                        <div id="collapseTwo">
-                            <div class="panel-body">
-                                {% if tickets %}
-                                {% include '_tickets.html' %}
-                                   {% else %}
-                                   <a href="{{ url_for('main.add_ticket', event_id=event.id) }}">
-                                       <button type="button" class="btn btn-success">
-                                           <span class="fa fa-plus "></span>&nbsp; Add a Ticket
-                                       </button></a>
-                                   {% endif %}
-
+                    <div class="body">
+                        <div class="container-fluid">
+                            {% if event.logo_url %}
+                            <style>
+                                .img {
+                                    height: 100%;
+                                    width: 100%;
+                                }
+                            </style>
+                            <div class="col-xs-3 col-sm-3 col-md-2 col-lg-2">
+                                <img class="img img-responsive" src="{{event.logo_url}}">
+                            </div>
+                            {% endif %}
+                            <div class="col-xs-7 col-sm-7 col-md-7 col-lg-7">
+                                <h5 class="text-warning">{{ event.description }}</h5>
+                                <p><a href="http://maps.google.com/?q={{ event.location }}{{ event.venue }}">{{ event.venue }}</a></p>
+                                {{ event.location }}<br/>{{ event.day }}<br/>
+                                <!-- edit and delete event modals -->
+                                {% include('_delete_event.html') %} {% include('_edit_event.html') %}
+                                <!-- #END# Edit and delete event modals -->
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <!-- .panel-body -->
         </div>
-        <!-- /.panel -->
+        <!-- #END# Event Info -->
+        <!-- Tickets -->
+        <div class="col-xs-12 col-sm-12 col-md-9 col-lg-9">
+            <div class="card">
+                <div class="header">
+                    <h2>Tickets</h2>
+                    <!-- Colored FAB button -->
+                    {% if event.can_add_tickets() %}
+
+                    <ul class="header-dropdown m-r--5">
+                        <li class="dropdown">
+                            <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                            <i class="material-icons">more_vert</i>
+                        </a>
+                            <ul class="dropdown-menu pull-right">
+                                <li><a href="javascript:void(0);" data-toggle="modal" data-target="#ticketModal">Add Ticket</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="body">
+                    <div class="container-fluid">
+                        {% if tickets %} {% include '_tickets.html' %} {% else %}
+                        <h3>No tickets available</h3>
+                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#ticketModal"><span class="fa fa-plus "></span>&nbsp; Add a Ticket</button>{%endif %}
+                        {% if event.can_add_tickets() %}
+                        {% include '_add_ticket.html' %}
+                        {% endif %}
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
     </div>
-    <!-- /.col-lg-12 -->
+    <div class="row clearfix">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <div class="card">
+                {% if purchases %}
+                <div class="header">
+                    <h2>Purchased Tickets</h2>
+
+                </div>
+                <div class="body">
+                    {% include('_event_detail.html') %}
+
+                </div>
+                {% else %}
+                <div class="header">
+                    <h2>No ticket Has been bought yet</h2>
+
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <!-- #END# Tickets -->
+    </div>
 </div>
+{% endblock %} {% block table_scripts %}
+<!-- Jquery DataTable Plugin Js -->
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/jquery.dataTables.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/dataTables.buttons.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.flash.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/jszip.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/pdfmake.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/vfs_fonts.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.html5.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.print.min.js') }}"></script>
+{% endblock %} {% block custom_scipts %}
+<script src="{{ url_for('static', filename='js/pages/tables/jquery-datatable.js') }}"></script>
+ <script src="{{ url_for('static', filename='js/index.js') }}"></script>
 {% endblock %}

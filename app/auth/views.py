@@ -2,20 +2,26 @@ from flask import render_template, request, redirect, flash, url_for
 
 from flask_login import login_user, login_required, logout_user, current_user
 
+from app.models import User
+from app.auth.utils import create_user
+from app.common.utils import flash_errors
+from app.auth.forms import LoginForm, RegistrationForm
 from . import auth
-from ..models import db, User
-from .forms import LoginForm, RegistrationForm
 
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(phone_number=form.phone_number.data).first()
+        user = User.query.filter_by(email=form.email.data).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
             return redirect(request.args.get('next') or url_for('main.index'))
-        flash('Invalid username or password.', category="errors")
+        flash('Invalid email or password.', category="errors")
+    
+    else:
+        flash_errors(form)
+
     return render_template('auth/login.html', form=form)
 
 
@@ -31,14 +37,22 @@ def logout():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(email=form.email.data,
-                    username=form.username.data,
-                    password=form.password.data,
-                    phone_number=form.phone_number.data)
-        db.session.add(user)
-        flash('You can now login.', category="msg")
+        email = form.email.data
+        username = form.username.data
+        password = form.password.data
+        city = form.city.data
+        create_user(email=email,
+                    username=username,
+                    password=password,
+                    phone_number=form.phone_number.data,
+                    city=city)
+        flash('You can now login.', category="success")
         return redirect(url_for('auth.login'))
+    else:
+        flash_errors(form)
+
     return render_template('auth/register.html', form=form)
+
 
 @auth.before_app_request
 def before_request():

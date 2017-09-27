@@ -1,17 +1,13 @@
 {% extends "errors/error_base.html" %}
+{% block title_text %}{{ code }}{% endblock %}
+{% block body_attribs %} class="four-zero-four"{% endblock %}
 {% block page_content %}
-<div class="page-err">
-    <div class="err-container text-center">
-        <div class="err">
-            <h1>{{ code }}</h1>
-            <h2>{{ message }}</h2>
-        </div>
-
-        <div class="err-body">
-            <a ui-wave href="{{ url_for('main.index') }}" class="btn btn-raised btn-lg btn-default">
-                Go Back to Home Page
-            </a>
-        </div>
+<div class="four-zero-four-container">
+    <div class="error-code">{{ code }}</div>
+    <div class="error-message">{{ message }}</div>
+    <div class="button-place">
+        <a href="{{ url_for('main.index') }}" class="btn btn-default btn-lg waves-effect">GO TO HOMEPAGE</a>
     </div>
 </div>
 {% endblock %}
+

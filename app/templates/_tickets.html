@@ -1,21 +1,40 @@
-   <!-- /.col-lg-4 -->
-   {% for ticket in tickets %}
-   <div class="col-lg-3">
-       <div class="well well-sm">
-           Type {{ ticket.type }}<br/>
-           Price {{ ticket.price }}<br/>
-           Remaining {{ ticket.count }}<br/>
+<!-- /.col-lg-4 -->
+<div class="row clearfix">
+    {% for ticket in tickets %}
+    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
+        <div class="card">
+            <div class="header">
+                <h5>{{ ticket.type }} ticket</h5>
+            </div>
+            <div class="body">
+                <form class="edit-ticket" id="{{ ticket.id }}" method="post" action="" role="form" name="register">
+                    {{ edit_ticket_form.hidden_tag() }}
 
-       </div>
-   </div>
-   {% endfor %}
-   <!-- Colored FAB button -->
-   {% if event.can_add_tickets() %}
-   <a class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab mdl-button--colored" href="{{ url_for('main.add_ticket', event_id=event.id) }}">
-       <div id="tt4" class="material-icons">add</div>
-       <div class="mdl-tooltip" for="tt4">
-           Add tickets
-       </div>
-   </a>
-   {% endif %}
-
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                                            <i class="material-icons">attach_money</i>
+                                        </span>
+                        <div class="form-line">
+                            {{ edit_ticket_form.price(class_="form-control price", value=ticket.price,required=True, autofocus=True, id="price")}}
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                                                <i class="material-icons">group</i>
+                                            </span>
+                        <div class="form-line">
+                            {{ edit_ticket_form.count(class_="form-control count", value=ticket.count,required=True, autofocus=True, id="count")}}
+                        </div>
+                    </div>
+                    <div class="form-group edit-ticket-button">
+                        <button type="button" class="btn bg-orange btn-block waves-effect edit-ticket" data-ticketid="{{ticket.id}}" data-placement-from="bottom"
+                            data-placement-align="center" data-animate-enter="" data-animate-exit="" data-color-name="bg-green">
+                        submit
+                    </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>

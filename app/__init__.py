@@ -1,87 +1,87 @@
-from flask import Flask
-from flask_redis import  Redis
-from flask_sqlalchemy import SQLAlchemy
-from celery import Celery
+# -*- coding: utf-8 -*-
+"""
+    app
+    ~~~
 
-from flask_qrcode import QRcode
+    Provides the flask application
+"""
+
+from celery import Celery
+from flask import Flask
 from flask_bootstrap import Bootstrap
-from flask_uploads import configure_uploads, UploadSet, IMAGES, AUDIO
 from flask_login import LoginManager
 from flask_moment import Moment
+from flask_qrcode import QRcode
+from flask_redis import Redis
+from flask_sqlalchemy import SQLAlchemy
+from flask_uploads import configure_uploads, UploadSet, IMAGES
+from raven.contrib.flask import Sentry
 
-from config import config, Config
+from app.gateway import Gateway
+from config import Config, config
+
+__version__ = '0.1.0'
+
+__title__ = 'CashValueSolutions-Backend'
+__package_name__ = 'cash-value-solutions-app'
+__author__ = 'Pius Dan Nyongesa'
+__description__ = 'Cash Value Solutions Backend'
+__email__ = 'npiusdan@gmail.com'
+__license__ = 'MIT'
+__copyright__ = 'Copyright 2017 Pius Dan Nyongesa'
 
 db = SQLAlchemy()
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
-
-# bootsrap
 bootsrap = Bootstrap()
-
-# redis
 redis = Redis()
-
-# login manager
-login_manager = LoginManager()
-login_manager.session_protection = 'strong'
-login_manager.login_view = 'auth.login'
-
+cache = Redis()
 moment = Moment()
 qrcode = QRcode()
 photos = UploadSet('photos', IMAGES)
+gateway = Gateway()
+sentry = Sentry(dsn='https://6b6279f612c34c54bd48af36027000c4:4662a687b'
+                    '9724f79ad0dc98c13277028@sentry.io/210848')
+login_manager = LoginManager()
 
-def create_app(config_name):
-    """
-    Creates an app instance
-    :param config_name: 
-    :return: application instance
-    """
+login_manager.session_protection = 'strong'
+login_manager.login_view = 'auth.login'
 
-    # initialise app
+
+def create_app(config_mode=None, config_file=None):
     app = Flask(__name__)
 
-    # apply configurations from config file
-    app.config.from_object(config[config_name])
+    if config_mode:
+        app.config.from_object(config[config_mode])
+    if config_file:
+        app.config.from_pyfile(config_file)
 
-    # initialise extensions
     db.init_app(app)
-
-    # initialise login manager
     login_manager.init_app(app)
-
     moment.init_app(app)
-
-    # initialise redis
+    sentry.init_app(app)
     redis.init_app(app)
-
-    # initialise celery
+    cache.init_app(app, config_prefix='CACHE')
     celery.conf.update(app.config)
-
-    # initialise bootsrap
     bootsrap.init_app(app)
-
     configure_uploads(app, (photos))
-    qrcode.init_app(app)
+    gateway.init_app(app)
+
+    if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
+        from flask_sslify import SSLify
+        SSLify(app)
 
     # register blueprints
-
-    # auth blueprint
+    from app.common import common as base_blueprint
+    app.register_blueprint(base_blueprint, url_prefix="/base")
     from app.auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix="/auth")
-
-    # main blueprint
     from app.main import main as main_blueprint
     app.register_blueprint(main_blueprint)
-
-    # api v1.0 blueprint
     from app.api_1_0 import api as api_1_0_blueprint
     app.register_blueprint(api_1_0_blueprint, url_prefix="/api/v1.0")
-
-    # ussd blueprint
     from app.ussd import ussd as ussd_blueprint
     app.register_blueprint(ussd_blueprint, url_prefix="/ussd")
 
-
-    # return the app instance
     return app
 
 

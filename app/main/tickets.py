@@ -1,32 +1,44 @@
-import os
-from flask import render_template, abort, flash, redirect, url_for, request, send_from_directory, current_app
-from ..utils import flash_errors
-from flask_login import login_required, current_user
-from ..decorators import admin_required
-from ..models import User, Event, Ticket, Account
-from .. import photos, db
-from ..controllers import get_event_tickets_query
-from . import main
-from .forms import CreateEventForm, CreateTicketForm
+from flask import render_template, make_response,jsonify, request, current_app as app
+from json import dumps
+import pdfkit
 
-@main.route('/add_ticket/<int:event_id>', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def add_ticket(event_id):
-    event = Event.query.filter_by(id=event_id).first_or_404()
-    form = CreateTicketForm()
-    types =filter(lambda x: x[1] not in [ticket.type for ticket in event.tickets], [(k,v ) for (k, v) in enumerate(current_app.config['TICKET_TYPES'])])
-    form.type.choices = types
-    if form.validate_on_submit():
-        types = current_app.config['TICKET_TYPES']
-        # flash(types[1])
-        ticket = Ticket(type=types[form.type.data], count=form.count.data, price=form.price.data)
-        ticket.event_id = event_id
-        db.session.add(ticket)
-        db.session.commit()
-        flash("Ticket added.", category="msg")
-        return redirect(url_for(".get_event", id=event_id))
+from app import db
+from app.main import main
+from app.models import  Purchase, Ticket
+
+
+@main.route('/ticket/update', methods=['POST', 'GET'])
+def edit_ticket():
+    data = request.get_json()
+    ticket_id = data.get("ticket_id")
+    ticket = Ticket.query.filter_by(id=ticket_id).first()
+    print ticket
+    if ticket is None:
+        response = jsonify(error="Invalid Ticket")
+        response.status_code = 404
     else:
-        flash_errors(form)
+        ticket.price = float(data.get("price"))
+        ticket.count = int(data.get("count"))
+        db.session.commit()
+        response = jsonify(data="Ticket updated")
+        response.status_code = 200
+    return response
 
-    return render_template('events/create_ticket.html', form=form, event=event, tickets=event.tickets)
+
+@main.route('/download/<string:code>')
+def download_ticket(code):
+    ticket = Purchase.query.filter_by(code=code).first()
+    user = ticket.account.holder
+    rendered = render_template('events/purchase.html', purchase=ticket, user=user)
+    pdf = pdfkit.from_string(rendered, False)
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['content-Disposition'] = 'inline; filename=output.pdf'
+
+
+@main.route('/ticket/<string:code>')
+def get_purchase(code):
+    purchase = Purchase.query.filter_by(code=code).first()
+    user = purchase.account.holder
+    return render_template('events/purchase.html', purchase=purchase, user=user)
+

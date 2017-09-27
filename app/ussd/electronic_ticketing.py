@@ -1,54 +1,76 @@
-from ..models import db
-from utils import respond, update_session, session_exists, promote_session, demote_session, get_events, current_user, get_phone_number, get_event_tickets, get_ticket
+from uuid import uuid1
 
-class ElecticronicTicketing:
-    def __init__(self, user_response, session_id):
-        self.user_reponse = user_response
-        self.session_id = session_id
+from flask import url_for
+
+from app.ussd.utils import (respond, current_user,
+                              get_event_tickets_text)
+from base_menu import Menu
+from app.controllers import async_buy_ticket
+
+
+class ElecticronicTicketing(Menu):
+
+    def get_events(self):
+        return self.session_dict.get('events')
+
+    def get_tickets(self):
+        return self.session_dict.get('tickets')
 
     def view_event(self):
-
-        tickets = get_event_tickets(event_id=int(self.user_reponse))
+        event_list_key = "events" + self.session_id
+        events_dict = self.get_events()
+        event = events_dict.get(self.user_response)
+        if event is None:
+            return self.invalid_response()
+        tickets = event.tickets
         if tickets:
-            menu_text = "CON " + tickets
+            menu_text = "CON {event_title}\n{text}".format(
+                event_title = event.name,
+            text=get_event_tickets_text(tickets, self.session_id))
         else:
-            menu_text="END The Event has no availble tickets at the moment"
+            menu_text = "END {} has no tickets available at the moment".format(event.name)
         # Update sessions to level 32
-        update_session(self.session_id, 32)
+        self.session_dict['level'] = 32
+        self.update_session()
         return respond(menu_text)
 
     def buy_ticket(self):
-        ticket = get_ticket(int(self.user_reponse))
+        # TODO add payment options
+        tickets_dict = self.get_tickets()
+        ticket = tickets_dict.get(self.user_response)
+        if ticket is None:
+            return self.invalid_response()
         ticket.price = int(ticket.price)
-        if ticket.price <  current_user().account.balance:
-            current_user().account.balance -= ticket.price
-            menu_text = "END You have purchased a {} ticket worth {}. {} for event {}\n Your new account balance is\n {}. {}".format(
-                ticket.type,
-                ticket.event.location.currency_code,
-                ticket.price,
+        if ticket.price < current_user().account.balance:
+            menu_text = "END Your request to purchase {}'s " \
+                        "{} ticket worth {} " \
+                        "is being processed\n" \
+                        "You will receive a confirmatory SMS shortly\n" \
+                        "Thank you".format(
                 ticket.event.title,
-                current_user().location.currency_code,
-                current_user().account.balance)
+                ticket.type,
+                ticket.price_code)
+            code = str(uuid1())
+            print code
 
-            current_user().account.tickets.append(ticket)
-            db.session.commit()
+            url = url_for('main.get_purchase', code=code, _external=True)
+            payload = {"user":current_user().id,
+                       "ticket":ticket.id,
+                       "number":1, "ussd":True,
+                       "code":code, "url":url}
+            async_buy_ticket.apply_async(args=[payload], countdown=0)
         else:
             menu_text = "END You have insufficient funds to purchase this ticket\n" \
-                        "Your account balance is \n{}. {}\n" \
-                        "Kindly top up and try again".format(current_user().location.currency_code,
-                                                      current_user().account.balance)
+                        "Kindly top up and try again"
         return respond(menu_text)
-
-
-
+    
     def more_events(self):
         pass
 
     def invalid_response(self):
         menu_text = "CON Your entered an invalid reponse\nPress 0 to go back\n"
 
-        update_session(self.session_id, 0)
-
+        self.set_level(0)
+        self.update_session()
         # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
-

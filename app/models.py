@@ -1,18 +1,16 @@
-from flask import url_for, request
-from flask_sqlalchemy import current_app
+from datetime import datetime
+import hashlib
+import pickle
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from flask_login import UserMixin, AnonymousUserMixin
-import hashlib
-from datetime import datetime
+from flask import request
 
-from dateutil.parser import parse
+from flask_sqlalchemy import current_app
+from sqlalchemy.ext.serializer import dumps
+from flask_login import UserMixin, AnonymousUserMixin
 
 from . import login_manager
 from . import db
-
-from app_exceptions import SignupError
-
 
 class User(UserMixin, db.Model):
     """
@@ -25,46 +23,36 @@ class User(UserMixin, db.Model):
     # core details
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True)
-    phone_number = db.Column(db.String(64), unique=True, index=True)
-    email = db.Column(db.String, unique=True, index=True)
-
+    phone_number = db.Column(db.String(64), index=True, unique=True)
+    email = db.Column(db.String, index=True, unique=True)
     name = db.Column(db.String(64))
-    about_me = db.Column(db.Text())
-
-    town = db.Column(db.String(64))
-    city = db.Column(db.String(64))
-    country = db.Column(db.String(64))
-
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
-
-    # auth details
     token = db.Column(db.String(64))
     password_hash = db.Column(db.String(128))
-
-    # account details for mobile wallet
-    account = db.relationship('Account', backref="holder", uselist=False)
-
+    # location
+    country = db.Column(db.String(64))
+    city = db.Column(db.String(64))
+    # relationships
+    account = db.relationship('Account', backref="holder", uselist=False, lazy='subquery', cascade='all, delete-orphan')
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
-
-    location_id = db.Column(db.Integer, db.ForeignKey('locations.id'))
-
-    # relationship to events user has organised
     events = db.relationship('Event', backref='organiser', lazy='dynamic')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
+        # assign role
         if self.role is None:
-            if self.phone_number == current_app.config['VALHALLA_ADMIN']:
+            if self.phone_number == current_app.config['ADMIN_PHONENUMBER']:
                 self.role = Role.query.filter_by(permissions=0xff).first()
             else:
                 self.role = Role.query.filter_by(default=True).first()
+        # assign an avatar hash
         if self.email is not None and self.avatar_hash is None:
             self.avatar_hash = hashlib.md5(
                 self.email.encode('utf-8')).hexdigest()
+        # create a new user account
         self.account = Account()
-
 
     def __repr__(self):
         return "<User {}>".format(self.username)
@@ -74,7 +62,12 @@ class User(UserMixin, db.Model):
             url = 'https://secure.gravatar.com/avatar'
         else:
             url = 'http://www.gravatar.com/avatar'
-        hash = self.avatar_hash or hashlib.md5(self.email.encode('utf-8')).hexdigest()
+        if self.email:
+            hash = self.avatar_hash or hashlib.md5(
+                self.email.encode('utf-8')).hexdigest()
+        else:
+            hash = self.avatar_hash or hashlib.md5(
+                self.username + "@gmail.com".encode('utf-8')).hexdigest()
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
             url=url, hash=hash, size=size, default=default, rating=rating)
 
@@ -92,6 +85,14 @@ class User(UserMixin, db.Model):
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    @property
+    def currency_code(self):
+        return Location.currency_code(self.country)
+
+    @property
+    def country_code(self):
+        return Location.country_code(self.country)
 
     # user loader
     @login_manager.user_loader
@@ -119,44 +120,26 @@ class User(UserMixin, db.Model):
             return None
         return User.query.get(data['id'])
 
-    # TODO Serialise this classes
-    def to_json(self):
-        """
-        :return a json serialised object : 
-        """
-        to_json = {
-            'id': self.id,
-            'name': self.name,
-            'email': self.email,
-            'phone_number': self.phone_number,
-            'role': self.role.name,
-            'url': url_for('api.get_user', id=self.id, _external=True)
-        }
-        return to_json
+    def to_bin(self):
+        return dumps(self)
 
-    @staticmethod
-    def from_json(json_data):
-        # takes a json object and returns an db model
-        # validate email
-        # validate phone_number
-        name = json_data.get('name', '')
-        password = json_data.get('password')
-        phone_number = json_data.get('phone_number')
-        email = json_data.get('email')
-        if password is None or phone_number is None:
-            raise SignupError("Missing password or phone number fields")
-        try:
-            assert (User.query.filter_by(phone_number=phone_number).first() is None)
-            if email:
-                assert (User.query.filter_by(email=email).first() is None)
-            new_user = User(name=name, phone_number=phone_number, email=email, password=password)
-            return new_user
-        except AssertionError as e:
-            raise SignupError("Phone number or email already exists")   
 
+class Account(db.Model):
+    __tablename__ = "accounts"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    balance = db.Column(db.Float, default=0.0)
+    points = db.Column(db.Float, default=0.0)
+    purchases = db.relationship('Purchase', backref='account', lazy='subquery')
+
+    @property
+    def balance_available(self):
+        currency_code = Location.currency_code(self.holder.country)
+        return "{code} {balance}".format(code=currency_code,
+                                          balance=self.balance)
 
 class Role(db.Model):
-    """
+    """Set User Role
     Anonymous - Unknown user
     user - basic permission, can register for events
     moderator - moderates events to check their eligibility
@@ -170,7 +153,7 @@ class Role(db.Model):
     users = db.relationship('User', backref='role', lazy='dynamic')
 
     def __repr__(self):
-        return "Role "+ self.name
+        return "Role " + self.name
 
     @staticmethod
     def insert_roles():
@@ -190,10 +173,6 @@ class Role(db.Model):
             db.session.add(role)
         db.session.commit()
 
-    def to_json(self):
-        to_json = {
-            'name': self.name
-        }
 
 
 class Permission:
@@ -210,135 +189,99 @@ class AnonymousUser(AnonymousUserMixin):
     def is_administrator(self):
         return False
 
+    def to_bin(self):
+        return pickle.dumps(self)
 
 
 class Event(db.Model):
     __tablename__ = "events"
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.Integer, index=True)
-    description = db.Column(db.String(64), index=True)
+    name = db.Column(db.String, index=True)
+    description = db.Column(db.String, index=True)
 
     date = db.Column(db.DateTime)
-    logo_url = db.Column(db.String(64))
+    filename = db.Column(db.String)
+    closed = db.Column(db.Boolean, default=False)
 
-
-    tickets = db.relationship('Ticket', backref='event', lazy='dynamic')
+    tickets = db.relationship('Ticket', backref='event', lazy='subquery', cascade='all, delete-orphan')
     organiser_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
-    location_id = db.Column(db.Integer, db.ForeignKey('locations.id'))
+    country = db.Column(db.String(64))
+    city = db.Column(db.String(64))
+    venue = db.Column(db.String(64))
 
     def __repr__(self):
-        return "<Event {}>".format(self.title)
-
-
-    @staticmethod
-    def delete_past_events():
-        """
-        deletes all events in the data base whose date has passed(gives a one week grace period)
-        :return: 
-        """
-        # TODO Implement this feature
-        pass
+        return "<Event {}>".format(self.name)
 
     def can_add_tickets(self):
-        if self.tickets.count() == len(current_app.config["TICKET_TYPES"]):
+        if len(self.tickets) == len(current_app.config["TICKET_TYPES"]):
             return False
         else:
             return True
 
-    def to_json(self):
-        json_data = {}
-        json_data.setdefault('id', self.id)
-        json_data.setdefault('description', self.description)
-        json_data.setdefault('date', self.date)
-        json_data.setdefault('event_url', url_for('api.get_event', id=self.id, _external=True))
-        json_data.setdefault('organiser_url', url_for('api.get_user', id=self.organiser_id, _external=True))
-        return json_data
+    def to_bin(self):
+        return pickle.dumps(self)
 
-    @staticmethod
-    def from_json(json_data):
-        desc = json_data.get('description', '')
-        date = json_data.get('date', '')
-        if date is None:
-            return ValueError("Event must have a date")
-        if desc is None:
-            return ValueError("Please provide a description for your event")
-        event = Event(description=desc, date=parse(date))
-        return event
+    @property
+    def logo_url(self):
+        from app import photos
+        return photos.url(self.filename)
 
-purchases= db.Table('purchases',
-                        db.Column('user_id', db.Integer, db.ForeignKey('accounts.id')),
-                        db.Column('ticket_id', db.Integer, db.ForeignKey('tickets.id'))
-                        )
+    @property
+    def day(self):
+        return self.date.strftime('%B %d, %y')
 
-class Account(db.Model):
-    __tablename__ = "accounts"
+    @property
+    def currency_code(self):
+        return Location.currency_code(self.country)
+
+    @property
+    def country_code(self):
+        return Location.country_code(self.country)
+
+
+class Purchase(db.Model):
+    __tablename__ = "purchases"
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
-    balance = db.Column(db.Integer, default=0)
-    tickets = db.relationship('Ticket',
-                              secondary=purchases,
-                              backref=db.backref('tickets', lazy='dynamic'),
-                              lazy='dynamic')
+    count = db.Column(db.Integer)
+    code = db.Column(db.String(64), unique=True)
+    url = db.Column(db.String(64))
+    ticket_id = db.Column(db.Integer, db.ForeignKey('tickets.id'))
+    account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
+    confirmed = db.Column(db.Boolean, default=False)
+
 
 class Ticket(db.Model):
     __tablename__ = "tickets"
     id = db.Column(db.Integer, primary_key=True)
     count = db.Column(db.Integer)
-    price = db.Column(db.Integer)
+    price = db.Column(db.Float)
     type = db.Column(db.String(64), default='regular', index=True)
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'))
+    purchases = db.relationship('Purchase', backref='ticket', lazy='dynamic')
 
     def __repr__(self):
         return "<Type> {} <Price> {}".format(self.type, self.price)
 
-    @staticmethod
-    def tickets(type, price, event_id, number):
-        # TODO implement this async
-        """
-        Create an amount of tickets of type=type, event= event.event_id and price indicated as price
-        :param type: 
-        :param price: 
-        :param event_id: 
-        :param number: 
-        :return: 
-        """
-        for i in range(number):
-            ticket = Ticket(price=price, type=type, event_id=event_id)
-            db.session.add(ticket)
-        db.session.commit()
-
-    def to_json(self):
-        json_data = {}
-        json_data.setdefault('id', self.id)
-        json_data.setdefault('price', self.price)
-        json_data.setdefault('type', self.type)
-        json_data.setdefault('event_url', url_for('api.get_event', id=self.event_id, _external=True))
-        json_data.setdefault('ticket_url', url_for('api.get_ticket', id=self.id, _external=True))
-        return json_data
-
-    @staticmethod
-    def from_json(json_data):
-        type = json_data.get('type', None)
-        event_id = json_data.get('event_id', None)
-        price = json_data.get("price")
-        if event_id is None:
-            raise (ValueError('A ticket must be associated with an event'))
-        ticket = Ticket(event_id=event_id, price=price)
-        if type is None:
-            raise (ValueError('Please specify the ticket type'))
-        ticket.type = type
-        return ticket
-
-class Location(db.Model):
-    __tablename__ = "locations"
-    id = db.Column(db.Integer, primary_key=True)
-    country = db.Column(db.String(64))
-    city = db.Column(db.String(64))
-    currency_code = db.Column(db.String(64), default="KSH")
-    users = db.relationship('User', backref='location', lazy='dynamic')
-    events = db.relationship('Event', backref='location', lazy='dynamic')
+    @property
+    def price_code(self):
+        return self.event.currency_code + ". " + str(self.price)
 
 
-    def __repr__(self):
-        return "<Country {} - City {}>".format(self.country, self.city)
+class Location():
+    codes = {
+        "kenya": {
+            "currency": "KES"
+        },
+        "uganda": {
+            "currency": "UGX"
+        }
+    }
+
+    @classmethod
+    def currency_code(cls, country):
+        return cls.codes.get(country.lower()).get("currency")
+
+    @classmethod
+    def country_code(cls, country):
+        return cls.codes.get(country.lower()).get("phone")

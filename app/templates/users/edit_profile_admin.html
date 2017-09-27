@@ -1,26 +1,38 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block title %}{{ user.username }} | Update Profile [Admin]{% endblock %}{% block users %}class="active"{% endblock %} {% block all_users %}class="active"{% endblock %}
 {% import "bootstrap/wtf.html" as wtf %}
 
-{% block title %}Edit Profile [Admin]{% endblock %}
-
 {% block page_content %}
-<div class="row">
-    <div class="col-lg-12">
-        <h1 class="page-header">{{ user.username }}</h1>
-    </div>
-    <!-- /.col-lg-12 -->
-</div>
-<div class="row">
-    <div class="col-lg-12">
-        <div class="panel panel-default">
-            <div class="panel-heading"> Edit Profile [Admin]</div>
-            <div class="panel-body">
-                <div class="row">
-                    <div class="col-lg-6">
-                        {{ wtf.quick_form(form, button_map={"submit": "danger pull-right"}) }}
+
+<div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+<div class="card">
+        <div class="header"><h4>{{ user.username }}</h4></div>
+        <div class="body container-fluid">
+            <form id="sign_up" method="post" action="" role="form" name="register">
+                {{ form.hidden_tag() }}
+                <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 pull-left">
+                        
+                <div class="input-group">
+                    <span class="input-group-addon">
+                        <i class="material-icons">attach_money</i>
+                    </span>
+                    <div class="form-line">
+                        {{ form.account_balance(class_="form-control", required=True)}}
                     </div>
                 </div>
-            </div>
+                                    <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="material-icons">location_city</i>
+                        </span>
+                        <div class="form-line">
+                            {{ form.role(class_="form-control show-tick", required=True, autofocus=True)}}
+                        
+                        </div>
+                    </div>
+                    </div>
+                    <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3 pull-right">
+                    {{ form.submit(class_="btn btn-block btn-lg bg-black waves-effect")}}
+                    </div>
+            </form>
         </div>
     </div>
 </div>
