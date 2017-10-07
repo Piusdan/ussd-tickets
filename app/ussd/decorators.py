@@ -13,7 +13,7 @@ def validate_ussd_user(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         phone_number = request.values.get("phoneNumber")
-        current_app.logger.info("Trying to fectch from cache")
+        current_app.logger.info("Trying to fetch from cache")
         user = cache.get(phone_number)
         if user is None:
             # print "To db"

@@ -62,20 +62,13 @@ def edit_event(self, payload):
     Edit an event
     """
     event = Event.query.filter_by(id=payload["event_id"]).first()
-    address = payload.get("location")
     event.date = parse(payload.get("date"))
     event.venue = payload.get("venue")
-    event.title = payload.get("title")
+    event.name = payload.get("title")
     event.description = payload.get("description")
-    event.logo_url = payload.get("logo_url")
-    location = Location.query.filter_by(address=address.capitalize()).first()
-    if location:
-        event.location = location
-    else:
-        try:
-            event.location = Location(address=address)
-        except GeocoderError as exc:
-            pass
+    event.city = payload.get("location")
+
+    # event.filename = payload.get("url")
     db.session.commit()
     return True
 

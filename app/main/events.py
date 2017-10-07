@@ -65,7 +65,7 @@ def get_event(id):
             }
         edit_event.apply_async(args=[payload], countdown=0)
         db.session.commit()
-        flash("Edited {}".format(event.title), category="success")
+        flash("Edited {}".format(event_form.title.data), category="success")
         return redirect(url_for('.get_event', id=event.id))
     else:
         flash_errors(event_form)

@@ -49,7 +49,7 @@ def get_events(page=1):
     return events, pagination
 
 
-def get_event_tickets_text(tickets, session_id):
+def get_event_tickets_text(event, tickets):
     # get event tickets
     menu_text = ""
     # a dictionary mapping of tickets to the displayed number
@@ -58,15 +58,13 @@ def get_event_tickets_text(tickets, session_id):
     tickets = filter(lambda ticket: ticket.count > 0, tickets)
     for index, ticket in enumerate(tickets):
         index += 1
-        ticket_cache_dict[str(index)] = ticket
-        menu_text += "{}. {} {}".format(index, ticket.type, ticket.price_code) + "\n"
-
-    # cache user journey
-    session_dict = get_session(session_id)
-    session_dict.setdefault('tickets', ticket_cache_dict)
-    update_session(session_id, session_dict)
-
-    return menu_text
+        ticket_cache_dict[str(index)] = ticket.to_bin()
+        menu_text += "{index}. {type} {code} {price}\n".format(
+            index = index,
+            type= ticket.type,
+            code=event.currency_code,
+            price=ticket.price)
+    return menu_text, ticket_cache_dict
 
 
 def current_user():

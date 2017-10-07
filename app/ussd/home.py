@@ -34,15 +34,22 @@ class Home(Menu):
         return respond(menu_text, pretext=False)
 
     def events(self, page=1):
+        """Displays a paginated list of available events on the USSD screen
+        :param page: paginates the response-default is 1
+        :return: menu-text
+        :rtype: str
+        """
         events, pagination = get_events()
         if events:
+            print "events {}".format(events)
             menu_text = "CON Events\n"
             event_dict = {}    # a mapping of events to the
             # displayed number used to chache events
+
             for index, event in enumerate(events):
                 index+=1
                 menu_text += str(index) + ". " + str(event.name) + "\n"
-                event_dict[str(index)] = event
+                event_dict[str(index)] = event.to_bin()
             # cache events stored
             self.session_dict.setdefault('events', event_dict)
             if pagination.has_next:
