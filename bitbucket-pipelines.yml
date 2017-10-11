@@ -12,4 +12,4 @@ pipelines:
           - pip
         script: # Modify the commands below to build your repository.
           - pip install -r requirements.txt
-          - git push https://heroku:$f07c23cc-68e2-400a-9fad-e5f656596c45@git.heroku.com/$ashvaluesolutions-backend-dev.git HEAD
+          - git push https://heroku:$e4ffad2b-9d5c-422a-9f9d-279117491b27@git.heroku.com/$ashvaluesolutions-backend-dev.git HEAD
