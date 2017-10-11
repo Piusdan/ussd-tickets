@@ -4,6 +4,8 @@
 # -----
 # You can specify a custom docker image from Docker Hub as your build environment.
 image: python:2.7
+clone:
+  - depth: full
 
 pipelines:
   default:
@@ -12,4 +14,4 @@ pipelines:
           - pip
         script: # Modify the commands below to build your repository.
           - pip install -r requirements.txt
-          - git push https://heroku:$e4ffad2b-9d5c-422a-9f9d-279117491b27@git.heroku.com/$ashvaluesolutions-backend-dev.git HEAD
+          - git push https://git.heroku.com/cashvaluesolutions-backend.git HEAD
