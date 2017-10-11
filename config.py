@@ -23,20 +23,28 @@ class Config(object):
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SSL_DISABLE = True
 
-    # redis conf
-    REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
-    REDIS_PORT = os.getenv("REDIS_DB", "6379")
-    REDIS_DB = "1"
-    CACHE_HOST = os.getenv("REDIS_HOST", "localhost")
-    CACHE_PORT = os.getenv("REDIS_DB", "6379")
-    CACHE_DB = "2"
+    REDIS_URL = "redis://{HOST}:{PORT}/{DB}".format(
+        HOST=os.getenv("REDIS_HOST", "localhost"),
+        PORT=os.getenv("REDIS_DB", "6379"),
+        DB="redis"
+    )
+    CACHE_URL = "redis://{HOST}:{PORT}/{DB}".format(
+        HOST=os.getenv("REDIS_HOST", "localhost"),
+        PORT=os.getenv("REDIS_DB", "6379"),
+        DB="CACHE"
+    )
 
     # celery conf
-    CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL',
-                                  "redis://localhost:6379/0")
-    CELERY_RESULT_BACKEND = os.getenv('CELERY_BROKER_URL',
-                                      "redis://localhost:6379/0")
-
+    CELERY_BROKER_URL = "redis://{HOST}:{PORT}/{DB}".format(
+        HOST=os.getenv("REDIS_HOST", "localhost"),
+        PORT=os.getenv("REDIS_DB", "6379"),
+        DB="redis"
+    )
+    CELERY_RESULT_BACKEND = "redis://{HOST}:{PORT}/{DB}".format(
+        HOST=os.getenv("REDIS_HOST", "localhost"),
+        PORT=os.getenv("REDIS_DB", "6379"),
+        DB="redis"
+    )
     # application configuration
 
     ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER', '+254703554404')
@@ -104,6 +112,12 @@ class TestingConfig(Config):
     TESTING = True
     DEBUG_MEMCACHE = False
 
+class PyhtonAnyWhereConfig(Config):
+    SQLALCHEMY_DATABASE_URI = 'mysql+mysqldb://{username}:{password}@{host}/{db}'.\
+    format(username="piusdan",
+           password="vallhalla",
+           host="piusdan.mysql.pythonanywhere-services.com",
+           db="valhalla")
 
 class ProductionConfig(Config):
     """Production configuration options"""
@@ -124,6 +138,7 @@ config = {
     "testing": TestingConfig,
     "production": ProductionConfig,
     "heroku": HerokuConfig,
+    "anywhere": PyhtonAnyWhereConfig,
 
     "default": DevelopmentConfig
 }

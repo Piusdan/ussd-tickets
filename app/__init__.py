@@ -27,8 +27,7 @@ __package_name__ = 'cash-value-solutions-app'
 __author__ = 'Pius Dan Nyongesa'
 __description__ = 'Cash Value Solutions Backend'
 __email__ = 'npiusdan@gmail.com'
-__license__ = 'MIT'
-__copyright__ = 'Copyright 2017 Pius Dan Nyongesa'
+__copyright__ = 'Copyright 2017 Cash Value Solutions'
 
 db = SQLAlchemy()
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
