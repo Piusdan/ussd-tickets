@@ -21,7 +21,7 @@ def db_get_user(phone_number):
     return user
 
 
-def respond(menu_text, session_id=None, pretext=True):
+def respond(menu_text, session_id=None, pretext=True, preformat=True):
     """
     :param menu_text: menu text to display
     :param pretext: set to False if you don't want to include a predifined header
@@ -34,7 +34,10 @@ def respond(menu_text, session_id=None, pretext=True):
         header = menu_text[:3] + " Cash Value Solutions\n".upper()
     else:
         header = menu_text[:3] + " "
-    body = menu_text[3:].title()
+    if preformat:
+        body = menu_text[3:].title()
+    else:
+        body = menu_text[3:]
     menu_text = header + body.lstrip()
     response = make_response(menu_text, 200)
     response.headers['Content-Type'] = "text/plain"

@@ -1,11 +1,11 @@
-from . import db
-from flask import flash, redirect, url_for
-from .models import User, Ticket, Event, Purchase, Location, Role
-
-from . import celery
-from app_exceptions import GeocoderError
 from dateutil.parser import parse
+import pickle
+import json
+
+from app import celery
 from app import gateway
+from app import db
+from app.models import User, Ticket, Event, Purchase, Location, Role
 
 
 # # @celery.task(bind=True, default_retry_delay=1 * 2)
@@ -114,36 +114,56 @@ def async_delete_event(self, payload):
     db.session.commit()
     return "Deleted"
 
+
 @celery.task(bind=True, default_retry_delay=1 * 2)
 def async_buy_ticket(self, payload):
-    """
+    payload = json.loads(payload)
+    user = pickle.loads(payload["user"])
+    event = pickle.loads(payload["event"])
+    number_of_tickets = payload["amount"]
 
-    return True 
-    :param user - payload {"user", "ticket", "number", "ussd", "code", "url"}
+    ticket = pickle.loads(payload["ticket"])
+    method = payload["payment_method"]
 
-    """
-    # payload = {"user":current_user().id, "ticket":ticket.id, "number":1, "ussd":True}
-    ticket = Ticket.query.filter_by(id=int(payload["ticket"])).first()
-    user = User.query.filter_by(id=int(payload["user"])).first()
-    ticket.count -= payload["number"]
-    user.account.balance -= ticket.price
-    code = payload["code"]
-    try:
-        purchase = Purchase(ticket_id=ticket.id, code=code, account_id=user.account.id, count=payload["number"])
+    # generate a 4 digit ticket code
+    from random import randint
+    code = randint(0, 9999)
+    code = str(code).zfill(4)
+    # loop till a unique code is found
+    while Purchase.query.filter_by(code=code).first():
+        code = str(randint(0, 9999)).zfill(4)
+
+    # compose message
+    message = "You have purchased {number} {ticket_type} ticket(s) for {event_name} worth {currency_code} " \
+              "{ticket_price}.\nYour ticket code is {ticket_code}\n" \
+              "You can also download the ticket at {ticket_url}\n"
+
+    if method == 2: # "Mobile Wallet"
+        total_purchase = ticket.price * number_of_tickets
+        ticket.count -= number_of_tickets
+        user.account.balance -= total_purchase
+        user.account.points += total_purchase * 0.10
+        purchase = Purchase(ticket_id=ticket.id, code=code, account_id=user.account.id, count=number_of_tickets)
         db.session.add(purchase)
-        # send confirmatory messsage or email
         recepients = [user.phone_number]
-        message = "You have purchased {} ticket for {} worth {}.\nYour ticket code is {}\nYou can also download the ticket at {}\n".format(
-            ticket.type, ticket.event.title, ticket.price_code, purchase.code, payload.get("url"))
-    except Exception as exc:
-        db.session.rollback()
-        raise self.retry(exc=exc, countdown=5)
+        message = message.format(number=number_of_tickets,
+                                 event_name=event.name,
+                                 ticket_type=ticket.type,
+                                 currency_code=event.currency_code,
+                                 ticket_price=ticket.price,
+                                 ticket_url=purchase.url)
 
-    if payload.get("ussd"):
         try:
+            # send confirmatory messsage
+
             resp = gateway.sendMessage(to_=recepients, message_=message)
-        except Exception:
-            gateway.sendMessage(to_=user.phone_number, message_="Network experiencing problems.\nKindly try again later")
+        except Exception as exc:
+            raise self.retry(exc=exc, countdown=5)
+
+    if method == 1: # "Mpesa"
+        pass
+
+
     db.session.commit()
 
 

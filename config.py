@@ -26,31 +26,31 @@ class Config(object):
     REDIS_URL = "redis://{HOST}:{PORT}/{DB}".format(
         HOST=os.getenv("REDIS_HOST", "localhost"),
         PORT=os.getenv("REDIS_DB", "6379"),
-        DB="redis"
+        DB="1"
     )
     CACHE_URL = "redis://{HOST}:{PORT}/{DB}".format(
         HOST=os.getenv("REDIS_HOST", "localhost"),
         PORT=os.getenv("REDIS_DB", "6379"),
-        DB="CACHE"
+        DB="2"
     )
 
     # celery conf
     CELERY_BROKER_URL = "redis://{HOST}:{PORT}/{DB}".format(
         HOST=os.getenv("REDIS_HOST", "localhost"),
         PORT=os.getenv("REDIS_DB", "6379"),
-        DB="redis"
+        DB="3"
     )
     CELERY_RESULT_BACKEND = "redis://{HOST}:{PORT}/{DB}".format(
         HOST=os.getenv("REDIS_HOST", "localhost"),
         PORT=os.getenv("REDIS_DB", "6379"),
-        DB="redis"
+        DB="3"
     )
     # application configuration
 
     ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER', '+254703554404')
     SECRET_KEY = os.getenv('SECRET_KEY', 'mysecret')
 
-    ADMIN_MAIL = os.getenv('VALHALLA_ADMIN_MAIL')          # admins email address
+    ADMIN_MAIL = os.getenv('APP_ADMIN_MAIL')          # admins email address
     MAIL_SUBJECT_PREFIX = "[Cash Value Solutions]"
     MAIL_SENDER = 'Cash Value Solutions <cashvaluesolutions@gmail.com>'
     MAIL_SERVER = 'smtp.googlemail.com'
@@ -102,6 +102,7 @@ class DevelopmentConfig(Config):
                               'valhalla:valhalla@localhost' \
                               '/valhalla'
     DEBUG = True
+    # SERVER_NAME = "0.0.0.0:4040"
     DEBUG_MEMCACHE = False
 
 

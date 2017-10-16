@@ -8,6 +8,7 @@ from flask import request
 from flask_sqlalchemy import current_app
 from sqlalchemy.ext.serializer import dumps
 from flask_login import UserMixin, AnonymousUserMixin
+from flask import url_for
 
 from . import login_manager
 from . import db
@@ -254,10 +255,14 @@ class Purchase(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     count = db.Column(db.Integer)
     code = db.Column(db.String(64), unique=True)
-    url = db.Column(db.String(64))
     ticket_id = db.Column(db.Integer, db.ForeignKey('tickets.id'))
     account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
     confirmed = db.Column(db.Boolean, default=False)
+
+
+    @property
+    def url(self):
+        return url_for('main.get_purchase', code=self.code)
 
 
 class Ticket(db.Model):

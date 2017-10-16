@@ -10,7 +10,7 @@ from flask_migrate import MigrateCommand, Migrate
 from app import create_app, db
 from app.models import User, Role, Event, Ticket, Account, Location, Purchase
 
-app = create_app(os.environ.get('VALHALLA_CONFIG') or 'default')
+app = create_app(os.environ.get('APP_CONFIG') or 'default')
 migrate = Migrate(app, db)
 manager = Manager(app)
 app.logger.info("initialising app")

@@ -103,9 +103,17 @@ def ussd_callback():
                     "0": menu.more_events,
                     "default": menu.invalid_response
                 },
-                32: {
-                    "0": menu.buy_ticket,
+                32:{
+                    "0": menu.quantity,
                     "default": menu.invalid_response
+                },
+                33: {
+                    "0": menu.payment_option,
+                    "default": menu.invalid_response
+                },
+                34:{
+                    "0": menu.buy_ticket,
+                    "default": menu.invalid_response()
                 }
             }
             if user_response == "0":
