@@ -23,12 +23,9 @@ class Home(Menu):
         menu_text = "Hello {}, choose a service\n".format(current_user().username)
         menu_text += "1.Events\n"
         menu_text += "2.MobileWallet\n"
-        menu_text += "3.Pay Utility\n"
-        menu_text += "4.Airtime/Bundles\n"
-        menu_text += "5.My Bank Account\n"
-        menu_text += "6.School fees\n"
-        menu_text += "7.Payments\n"
-        menu_text += "8.Pay TV\n"
+        menu_text += "3.Airtime/Bundles\n"
+        menu_text += "4.Check Balance\n"
+        menu_text += "0.Exit\n"
         menu_text = header + menu_text
         # print the response on to the page so that our gateway can read it
         return respond(menu_text, pretext=False)

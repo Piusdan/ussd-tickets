@@ -4,10 +4,11 @@ import pickle
 
 from flask import url_for
 
-from app.ussd.utils import (respond, current_user,
-                              get_event_tickets_text)
+from app.ussd.utils import respond, current_user,get_event_tickets_text, create_ticket_code
+from app.ussd.tasks import async_buy_ticket
+
 from base_menu import Menu
-from app.controllers import async_buy_ticket
+
 
 class ElecticronicTicketing(Menu):
     """Facilitates Electronic USSD ticketing system
@@ -87,57 +88,55 @@ class ElecticronicTicketing(Menu):
         pickled_ticket = str(self.session_dict.get("selected_ticket"))
         selected_ticket = pickle.loads(pickled_ticket)
         event = pickle.loads(str(self.session_dict.get("selected_event")))
-        amount = self.session_dict["number_of_tickets"]
+        number_of_tickets = self.session_dict["number_of_tickets"]
+        value = "{curency_code} {amount}".format(
+            curency_code=event.currency_code,
+            amount=(selected_ticket.price*number_of_tickets))
+        ticket_code = create_ticket_code()
+        ticket_url = url_for('main.get_purchase', code=ticket_code,_external=True)
 
 
         menu_text = "END Your request to purchase {event_name}'s {ticket_type} " \
-                    "ticket worth {currency_code} {ticket_cost} is being processed\n" \
+                    "ticket worth {value} is being processed\n" \
                     "You will receive {notification_type} shortly\n" \
                     "Thank you"
+
+        payload = json.dumps(
+            dict(
+                category="ET",
+                number_of_tickets=number_of_tickets,
+                ticket=pickled_ticket,
+                user=pickle.dumps(current_user()),
+                payment_method=self.user_response,
+                ticket_url=ticket_url,
+                ticket_code=ticket_code
+            )
+        )
 
         if self.user_response == "1":
             menu_text = menu_text.format(notification_type="an Mpesa Checkout prompt",
                                          event_name=event.name,
                                          currency_code=event.currency_code,
-                                         ticket_type=selected_ticket.type,
-                                         ticket_cost=selected_ticket.price
+                                         value=value
                                          )
-
-            payload = json.dumps(
-                dict(
-                    amount=amount,
-                    ticket=pickled_ticket,
-                    user=pickle.dumps(current_user()),
-                    event=str(self.session_dict.get("selected_event")),
-                    payment_method=1   # Mpesa
-                )
-            )
-            pass
         elif self.user_response == "2":
-            if selected_ticket.price*amount < current_user().account.balance:
+            if selected_ticket.price*number_of_tickets < current_user().account.balance:
 
                 menu_text = menu_text.format(notification_type="a confirmatory SMS",
                                              event_name=event.name,
                                              currency_code=event.currency_code,
                                              ticket_type=selected_ticket.type,
-                                             ticket_cost=selected_ticket.price
+                                             ticket_cost=selected_ticket.price,
+                                             value=value
                                              )
-
-                payload = json.dumps(
-                    dict(
-                        amount=amount,
-                        ticket=pickled_ticket,
-                        user=pickle.dumps(current_user()),
-                        event=str(self.session_dict.get("selected_event")),
-                        payment_method=2  # Mobile Wallet
-                    )
-                )
-                async_buy_ticket.apply_async(args=[payload], countdown=0)
             else:
                 menu_text = "END You have insufficient funds to purchase this ticket\n" \
                             "Kindly top up and try again"
         else:
-            self.invalid_response()
+            return self.invalid_response()
+
+        async_buy_ticket.apply_async(args=[payload], countdown=0)
+
         return respond(menu_text, preformat=False, pretext=False)
     
     def more_events(self):

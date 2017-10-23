@@ -1,7 +1,7 @@
 from flask import request, g, jsonify, current_app as app
 
 from app.ussd.utils import respond
-from app.ussd.tasks import async_mpesa_c2b_callback
+from app.ussd.tasks import async_mobile_money_callback
 from electronic_ticketing import ElecticronicTicketing
 from home import Home
 from mobile_Wallet import MobileWallet
@@ -51,21 +51,18 @@ def ussd_callback():
 
             menu = Home(session_id=session_id)
             menus = {
-                "0": menu.home,
+                "-1": menu.home,
+                "0": menu.end_session,
                 "1": menu.events,
                 "2": menu.mobilewallet,
-                "3": menu.utility,
-                "4": menu.airtime,
-                "5": menu.bank_account,
-                "6": menu.fees,
-                "7": menu.payments,
-                "8": menu.pay_tv,
+                "3": menu.airtime,
+                "4": menu.check_balance,
                 "default": menu.default_menu
             }
             if user_response in menus.keys():
                 return menus.get(user_response)()
             else:
-                return menus.get("0")()
+                return menus.get("-1")()
         elif level <= 18:  # mobile wallet
             menu = MobileWallet(session_id=session_id,
                                 user_response=user_response)
@@ -129,12 +126,12 @@ def ussd_callback():
 
 @ussd.route('/payments-callback', methods=['GET', 'POST'])
 def c2b_callback():
-    import cPickle as pk
+    import json
     api_payload = request.get_json()
     if api_payload.get('status') == 'Success':
         # do this async
-        payload= {"api_payload": pk.dumps(api_payload)}
-        async_mpesa_c2b_callback.apply_async(args=[payload], countdown=0)
+        payload= json.dumps({"api_payload": api_payload })
+        async_mobile_money_callback.apply_async(args=[payload], countdown=0)
         response = jsonify({"mesage": "recieved"})
         # print response
     else:

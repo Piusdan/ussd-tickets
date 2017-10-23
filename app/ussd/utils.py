@@ -1,10 +1,10 @@
 from flask import current_app, make_response, g
 
-from app import db
-from app.models import AnonymousUser, Event, Ticket, User
-from app.ussd.tasks import validate_cache
-from app.ussd.session import get_session, update_session, expire_session
-from app.ussd.tasks import set_cache
+from app import db, cache
+
+from app.models import AnonymousUser, Event, Ticket, User, Purchase
+
+from app.ussd.session import expire_session
 
 
 def db_get_user(phone_number):
@@ -98,3 +98,58 @@ def create_user(payload):
     validate_cache(user)
     return True
 
+
+def purchase_ticket(number_of_tickets, user_id, ticket_id,ticket_code, ticket_url, method="1"):
+
+    # compose message
+    message = "You have purchased {number} {ticket_type} ticket(s) for {event_name} worth " \
+              "{currency_code} " \
+              "{ticket_price} each.\nYour ticket code is {ticket_code}\n" \
+              "You can also download the ticket at {ticket_url}\n"
+    ticket = Ticket.query.filter_by(id=ticket_id).first()
+    event = ticket.event
+    user = User.query.filter_by(id=user_id).first()
+    total_purchase = ticket.price * number_of_tickets
+    if method == "2":
+        user.account.balance -= total_purchase
+        user.account.points += total_purchase * 0.1
+    ticket.count -= number_of_tickets
+    purchase = Purchase(ticket_id=ticket.id, code=ticket_code, account_id=user.account.id, count=number_of_tickets)
+    purchase.url = ticket_url
+    db.session.add(purchase)
+    recepients = [user.phone_number]
+    message = message.format(number=number_of_tickets,
+                            event_name=event.name,
+                            ticket_type=ticket.type,
+                            currency_code=event.currency_code,
+                            ticket_price=ticket.price,
+                            ticket_url=purchase.url,
+                            ticket_code=ticket_code)
+    db.session.commit()
+    return message, recepients
+
+
+def get_ticket_by_id(ticket_id):
+    return Ticket.query.filter_by(id=ticket_id).first()
+
+def get_user_by_phone_number(phone_number):
+    return User.query.filter_by(phone_number=phone_number).first()
+
+
+def validate_cache(user):
+    phone_number = user.phone_number
+    cache.set(phone_number, user.to_bin())
+
+def set_cache(phone_number, user):
+    cache.set(phone_number, user.to_bin())
+
+
+def create_ticket_code():
+    # generate a 4 digit ticket code
+    from random import randint
+    code = randint(0, 9999)
+    code = str(code).zfill(4)
+    # loop till a unique code is found
+    while Purchase.query.filter_by(code=code).first():
+        code = str(randint(0, 9999)).zfill(4)
+    return code
