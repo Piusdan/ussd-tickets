@@ -25,24 +25,24 @@ class Config(object):
 
     REDIS_URL = "redis://{HOST}:{PORT}/{DB}".format(
         HOST=os.getenv("REDIS_HOST", "localhost"),
-        PORT=os.getenv("REDIS_DB", "6379"),
+        PORT=os.getenv("REDIS_PORT", "6379"),
         DB="1"
     )
     CACHE_URL = "redis://{HOST}:{PORT}/{DB}".format(
         HOST=os.getenv("REDIS_HOST", "localhost"),
-        PORT=os.getenv("REDIS_DB", "6379"),
+        PORT=os.getenv("REDIS_PORT", "6379"),
         DB="2"
     )
 
     # celery conf
     CELERY_BROKER_URL = "redis://{HOST}:{PORT}/{DB}".format(
         HOST=os.getenv("REDIS_HOST", "localhost"),
-        PORT=os.getenv("REDIS_DB", "6379"),
+        PORT=os.getenv("REDIS_PORT", "6379"),
         DB="3"
     )
     CELERY_RESULT_BACKEND = "redis://{HOST}:{PORT}/{DB}".format(
         HOST=os.getenv("REDIS_HOST", "localhost"),
-        PORT=os.getenv("REDIS_DB", "6379"),
+        PORT=os.getenv("REDIS_PORT", "6379"),
         DB="3"
     )
     # application configuration
@@ -113,7 +113,7 @@ class TestingConfig(Config):
     TESTING = True
     DEBUG_MEMCACHE = False
 
-class PyhtonAnyWhereConfig(Config):
+class PythonAnyWhereConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'mysql+mysqldb://{username}:{password}@{host}/{db}'.\
     format(username="piusdan",
            password="vallhalla",
@@ -139,7 +139,7 @@ config = {
     "testing": TestingConfig,
     "production": ProductionConfig,
     "heroku": HerokuConfig,
-    "anywhere": PyhtonAnyWhereConfig,
+    "anywhere": PythonAnyWhereConfig,
 
     "default": DevelopmentConfig
 }
