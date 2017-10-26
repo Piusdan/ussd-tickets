@@ -13,11 +13,11 @@ class Config(object):
     """general configurations"""
 
     # flask specific conf
-    HOST = '0.0.0.0'
     DEBUG = False
     TESTING = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG_MEMCHACHE = False
+    WKHTMLTOPDF_PATH = '/usr/local/bin/wkhtmltopdf'
 
     # sql alchemy conf
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
@@ -74,7 +74,7 @@ class Config(object):
     AT_ENVIRONMENT = os.getenv('AT_ENVIRONMENT', 'sandbox')
     SMS_CODE = os.getenv('AT_SMSCODE', None)
     PRODUCT_NAME = os.getenv('AT_PRODUCT_NAME', 'Mobile Wallet')
-    AT_providerChannel = "9142"
+    PROVIDER_CHANNEL = "9142"
 
     # for pagination of responses
     USSD_EVENTS_PER_PAGE = 5

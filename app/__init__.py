@@ -11,11 +11,12 @@ from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_moment import Moment
-from flask_qrcode import QRcode
 from flask_redis import Redis
 from flask_sqlalchemy import SQLAlchemy
 from flask_uploads import configure_uploads, UploadSet, IMAGES
 from raven.contrib.flask import Sentry
+from flask_qrcode import QRcode
+from celery.utils.log import get_task_logger
 
 from app.gateway import Gateway
 from config import Config, config
@@ -41,10 +42,10 @@ gateway = Gateway()
 sentry = Sentry(dsn='https://6b6279f612c34c54bd48af36027000c4:4662a687b'
                     '9724f79ad0dc98c13277028@sentry.io/210848')
 login_manager = LoginManager()
-
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
 
+celery_logger = get_task_logger(__name__)
 
 def create_app(config_mode=None, config_file=None):
     app = Flask(__name__)
@@ -64,7 +65,7 @@ def create_app(config_mode=None, config_file=None):
     bootsrap.init_app(app)
     configure_uploads(app, (photos))
     gateway.init_app(app)
-
+    qrcode.init_app(app)
     if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
         from flask_sslify import SSLify
         SSLify(app)

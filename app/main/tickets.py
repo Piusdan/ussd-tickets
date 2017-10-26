@@ -1,6 +1,7 @@
-from flask import render_template, make_response,jsonify, request, current_app as app
+from flask import render_template, make_response,jsonify, Response, request, current_app as app
 from json import dumps
-import pdfkit
+from xhtml2pdf import pisa
+from cStringIO import StringIO
 
 from app import db
 from app.main import main
@@ -29,12 +30,18 @@ def edit_ticket():
 def download_ticket(code):
     ticket = Purchase.query.filter_by(code=code).first()
     user = ticket.account.holder
-    rendered = render_template('events/purchase.html', purchase=ticket, user=user)
-    pdf = pdfkit.from_string(rendered, False)
-    response = make_response(pdf)
+    pdf_data = render_template('events/print_ticket.html', purchase=ticket, user=user)
+    result = StringIO()
+    print type(pdf_data)
+    pisa.CreatePDF(
+        StringIO(pdf_data.encode("utf-8")),
+        dest=result)
+    response = make_response(result.getvalue())
+    result.close()
+    ticket_name = 'ticket{code}'.format(code=code)
+    # response.headers.set('Content-Disposition', 'attachment', filename=ticket_name + '.pdf')
     response.headers['Content-Type'] = 'application/pdf'
-    response.headers['content-Disposition'] = 'inline; filename=output.pdf'
-
+    return response
 
 @main.route('/ticket/<string:code>')
 def get_purchase(code):

@@ -1,3 +1,23 @@
+function generatePDF(page_url, pdf_url) {
+   var htmlTo = require('htmlto');
+
+    var options = {
+        pathTohtml: page_url,
+        pathTopdf: pdf_url,
+        paperSize:{
+            format: 'A4',
+            orientation: 'portrait',
+            margin: '1.5cm'
+        }
+    }
+
+    htmlTo.pdf(options,function(err,result){
+        if(err) throw err;
+        console.log('result :',result)
+    })
+
+}
+
 $(function () {
     $('.edit-ticket-button button').on('click', function () {
         var placementFrom = $(this).data('placement-from');

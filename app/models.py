@@ -258,7 +258,6 @@ class Purchase(db.Model):
     ticket_id = db.Column(db.Integer, db.ForeignKey('tickets.id'))
     account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
     confirmed = db.Column(db.Boolean, default=False)
-    url = db.column(db.String(64))
 
 class Ticket(db.Model):
     __tablename__ = "tickets"

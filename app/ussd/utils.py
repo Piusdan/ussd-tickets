@@ -1,9 +1,8 @@
 from flask import current_app, make_response, g
+import cPickle
 
 from app import db, cache
-
 from app.models import AnonymousUser, Event, Ticket, User, Purchase
-
 from app.ussd.session import expire_session
 
 
@@ -115,7 +114,6 @@ def purchase_ticket(number_of_tickets, user_id, ticket_id,ticket_code, ticket_ur
         user.account.points += total_purchase * 0.1
     ticket.count -= number_of_tickets
     purchase = Purchase(ticket_id=ticket.id, code=ticket_code, account_id=user.account.id, count=number_of_tickets)
-    purchase.url = ticket_url
     db.session.add(purchase)
     recepients = [user.phone_number]
     message = message.format(number=number_of_tickets,
@@ -123,7 +121,7 @@ def purchase_ticket(number_of_tickets, user_id, ticket_id,ticket_code, ticket_ur
                             ticket_type=ticket.type,
                             currency_code=event.currency_code,
                             ticket_price=ticket.price,
-                            ticket_url=purchase.url,
+                            ticket_url=ticket_url,
                             ticket_code=ticket_code)
     db.session.commit()
     return message, recepients
@@ -142,6 +140,19 @@ def validate_cache(user):
 
 def set_cache(phone_number, user):
     cache.set(phone_number, user.to_bin())
+
+def get_account_balance(payload):
+    user_bin = str(payload["user"])
+    user = cPickle.loads(user_bin)
+    balance = "{currency_code} {balance}".format(currency_code=user.currency_code,
+                                                  balance=user.account.balance)
+    message = "Your Account Balance Is {balance} " \
+              "Cash Value Points {points}\n" \
+              "Keep Using Our Services to Earn More Points.".format(
+            username=user.username,
+            balance=balance,
+            points=user.account.points)
+    return message
 
 
 def create_ticket_code():

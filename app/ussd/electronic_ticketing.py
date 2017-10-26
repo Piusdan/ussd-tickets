@@ -91,13 +91,13 @@ class ElecticronicTicketing(Menu):
         number_of_tickets = self.session_dict["number_of_tickets"]
         value = "{curency_code} {amount}".format(
             curency_code=event.currency_code,
-            amount=(selected_ticket.price*number_of_tickets))
+            amount=selected_ticket.price)
         ticket_code = create_ticket_code()
         ticket_url = url_for('main.get_purchase', code=ticket_code,_external=True)
 
 
-        menu_text = "END Your request to purchase {event_name}'s {ticket_type} " \
-                    "ticket worth {value} is being processed\n" \
+        menu_text = "END Your request to purchase {count} ticket(s) worth {ticket_cost} each " \
+                    "for {event_name} event is being processed\n" \
                     "You will receive {notification_type} shortly\n" \
                     "Thank you"
 
@@ -115,19 +115,21 @@ class ElecticronicTicketing(Menu):
 
         if self.user_response == "1":
             menu_text = menu_text.format(notification_type="an Mpesa Checkout prompt",
+                                         count=number_of_tickets,
                                          event_name=event.name,
                                          currency_code=event.currency_code,
-                                         value=value
+                                         ticket_type=selected_ticket.type,
+                                         ticket_cost=value
                                          )
         elif self.user_response == "2":
             if selected_ticket.price*number_of_tickets < current_user().account.balance:
 
                 menu_text = menu_text.format(notification_type="a confirmatory SMS",
-                                             event_name=event.name,
-                                             currency_code=event.currency_code,
-                                             ticket_type=selected_ticket.type,
-                                             ticket_cost=selected_ticket.price,
-                                             value=value
+                                         count=number_of_tickets,
+                                         event_name=event.name,
+                                         currency_code=event.currency_code,
+                                         ticket_type=selected_ticket.type,
+                                         ticket_cost=value
                                              )
             else:
                 menu_text = "END You have insufficient funds to purchase this ticket\n" \

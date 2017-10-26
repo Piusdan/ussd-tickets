@@ -1,0 +1,87 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <title>Print Ticket | Cash Value Solutions</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+</head>
+
+<style>
+
+    .ls {
+        border-left: None;
+        border-right: None;
+    }
+    .logo {
+        height: 100%;
+        width: 100%
+    }
+    img {
+        zoom: 100%
+    }
+    @page {
+        size: A10 letter portrait;
+        margin: 2cm;
+        }
+    *, html {
+        font-size: 12px;
+        font-family: "Calibri"
+    }
+    body {
+        width: 1054px;
+        height: 200px;
+        }
+</style>
+<body>
+<table>
+    <tr>
+        <td>
+            <h3>E-Ticket<small class="text-muted"><br/>present this ticket at the venue</small></h3>
+        </td>
+
+    </tr>
+</table>
+<table>
+    <tr>
+        <td>
+    <table>
+        <tr>
+            Welcome to The {{ purchase.ticket.event.title }} event
+            {{ purchase.ticket.event.description }}
+        </tr>
+
+    <tr>
+        <td>EVENT DATE</td><td>{{ purchase.ticket.event.day }}</td>
+    </tr>
+    <tr>
+        <td>LOCATION</td><td>{{ purchase.ticket.event.venue }}, {{ purchase.ticket.event.city }}</td>
+    </tr>
+    <tr>
+        <td>PURCHASERUSERNAME</td><td>{{ user.username }}</td>
+    </tr>
+        <tr>
+        <td>TICKET NO</td><td>{{ purchase.id }}</td>
+            </tr>
+    </table>
+            <table>
+                <tr>
+                <th>TICKET TYPE</th>
+                <th>PRICE</th>
+                <th>TICKET CODE</th>
+                </tr>
+                <tr>
+                    <td>{{ purchase.ticket.type }}</td>
+                    <td>{{ purchase.ticket.price }}</td>
+                    <td>{{ purchase.code }}</td>
+                </tr>
+            </table>
+        </td>
+
+    <td>
+        <h5>admit {{ purchase.count }}</h5>
+        <img src="{{ qrcode( purchase.code ) }}">
+    </td>
+</table>
+</body>
+</html>

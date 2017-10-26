@@ -1,5 +1,4 @@
-from app.ussd.utils import (respond, get_events, current_user)
-from app.ussd.tasks import async_send_account_balance
+from app.ussd.utils import respond, get_events, current_user, get_account_balance
 from base_menu import Menu
 
 
@@ -133,10 +132,8 @@ class Home(Menu):
     def check_balance(self):
         #TODO Send in session
         payload = {"user": current_user().to_bin()}
-        async_send_account_balance.apply_async(args=[payload], countdown=0)
-        return respond("END We are sending "
-                       "your account balance shortly",
-                       session_id=self.session_id)
+        balance = get_account_balance(payload)
+        return respond("END {}".format(balance), preformat=False)
 
 
     def default_menu(self):
