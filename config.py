@@ -131,12 +131,10 @@ class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
     REDIS_URL = os.environ.get('REDIS_URL')
     CACHE_URL = os.environ.get('HEROKU_REDIS_RED_URL')
-
     # celery conf
     CELERY_BROKER_URL = REDIS_URL
     CELERY_RESULT_BACKEND = REDIS_URL
     DEBUG_MEMCHACHE = True
-
     @classmethod
     def init_app(cls, app):
         Config.init_app(app)
@@ -147,12 +145,11 @@ class ProductionConfig(Config):
         sentry.init_app(app)
 
 
-class HerokuConfig(Config):
+class HerokuConfig(ProductionConfig):
     SSL_DISABLE = bool(os.environ.get('SSL_DISABLE'))
     @classmethod
     def init_app(cls, app):
         ProductionConfig.init_app(app)
-
         # log to stderr
         import logging
         from logging import StreamHandler

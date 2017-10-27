@@ -12,6 +12,7 @@ from app import create_app, db
 from app.models import User, Role, Event, Ticket, Account, Location, Purchase
 
 app = create_app(os.environ.get('FLASK_CONFIG') or 'default')
+
 migrate = Migrate(app, db)
 manager = Manager(app)
 

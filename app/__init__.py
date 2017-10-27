@@ -47,13 +47,11 @@ login_manager.login_view = 'auth.login'
 
 celery_logger = get_task_logger(__name__)
 
-def create_app(config_mode=None, config_file=None):
+def create_app(config_name):
     app = Flask(__name__)
 
-    if config_mode is not None:
-        app.config.from_object(config[config_mode])
-    if config_file is not None:
-        app.config.from_pyfile(config_file)
+    app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
     # logging
     logging.basicConfig(filename='CVS.log',level=logging.DEBUG)
     db.init_app(app)
