@@ -13,7 +13,7 @@ from flask_moment import Moment
 from flask_redis import Redis
 from flask_sqlalchemy import SQLAlchemy
 from flask_uploads import configure_uploads, UploadSet, IMAGES
-from raven.contrib.flask import Sentry
+
 from flask_qrcode import QRcode
 from celery.utils.log import get_task_logger
 
@@ -41,8 +41,6 @@ moment = Moment()
 qrcode = QRcode()
 photos = UploadSet('photos', IMAGES)
 gateway = Gateway()
-sentry = Sentry(dsn='https://6b6279f612c34c54bd48af36027000c4:4662a687b'
-                    '9724f79ad0dc98c13277028@sentry.io/210848')
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
@@ -61,7 +59,7 @@ def create_app(config_mode=None, config_file=None):
     db.init_app(app)
     login_manager.init_app(app)
     moment.init_app(app)
-    sentry.init_app(app)
+
     redis.init_app(app)
     cache.init_app(app, config_prefix='CACHE')
     celery.conf.update(app.config)

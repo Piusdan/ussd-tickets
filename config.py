@@ -95,6 +95,9 @@ class Config(object):
             "country": "Uganda"
         }
     }
+    @classmethod
+    def init_app(cls, app):
+        pass
 
 
 class DevelopmentConfig(Config):
@@ -122,25 +125,44 @@ class PythonAnyWhereConfig(Config):
            host="piusdan.mysql.pythonanywhere-services.com",
            db="valhalla")
 
+
 class ProductionConfig(Config):
     """Production configuration options"""
-    SQLALCHEMY_DATABASE_URI = "postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:5432/{DB_NAME}".\
-        format(**{"DB_USER": os.environ.get("DB_USER"),
-                  "DB_PASS": os.environ.get("DB_PASS"),
-                  "DB_HOST": os.environ.get("DB_HOST"),
-                  "DB_NAME": os.environ.get("DB_NAME")})
-
-
-class HerokuConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
     REDIS_URL = os.environ.get('REDIS_URL')
     CACHE_URL = os.environ.get('HEROKU_REDIS_RED_URL')
 
     # celery conf
-    CELERY_BROKER_URL =  REDIS_URL
+    CELERY_BROKER_URL = REDIS_URL
     CELERY_RESULT_BACKEND = REDIS_URL
-
     DEBUG_MEMCHACHE = True
+
+    @classmethod
+    def init_app(cls, app):
+        Config.init_app(app)
+        from raven.contrib.flask import Sentry
+        # configure logging
+        sentry = Sentry(dsn='https://6b6279f612c34c54bd48af36027000c4:4662a687b'
+                            '9724f79ad0dc98c13277028@sentry.io/210848')
+        sentry.init_app(app)
+
+
+class HerokuConfig(Config):
+    SSL_DISABLE = bool(os.environ.get('SSL_DISABLE'))
+    @classmethod
+    def init_app(cls, app):
+        ProductionConfig.init_app(app)
+
+        # log to stderr
+        import logging
+        from logging import StreamHandler
+        file_handler = StreamHandler()
+        file_handler.setLevel(logging.WARNING)
+        app.logger.addHandler(file_handler)
+
+        # handle proxy server headers
+        from werkzeug.contrib.fixers import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app)
 
 
 config = {
