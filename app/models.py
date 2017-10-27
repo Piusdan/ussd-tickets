@@ -59,6 +59,12 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return "<User {}>".format(self.username)
 
+    def to_dict(self):
+        return dict(username=self.username,
+                    phone_number=self.phone_number,
+                    country=self.country,
+                    city=self.city)
+
     def gravatar(self, size=100, default='identicon', rating='g'):
         if request.is_secure:
             url = 'https://secure.gravatar.com/avatar'
@@ -195,8 +201,8 @@ class AnonymousUser(AnonymousUserMixin):
     def is_administrator(self):
         return False
 
-    def to_bin(self):
-        return pickle.dumps(self)
+    def to_dict(self):
+        return dict(username=None)
 
 
 class Event(db.Model):

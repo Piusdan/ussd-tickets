@@ -2,7 +2,6 @@
 """
     app
     ~~~
-
     Provides the flask application
 """
 
@@ -17,6 +16,9 @@ from flask_uploads import configure_uploads, UploadSet, IMAGES
 from raven.contrib.flask import Sentry
 from flask_qrcode import QRcode
 from celery.utils.log import get_task_logger
+
+
+import logging
 
 from app.gateway import Gateway
 from config import Config, config
@@ -54,7 +56,8 @@ def create_app(config_mode=None, config_file=None):
         app.config.from_object(config[config_mode])
     if config_file:
         app.config.from_pyfile(config_file)
-
+    # logging
+    logging.basicConfig(level=logging.DEBUG)
     db.init_app(app)
     login_manager.init_app(app)
     moment.init_app(app)

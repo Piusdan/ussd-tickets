@@ -1,4 +1,5 @@
 from flask import current_app, g
+import logging
 
 from app.ussd.utils import respond
 from app.ussd.tasks import async_checkoutb2c, async_purchase_airtime
@@ -24,9 +25,18 @@ class MobileWallet(Menu):
     def get_phone_number(self):
         return self.current_user.phone_number
 
+    def airtime_or_bundles(self):
+        menu_text = "CON Enter amount"
+        self.set_level(12)
+        logging.info("Enter amount at level {}".format(self.get_level()))
+        self.update_session()
+        return respond(menu_text)
+
     def buy_airtime(self):
+        if int(self.user_response) < 5:
+            return self.invalid_response(options="Please enter amount")
         menu_text = "END Please wait as we load your account"
-        amount = "{currency} {amount}".format(currency=self.current_user.location.currency_code,
+        amount = "{currency} {amount}".format(currency=self.current_user.currency_code,
                                               amount=self.user_response)
         phone_number = self.get_phone_number()
 
@@ -35,6 +45,18 @@ class MobileWallet(Menu):
         async_purchase_airtime.apply_async(args=[payload], countdown=0)
         
         return respond(menu_text)
+
+    def deposit_or_withdraw(self):
+        if self.user_response == "1":
+            menu_text = "CON Enter amount you wish to withdraw\n"
+            self.set_level(10)
+        if self.user_response == "2":
+            menu_text = "CON Enter amount you wish to deposit\n"
+            self.set_level(6)
+        self.update_session()
+        return respond(menu_text)
+
+
 
     def deposit_channel(self):
         menu_text = "CON Please choose your payment method\n"
@@ -65,10 +87,12 @@ class MobileWallet(Menu):
         return respond(menu_text)
 
     @staticmethod
-    def invalid_response():
-        menu_text = "CON Please enter a valid amount\n"
+    def invalid_response(options=None):
+        menu_text = "CON Please enter a valid option\n"
+        if options is not None:
+            menu_text += options
         # Print the response onto the page so that our gateway can read it
-        return respond(menu_text)
+        return respond(menu_text, preformat=False)
 
     @staticmethod
     def default_deposit_checkout():

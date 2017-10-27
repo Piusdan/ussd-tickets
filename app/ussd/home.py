@@ -1,3 +1,5 @@
+import logging
+
 from app.ussd.utils import respond, get_events, current_user, get_account_balance
 from base_menu import Menu
 
@@ -26,7 +28,6 @@ class Home(Menu):
         menu_text += "4.Check Balance\n"
         menu_text += "0.Exit\n"
         menu_text = header + menu_text
-        # print the response on to the page so that our gateway can read it
         return respond(menu_text, pretext=False)
 
     def events(self, page=1):
@@ -37,7 +38,7 @@ class Home(Menu):
         """
         events, pagination = get_events()
         if events:
-            print "events {}".format(events)
+            logging.info("events {}".format(events))
             menu_text = "CON Events\n"
             event_dict = {}    # a mapping of events to the
             # displayed number used to chache events
@@ -64,7 +65,8 @@ class Home(Menu):
         menu_text += "1.Withdraw\n"
         menu_text += "2.Deposit\n"
         menu_text += "0.Back"
-
+        self.set_level(5)
+        self.update_session()
         return respond(menu_text)
 
     def utility(self):
@@ -72,30 +74,13 @@ class Home(Menu):
         menu_text += "0.Back"
         return respond(menu_text)
 
-    def airtime(self):
+    def airtime_or_bundles(self):
         menu_text = "CON "
         menu_text += "1.Buy airtime\n"
-        menu_text += "2.Buy bundles"
-        return respond(menu_text)
-
-    def bank_account(self):
-        menu_text = "CON Sorry this service is currently unavailable\n"
-        menu_text += "0.Back"
-        return respond(menu_text)
-
-    def fees(self):
-        menu_text = "CON Sorry this service is currently unavailable\n"
-        menu_text += "0.Back"
-        return respond(menu_text)
-
-    def payments(self):
-        menu_text = "CON Sorry this service is currently unavailable\n"
-        menu_text += "0.Back"
-        return respond(menu_text)
-
-    def pay_tv(self):
-        menu_text = "CON Sorry this service is currently unavailable\n"
-        menu_text += "0.Back"
+        logging.info("Buy airtime with user response {}".format(self.user_response))
+        logging.info("Update sessions to level 11")
+        self.set_level(11)
+        self.update_session()
         return respond(menu_text)
 
     def deposit(self):
@@ -105,7 +90,6 @@ class Home(Menu):
         # Update sessions to level 6
         self.set_level(6)
         self.update_session()
-        # print the response on to the page so that our gateway can read it
         return respond(menu_text)
 
     def withdraw(self):
@@ -117,22 +101,10 @@ class Home(Menu):
         self.set_level(10)
         self.update_session()
 
-        # Print the response onto the page so that our gateway can read it
-        return respond(menu_text)
-
-    def buy_airtime(self):
-        # 9e.Send user airtime
-        menu_text = "CON Enter amount you wish to buy.\n"
-
-        self.set_level(11)
-        self.update_session()
-        # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
 
     def check_balance(self):
-        #TODO Send in session
-        payload = {"user": current_user().to_bin()}
-        balance = get_account_balance(payload)
+        balance = get_account_balance(current_user())
         return respond("END {}".format(balance), preformat=False)
 
 
@@ -143,7 +115,6 @@ class Home(Menu):
         # demote
         self.set_level(0)
         self.update_session()
-        # Print the response onto the page so that our gateway can read it
         return respond(menu_text)
 
     @staticmethod

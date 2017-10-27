@@ -1,4 +1,3 @@
-import cPickle as pickle
 import json
 
 from app import redis
@@ -13,10 +12,8 @@ def add_session(session_id):
     """
     if redis.exists(session_id):
         return True
-    session_dict = {}
-    session_dict.setdefault('level', 0)
-    session_dict.setdefault('response', None)
-    return redis.set(session_id, json.dumps(session_dict), ex=300)
+    session = dict(level=0, response=None)
+    return redis.set(session_id, json.dumps(session), ex=300)
 
 
 def get_session(session_id):
@@ -25,24 +22,23 @@ def get_session(session_id):
     :return: session dict
     :rtype: dict
     """
-    serialised_session_dict = redis.get(session_id)
-    return json.loads(serialised_session_dict)
+    serialised_session = redis.get(session_id)
+    return json.loads(serialised_session)
 
 
-def update_session(session_id, session_dict):
+def update_session(session_id, session):
     """
     :param session_id: 
-    :param session_dict: 
+    :param session: 
     :return: True if operation was succesfull
     :rtype: bool
     """
-    serialised_session_dict = json.dumps(session_dict)
-    return redis.set(session_id, serialised_session_dict, ex=300)
+    return redis.set(session_id, json.dumps(session), ex=300)
 
 
 def get_level(session_id):
-    session_dict = get_session(session_id)
-    return session_dict.get('level', None)
+    session = json.loads(redis.get(session_id))
+    return session.get('level', None)
 
 
 def expire_session(session_id, ex=10):

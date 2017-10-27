@@ -25,9 +25,9 @@ class Mpesa(Payments):
     _name = "MPESA"
 
     def execute(self):
-        payload = {"user": self.user.to_bin(),
+        payload = {"phone_number": self.user.phone_number,
                    "amount": self.amount,
-                   "metadata": dumps(self.metadata)
+                   "metadata": self.metadata
                    }
         async_mpesa_checkoutc2b.apply_async(args=[payload], countdown=5)
 

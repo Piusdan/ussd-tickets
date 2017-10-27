@@ -48,7 +48,7 @@ class Config(object):
     # application configuration
 
     ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER', '+254703554404')
-    SECRET_KEY = os.getenv('SECRET_KEY', 'mysecret')
+    SECRET_KEY = os.getenv('SECRET_KEY', '\xdf\xd2i\xe1\xa0\xc7p)j\x18\x91\xdb3{\n\x02\x7f\xb4OMt\x9c\x0ec')
 
     ADMIN_MAIL = os.getenv('APP_ADMIN_MAIL')          # admins email address
     MAIL_SUBJECT_PREFIX = "[Cash Value Solutions]"

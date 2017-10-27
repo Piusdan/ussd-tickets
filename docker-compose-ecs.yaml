@@ -1,4 +1,4 @@
-version: '2.2'
+version: '2'
 services:
   db:
     image: 'postgres:9.6'
@@ -23,25 +23,24 @@ services:
 
   web:
     container_name: cashvalue-backend
-    build: .
+    image: '344296193730.dkr.ecr.us-east-2.amazonaws.com/cvs-main-backend:latest'
     volumes:
       - .:/app  
     command: ./prod-start.sh
     env_file: .env
     ports:
       - "8000:8000"
-    depends_on:
+    links:
       - db
       - redis
       - worker
   
   worker:
-  #container_name: cashvalue-worker
-    build: .
+    container_name: cashvalue-worker
+    image: '344296193730.dkr.ecr.us-east-2.amazonaws.com/cvs-main-backend:latest'
     restart: on-failure
     env_file: .env
     command: ./prod-start.sh
-    scale: 5
     volumes:
       - .:/worker
 

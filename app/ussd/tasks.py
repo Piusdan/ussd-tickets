@@ -8,15 +8,15 @@ from app import celery_logger
 from app.ussd.utils import purchase_ticket,get_ticket_by_id,get_user_by_phone_number, validate_cache, set_cache
 
 
-@celery.task(bind=True, default_retry_delay=30 * 60)
+@celery.task(bind=True)
 def async_mpesa_checkoutc2b(self, payload):
-    serialized_user = payload["user"]
-    user = cPickle.loads(str(serialized_user))
-    currency_code = user.location.currency_code
+    phone_number = payload["phone_number"]
+    user = get_user_by_phone_number(phone_number)
+    # currency_code = user.currency_code # TODO uncomment this in production
+    currency_code = 'KES'
     amount = payload["amount"]
-    metadata = json.dumps(
-        cPickle.loads(str(payload["metadata"]))
-    )
+    metadata = payload['metadata']
+    celery_logger.warn("metadata {}".format(metadata))
     try:
         # send the user a mobile checkout
         transaction_id = gateway.initiateMobilePaymentCheckout(
@@ -26,7 +26,7 @@ def async_mpesa_checkoutc2b(self, payload):
             amount_=amount,
             providerChannel_="9142",
             metadata_=metadata)
-        celery_logger.info(transaction_id)
+        celery_logger.warn(transaction_id)
     except Exception as exc:
         raise self.retry(exc=exc, countdown=5)
 
@@ -46,7 +46,7 @@ def async_cvswallet_checkout(self, payload):
             raise self.retry(exc=exc, countdown=5)
 
 
-@celery.task(bind=True, default_retry_delay=30 * 60)
+@celery.task(bind=True)
 def async_checkoutb2c(self, payload):
     user = get_user_by_phone_number(payload["phone_number"])
     reason = 'BusinessPayment'
@@ -55,30 +55,30 @@ def async_checkoutb2c(self, payload):
          "currencyCode": payload["currency_code"],
          "amount": payload["amount"],
          "reason": reason,
-         "metadata":
-         json.dumps({
+         "metadata":{
             "phone_number": user.phone_number,
             "reason": "Withdraw"
-        })
+         }
         }
     ]
 
     try:
         response= gateway.mobilePaymentB2CRequest(
-            productName_=current_app.config["PRODUCT_NAME"], recipients_=recipients)
+            productName_=current_app.config["PRODUCT_NAME"], recipients_=recipients)[0]
+        celery_logger.warn("response is {}".format(response))
 
         if response['status'] == 'Queued':
-            transaction_id = response['transactionID']
+            transaction_id = response['transactionId']
             amount = payload["amount"]
             user.account.balance -= amount
-            db.session.commit()
-            amount = user.location.currency_code + " " + str(amount)
+            amount = user.currency_code + " " + str(amount)
             message = "{transaction_id} You have withdrawn {amount} from" \
                       " your Cash value wallet," \
                       "Your new account balance is {balance}".format(
                 transaction_id=transaction_id,
                 amount=amount,
                 balance=user.account.balance)
+            db.session.commit()
         else:
             message = "Dear {username}, network is experiencing problems please try again later"
             celery_logger.info(response['errorMessage'])
@@ -101,24 +101,27 @@ def async_purchase_airtime(self, payload):
                                                                  "Kindly try again later")
 
 
-@celery.task(bind=True, default_retry_delay=2*1)
+@celery.task(bind=True)
 def async_validate_cache(self, payload):
     phone_number = payload["phone_number"]
     user = get_user_by_phone_number(phone_number=phone_number)
     if user:
-        cache.set(phone_number, user.to_bin())
+        cache.set(phone_number,json.dumps(user.to_dict()))
     else:
         cache.delete(phone_number)
         celery_logger.info("deleted cache item at {}".format(phone_number))
     celery_logger.info("Validated cache item at {}".format(phone_number))
 
 
-@celery.task(bind=True, default_retry_delay=2*1)
+@celery.task(bind=True)
 def async_mobile_money_callback(self, payload):
     message = None
-    api_payload = json.loads(payload)
+    celery_logger.warn("recived payload {}".format(payload))
+    payload = json.loads(payload)
+    api_payload = payload.get('api_payload')
+    if payload is None:
+        celery_logger.err("async_mobile_money_callback received an empty payload")
     category = api_payload.get('category')  # 'MobileCheckout'
-
     value = api_payload.get('value')  # e.g 'KES 100.0000'
     metadata = api_payload.get('requestMetadata')
     transactionDate = api_payload.get('transactionDate')
@@ -189,11 +192,10 @@ def async_mobile_money_callback(self, payload):
             message = payload['message']
 
     db.session.commit()
-    validate_cache(user)
     if message is not None:
         # notify user of the transaction
         gateway.sendMessage(to_=user.phone_number, message_=message)
-    celery_logger.info("recived")
+    celery_logger.info("recived a mobile money call back for {}".format(phone_number))
 
 
 @celery.task(bind=True, default_retry_delay=2*1)
@@ -230,23 +232,24 @@ def async_buy_ticket(self, payload):
         event = ticket.event
         currency_code = event.currency_code
         # metadata = cPickle.loads(str(payload["metadata"]))
-        metadata ={"reason":"ET",
-            "ticket_id": str(ticket.id),
+        metadata ={
+            "reason":"ET",
+            "ticket_id":str(ticket.id),
             "event_id": str(event.id),
-            "user_id":str(user.id)}
+            "user_id": str(user.id),
+            "number_of_tickets": str(number_of_tickets)
+        }
 
         try:
             # send the user a mobile checkout
-            celery_logger.info("provider channel {}".format(current_app.config['PROVIDER_CHANNEL']))
-            celery_logger.info("Product name {}".format(current_app.config['PRODUCT_NAME']))
             transaction_id = gateway.initiateMobilePaymentCheckout(
                 productName_=current_app.config['PRODUCT_NAME'],
                 phoneNumber_=user.phone_number,
                 currencyCode_="KES",
                 amount_=number_of_tickets * ticket.price,
-                providerChannel_=current_app.config['PROVIDER_CHANNEL'],
+                providerChannel_='9142',
                 metadata_=metadata)
-            celery_logger.info("Transaction id {}".format(transaction_id))
+            celery_logger.warn("Transaction id {}".format(transaction_id))
         except Exception as exc:
             raise self.retry(exc=exc, countdown=5)
 

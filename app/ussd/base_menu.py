@@ -14,14 +14,14 @@ class Menu:
     def update_session(self):
         print self.session_dict['level']
         update_session(session_id=self.session_id,
-                       session_dict=self.session_dict)
+                       session=self.session_dict)
         return True
 
     def set_level(self, level):
         self.session_dict['level'] = level
 
     def get_level(self):
-        return get_level(self.session_id)
+        return self.session_dict["level"]
 
     def end_session(self):
         menu_text = "END Thank you for doing bussiness with us\n"

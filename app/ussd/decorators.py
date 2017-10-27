@@ -1,11 +1,9 @@
-import cPickle
 from functools import wraps
+import logging
+from flask import g, request, session
 
-from flask import g, request, current_app
-
-from app import cache
-from app.ussd.tasks import async_validate_cache
-from app.ussd.utils import db_get_user
+from app.models import AnonymousUser
+from app.ussd.utils import get_user_by_phone_number
 from . import ussd
 
 
@@ -13,20 +11,16 @@ def validate_ussd_user(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         phone_number = request.values.get("phoneNumber")
-        current_app.logger.info("Trying to fetch from cache")
-        user = cache.get(phone_number)
+        session_id = request.values.get("sessionId")
+        logging.info("DB call to get users")
+        user = get_user_by_phone_number(phone_number)
         if user is None:
-            # print "To db"
-            current_app.logger.info("Not found in cache Fetching from db")
-            g.current_user = db_get_user(phone_number)
-        else:
-            g.current_user = cPickle.loads(user)
-        payload = {"phone_number": phone_number}
-        # print g.current_user
-        async_validate_cache.apply_async(args=[payload], countdown=0)
+            user = AnonymousUser()
+            logging.info("Anonymous user")
+        logging.info("setting session cookie")
+        g.current_user = user
         return func(*args, **kwargs)
     return wrapper
-
 
 @ussd.before_request
 @validate_ussd_user

@@ -1,23 +1,23 @@
 from flask import current_app, make_response, g
-import cPickle
+import json
 
 from app import db, cache
 from app.models import AnonymousUser, Event, Ticket, User, Purchase
 from app.ussd.session import expire_session
 
 
-def db_get_user(phone_number):
+def get_user_or_anonymous_user_as_dict(phone_number):
     """
     Given a user id or phone number
     get the user or return an anymous user if no such user exists
-    :param id_or_phone_number: 
+    :param phone_number: 
     :return: 
     """
     user = User.query.filter_by(phone_number=phone_number).first()
     if user is None:
         user = AnonymousUser()
-    set_cache(phone_number, user)
-    return user
+    set_cache(phone_number, json.dumps(user.to_dict()))
+    return user.to_dict()
 
 
 def respond(menu_text, session_id=None, pretext=True, preformat=True):
@@ -136,14 +136,14 @@ def get_user_by_phone_number(phone_number):
 
 def validate_cache(user):
     phone_number = user.phone_number
-    cache.set(phone_number, user.to_bin())
+    cache.set(phone_number, json.dumps(user.to_dict()))
 
-def set_cache(phone_number, user):
-    cache.set(phone_number, user.to_bin())
 
-def get_account_balance(payload):
-    user_bin = str(payload["user"])
-    user = cPickle.loads(user_bin)
+def set_cache(phone_number, serilised_user):
+    cache.set(phone_number, serilised_user)
+
+
+def get_account_balance(user):
     balance = "{currency_code} {balance}".format(currency_code=user.currency_code,
                                                   balance=user.account.balance)
     message = "Your Account Balance Is {balance} " \

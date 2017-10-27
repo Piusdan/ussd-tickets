@@ -6,6 +6,7 @@ Creates a shell context for the app
 import os
 from flask_script import Manager, Shell
 from flask_migrate import MigrateCommand, Migrate
+import logging
 
 from app import create_app, db
 from app.models import User, Role, Event, Ticket, Account, Location, Purchase
@@ -13,7 +14,8 @@ from app.models import User, Role, Event, Ticket, Account, Location, Purchase
 app = create_app(os.environ.get('APP_CONFIG') or 'default')
 migrate = Migrate(app, db)
 manager = Manager(app)
-app.logger.info("initialising app")
+
+logging.info("initialising app")
 
 COV = None
 
@@ -34,16 +36,16 @@ manager.add_command('db', MigrateCommand)
 
 @manager.command
 def reset_db():
-    app.logger.info("Prepairing to reset db")
+    logging.info("Prepairing to reset db")
     db.session.commit()
     db.session.close_all()
-    app.logger.info("Droping all Columns")
+    logging.info("Droping all Columns")
     db.drop_all()
-    app.logger.info("Initializing new db")
+    logging.info("Initializing new db")
     db.create_all()
-    app.logger.info("Creating roles")
+    logging.info("Creating roles")
     Role.insert_roles()
-    app.logger.info("DB reset")
+    logging.info("DB reset")
 
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.schema import DropTable
@@ -60,11 +62,11 @@ def add_roles():
     from app.models import Role
 
     # migrate db to latest version
-    app.logger.info("migrating database to latest state")
+    logging.info("migrating database to latest state")
     upgrade()
 
     # create user roles
-    app.logger.info("adding user roles")
+    logging.info("adding user roles")
     Role.insert_roles()
 
 
@@ -83,16 +85,16 @@ def deploy():
 
 @manager.command
 def reset_db():
-    app.logger.info("Prepairing to reset db")
+    logging.info("Prepairing to reset db")
     db.session.commit()
     db.session.close_all()
-    app.logger.info("Droping all Columns")
+    logging.info("Droping all Columns")
     db.drop_all()
-    app.logger.info("Initializing new db")
+    logging.info("Initializing new db")
     db.create_all()
-    app.logger.info("Creating roles")
+    logging.info("Creating roles")
     Role.insert_roles()
-    app.logger.info("DB reset")
+    logging.info("DB reset")
 
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.schema import DropTable
@@ -107,11 +109,11 @@ def add_roles():
     from app.models import Role
 
     # migrate db to latest version
-    app.logger.info("migrating database to latest state")
+    logging.info("migrating database to latest state")
     upgrade()
 
     # create user roles
-    app.logger.info("adding user roles")
+    logging.info("adding user roles")
     Role.insert_roles()
 
 
@@ -145,7 +147,7 @@ def test(coverage=False):
     if COV:
         COV.stop()
         COV.save()
-        print('Coverage Summary:')
+        logging.info('Coverage Summary:')
         COV.report()
         # basedir = os.path.abspath(os.path.dirname(__file__))
         # covdir = os.path.join(basedir, 'tmp/coverage')
