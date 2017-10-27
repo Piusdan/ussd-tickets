@@ -34,16 +34,18 @@ class Config(object):
     )
 
     # celery conf
-    CELERY_BROKER_URL = "redis://{HOST}:{PORT}/{DB}".format(
-        HOST=os.getenv("REDIS_HOST", "localhost"),
-        PORT=os.getenv("REDIS_PORT", "6379"),
-        DB="3"
-    )
-    CELERY_RESULT_BACKEND = "redis://{HOST}:{PORT}/{DB}".format(
-        HOST=os.getenv("REDIS_HOST", "localhost"),
-        PORT=os.getenv("REDIS_PORT", "6379"),
-        DB="3"
-    )
+    # CELERY_BROKER_URL = "redis://{HOST}:{PORT}/{DB}".format(
+    #     HOST=os.getenv("REDIS_HOST", "localhost"),
+    #     PORT=os.getenv("REDIS_PORT", "6379"),
+    #     DB="3"
+    # )
+    CELERY_BROKER_URL = 'redis://h:p75c9c9922e14da247d71b05484f78ba0e384c27b7ea12dc00cd9f04bb55c34fe@ec2-34-250-82-211.eu-west-1.compute.amazonaws.com:2976'
+    # CELERY_RESULT_BACKEND = "redis://{HOST}:{PORT}/{DB}".format(
+    #     HOST=os.getenv("REDIS_HOST", "localhost"),
+    #     PORT=os.getenv("REDIS_PORT", "6379"),
+    #     DB="3"
+    # )
+    CELERY_RESULT_BACKEND = 'redis://h:p75c9c9922e14da247d71b05484f78ba0e384c27b7ea12dc00cd9f04bb55c34fe@ec2-34-250-82-211.eu-west-1.compute.amazonaws.com:2976'
     # application configuration
 
     ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER', '+254703554404')
@@ -132,11 +134,11 @@ class ProductionConfig(Config):
 class HerokuConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
     REDIS_URL = os.environ.get('REDIS_URL')
-    CACHE_URL = os.environ.get('HEROKU_REDIS_NAVY_URL')
+    CACHE_URL = os.environ.get('HEROKU_REDIS_RED_URL')
 
     # celery conf
-    CELERY_BROKER_URL = "{url}".format(url=os.environ.get('REDIS_URL'))
-    CELERY_RESULT_BACKEND = "{url}".format(url=os.environ.get('REDIS_URL'))
+    CELERY_BROKER_URL = os.environ.get('REDIS_URL')
+    CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL')
 
     DEBUG_MEMCHACHE = True
 
