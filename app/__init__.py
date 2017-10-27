@@ -52,12 +52,12 @@ celery_logger = get_task_logger(__name__)
 def create_app(config_mode=None, config_file=None):
     app = Flask(__name__)
 
-    if config_mode:
+    if config_mode is not None:
         app.config.from_object(config[config_mode])
-    if config_file:
+    if config_file is not None:
         app.config.from_pyfile(config_file)
     # logging
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(filename='CVS.log',level=logging.DEBUG)
     db.init_app(app)
     login_manager.init_app(app)
     moment.init_app(app)
