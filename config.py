@@ -17,7 +17,6 @@ class Config(object):
     TESTING = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG_MEMCHACHE = False
-    WKHTMLTOPDF_PATH = '/usr/local/bin/wkhtmltopdf'
 
     # sql alchemy conf
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
@@ -50,7 +49,7 @@ class Config(object):
     ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER', '+254703554404')
     SECRET_KEY = os.getenv('SECRET_KEY', '\xdf\xd2i\xe1\xa0\xc7p)j\x18\x91\xdb3{\n\x02\x7f\xb4OMt\x9c\x0ec')
 
-    ADMIN_MAIL = os.getenv('APP_ADMIN_MAIL')          # admins email address
+    ADMIN_MAIL = os.getenv('ADMIN_MAIL')          # admins email address
     MAIL_SUBJECT_PREFIX = "[Cash Value Solutions]"
     MAIL_SENDER = 'Cash Value Solutions <cashvaluesolutions@gmail.com>'
     MAIL_SERVER = 'smtp.googlemail.com'
@@ -132,6 +131,13 @@ class ProductionConfig(Config):
 
 class HerokuConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
+    REDIS_URL = "{url}/{db}".format(url=os.environ.get('REDIS_URL'), db="1")
+    CACHE_URL = "{url}/{db}".format(url=os.environ.get('REDIS_URL'), db="2")
+
+    # celery conf
+    CELERY_BROKER_URL = "{url}/{db}".format(url=os.environ.get('REDIS_URL'), db="3")
+    CELERY_RESULT_BACKEND = "{url}/{db}".format(url=os.environ.get('REDIS_URL'), db="3")
+
     DEBUG_MEMCHACHE = True
 
 
