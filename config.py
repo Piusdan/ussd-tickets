@@ -131,8 +131,8 @@ class ProductionConfig(Config):
 
 class HerokuConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
-    REDIS_URL = "{url}/{db}".format(url=os.environ.get('REDIS_URL'), db="1")
-    CACHE_URL = "{url}/{db}".format(url=os.environ.get('REDIS_URL'), db="2")
+    REDIS_URL = os.environ.get('REDIS_URL')
+    CACHE_URL = os.environ.get('HEROKU_REDIS_NAVY_URL')
 
     # celery conf
     CELERY_BROKER_URL = "{url}".format(url=os.environ.get('HEROKU_REDIS_NAVY_URL'))
