@@ -58,6 +58,45 @@ $(function () {
     });
 });
 
+$(function () {
+    $('.add-ticket-button button').on('click', function () {
+        var placementFrom = $(this).data('placement-from');
+        var placementAlign = $(this).data('placement-align');
+        var animateEnter = $(this).data('animate-enter');
+        var animateExit = $(this).data('animate-exit');
+        var colorName = $(this).data('color-name');
+        var form = document.getElementById("add_ticket")
+        var price = form.getElementsByClassName('price')[0].value
+        var count = form.getElementsByClassName('count')[0].value
+        // form.hide();
+//         dom_doc = new DOMParser().parseFromString(form, "text/html");
+        var url = '/ticket/update'
+        // event.preventDefault();
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            type: 'post',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                "ticket_id": ticket_id,
+                "price": price,
+                "count": count
+            }),
+            success: function (data, textStatus, jQxhr) {
+                var text = data.data
+                // alert(text)
+                showNotification(colorName, text, placementFrom, placementAlign, animateEnter, animateExit);
+            },
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                // var colorName = "bg-red"
+                howNotification(colorName, errorThrown, placementFrom, placementAlign, animateEnter, animateExit);
+            }
+        });
+
+    });
+});
+
 function showNotification(colorName, text, placementFrom, placementAlign, animateEnter, animateExit) {
     if (colorName === null || colorName === '') { colorName = 'bg-black'; }
     if (text === null || text === '') { text = 'Turning standard Bootstrap alerts'; }

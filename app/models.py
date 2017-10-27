@@ -33,7 +33,7 @@ class User(UserMixin, db.Model):
     token = db.Column(db.String(64))
     password_hash = db.Column(db.String(128))
     # location
-    country = db.Column(db.String(64))
+    country = db.Column(db.String(64), default="Uganda")
     city = db.Column(db.String(64))
     # relationships
     account = db.relationship('Account', backref="holder", uselist=False,

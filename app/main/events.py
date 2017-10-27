@@ -48,6 +48,9 @@ def get_event(id):
     edit_ticket_form = EditTicketForm()
     # initialise validate event form
     event_form = EditEventForm()
+    if ticket_form.validate_on_submit():
+        pass
+        flash("hell yeah")
     if event_form.validate_on_submit():
         try:
             filename = photos.save(request.files['logo'])
@@ -75,7 +78,9 @@ def get_event(id):
     event_form.venue.data = event.venue
     event_form.date.data = event.date
 
-    return render_template('events/event.html', event=event, tickets=tickets,
+    return render_template('events/event.html',
+                           event=event,
+                           tickets=tickets,
                            event_form=event_form,
                            purchases=attendees,
                            ticket_form=ticket_form,

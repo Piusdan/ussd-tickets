@@ -26,6 +26,21 @@ def edit_ticket():
     return response
 
 
+@main.route('/ticket/add/{int:event_id}', methods=['POST', 'GET'])
+def add_ticket(event_id):
+    data = request.get_json()
+    ticket = Ticket()
+    ticket.event_id = event_id
+    ticket.type = data.get("ticket_type")
+    ticket.price = float(data.get("price"))
+    ticket.count = int(data.get("count"))
+    db.session.add(ticket)
+    db.session.commit()
+    response = jsonify(data="Ticket Created")
+    response.status_code = 201
+    return response
+
+
 @main.route('/download/<string:code>')
 def download_ticket(code):
     ticket = Purchase.query.filter_by(code=code).first()
