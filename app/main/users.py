@@ -87,7 +87,7 @@ def edit_profile_admin(id):
         bal = form.account_balance.data
         if bal > 0:
             update_balance_and_send_sms(account_balance=bal, user=user)
-        flash('The profile has been updated.', category="successs")
+        flash('The profile has been updated.', category="success")
         return redirect(url_for('.get_user', id=user.id))
     form.role.data = user.role_id
     form.account_balance.data = 0
