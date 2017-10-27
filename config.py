@@ -135,8 +135,8 @@ class HerokuConfig(Config):
     CACHE_URL = os.environ.get('HEROKU_REDIS_NAVY_URL')
 
     # celery conf
-    CELERY_BROKER_URL = "{url}".format(url=os.environ.get('HEROKU_REDIS_NAVY_URL'))
-    CELERY_RESULT_BACKEND = "{url}".format(url=os.environ.get('HEROKU_REDIS_NAVY_URL'))
+    CELERY_BROKER_URL = "{url}".format(url=os.environ.get('REDIS_URL'))
+    CELERY_RESULT_BACKEND = "{url}".format(url=os.environ.get('REDIS_URL'))
 
     DEBUG_MEMCHACHE = True
 
