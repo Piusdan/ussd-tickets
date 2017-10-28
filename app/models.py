@@ -8,10 +8,10 @@ from flask import request
 from flask_sqlalchemy import current_app
 from sqlalchemy.ext.serializer import dumps
 from flask_login import UserMixin, AnonymousUserMixin
-from flask import url_for
 
 from . import login_manager
 from . import db
+
 
 class User(UserMixin, db.Model):
     """

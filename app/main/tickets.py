@@ -1,6 +1,5 @@
 from flask import render_template, make_response,jsonify, Response, request, current_app as app
 from json import dumps
-from xhtml2pdf import pisa
 from cStringIO import StringIO
 
 from app import db
