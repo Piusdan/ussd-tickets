@@ -33,6 +33,9 @@
 
     {% block custom_css %} {% endblock %}
 
+    <!-- JQuery DataTable Css -->
+    <link href="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css') }}" rel="stylesheet">
+
     <!-- datetime picker css -->
     <link href="{{ url_for('static', filename='plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css') }}"
         rel="stylesheet" />
@@ -232,7 +235,9 @@
 
     <!-- Jquery CountTo Plugin Js -->
     <script src="{{ url_for('static', filename='plugins/jquery-countto/jquery.countTo.js') }}"></script>
-    {% block table_scripts %}{% endblock %}
+    {% block table_scripts %}
+
+    {% endblock %}
 
     <!-- Morris Plugin Js -->
     <script src="{{ url_for('static', filename='plugins/raphael/raphael.min.js') }}"></script>

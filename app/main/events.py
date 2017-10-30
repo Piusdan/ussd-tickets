@@ -1,27 +1,17 @@
 import os
-
-from flask import (render_template,
-                   abort,
-                   flash,
-                   redirect,
-                   url_for,
-                   request,
-                   send_from_directory,
-                   current_app)
-
-from flask_login import login_required
-
+import datetime
+import logging
+from flask import render_template,flash,redirect,url_for,request,send_from_directory,current_app, jsonify
+from flask_login import login_required, current_user
 from app.decorators import admin_required
-from app.models import Event, Ticket
+from app.models import Event
 from app import photos, db
-from app.main.utils import create_event as new_event
-from app.controllers import (get_event_tickets_query,
-                           edit_event,
-                           async_delete_event,
-                           get_event_attendees_query)
+from app.main.utils import get_country, create_event as new_event
+from app.controllers import get_event_tickets_query,edit_event, async_delete_event, get_event_attendees_query
 from app.main import main
 from app.main.forms import CreateEventForm, CreateTicketForm, EditEventForm, EditTicketForm
 from app.common.utils import flash_errors
+
 
 
 @main.route('/event/<int:id>', methods=['POST', 'GET'])
@@ -87,14 +77,46 @@ def get_event(id):
                            edit_ticket_form=edit_ticket_form)
 
 
-@main.route('/event')
+@main.route('/event', methods=['POST', 'GET'])
 @login_required
 def get_events():
-    page = request.args.get('page', 1, type=int)
-    pagination = Event.query.order_by(Event.date.desc()).paginate(
-        page, per_page=current_app.config['WEB_EVENTS_PER_PAGE'], error_out=False)
-    events = pagination.items
-    return render_template('events/events.html', events=events, pagination=pagination)
+    events = Event.query.all()
+    event_form = CreateEventForm()
+    return render_template('events/events.html', events=events, event_form=event_form)
+
+
+@main.route('/event/create', methods=['POST', 'GET'])
+@login_required
+@admin_required
+def add_event():
+    data = request.get_json()
+    request_dict = {}
+    map(lambda x: request_dict.setdefault(x.get('name'), x.get('value')), data)
+    event_date = request_dict["date"]
+    event = Event()
+    event.venue = request_dict["venue"]
+    event.date = datetime.datetime.strptime(event_date, '%d/%m/%y').date()
+    event.name = request_dict["title"]
+    event.city = request_dict["location"]
+    event.description = request_dict["description"]
+    event.organiser_id = current_user.id
+    country = get_country(event.city)
+    logging.info(data)
+    try:
+        if country is None:
+            raise Exception
+        event.country = country
+    except Exception as exc:
+        response = jsonify(dict(data="Error:Please enter  a valid location/city/town"))
+        response.status_code = 400
+        return response
+
+    db.session.add(event)
+    db.session.commit()
+    response = jsonify(dict(data="Event {} created".format(event.name)))
+    response.status_code = 201
+
+    return response
 
 
 @main.route('/delete/<int:event_id>', methods=['GET', 'POST'])

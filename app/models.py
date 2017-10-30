@@ -212,7 +212,6 @@ class Event(db.Model):
     description = db.Column(db.String, index=True)
 
     date = db.Column(db.DateTime)
-    filename = db.Column(db.String)
     closed = db.Column(db.Boolean, default=False)
 
     tickets = db.relationship('Ticket', backref='event', lazy='subquery', cascade='all, delete-orphan')
@@ -239,11 +238,6 @@ class Event(db.Model):
         return pickle.loads(cls)
 
     @property
-    def logo_url(self):
-        from app import photos
-        return photos.url(self.filename)
-
-    @property
     def day(self):
         return self.date.strftime('%B %d, %y')
 
@@ -254,6 +248,20 @@ class Event(db.Model):
     @property
     def country_code(self):
         return Location.country_code(self.country)
+
+    @property
+    def ticket_count(self):
+        if self.tickets:
+            return reduce(lambda x, y: x.count + y.count, self.tickets)
+        return 0
+
+    @property
+    def bought_tickets(self):
+        purchases = Purchase.query.join(
+            Ticket, Ticket.id == Purchase.ticket_id).filter(Ticket.event_id == self.id).all()
+        if purchases:
+            return reduce(lambda x, y: x.count + y.count, purchases)
+        return 0
 
 
 class Purchase(db.Model):

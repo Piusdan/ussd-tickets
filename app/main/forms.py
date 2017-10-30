@@ -85,15 +85,14 @@ class AddUserForm(Form):
 class CreateEventForm(Form):
     title = StringField('Event title', validators=[
                         Length(1, 64), DataRequired()])
-    logo = FileField("Upload your event's logo/image")
-    description = TextAreaField('Event description', validators=[
+    description = StringField('Event description', validators=[
                                 Length(0, 100), Optional()])
     location = StringField('Event City', validators=[
                            Length(0, 64), DataRequired()])
     venue = StringField('Event Venue', validators=[
                         Length(0, 64), DataRequired()])
     date = DateTimeField(
-        "Event Date", format="%d/%m/%Y %H:%M", validators=[DataRequired()])
+        "Event Date", format="%d/%m/%Y", validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 

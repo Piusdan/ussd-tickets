@@ -1,57 +1,36 @@
-function generatePDF(page_url, pdf_url) {
-   var htmlTo = require('htmlto');
+// Data Picker Initialization
+$('#date').bootstrapMaterialDatePicker({ weekStart : 0, time: false, format : 'DD/MM/YY', minDate : moment() });
 
-    var options = {
-        pathTohtml: page_url,
-        pathTopdf: pdf_url,
-        paperSize:{
-            format: 'A4',
-            orientation: 'portrait',
-            margin: '1.5cm'
-        }
-    }
-
-    htmlTo.pdf(options,function(err,result){
-        if(err) throw err;
-        console.log('result :',result)
-    })
-
-}
-
-$(function () {
-    $('.edit-ticket-button button').on('click', function () {
+$(function() { //shorthand document.ready function
+    $('#create_eventForm').on('submit', function(e) { //use on if jQuery 1.7+
+        e.preventDefault();  //prevent form from submitting
+        var data = $("#create_eventForm :input").serializeArray();
+        var json_data = [];
+        console.log(data)
+        console.log(JSON.stringify(data)); //use the console for debugging, F12 in Chrome, not alerts
+        document.getElementById('create_eventForm').reset();
+        $('#createEventModal').modal('toggle');
         var placementFrom = $(this).data('placement-from');
         var placementAlign = $(this).data('placement-align');
         var animateEnter = $(this).data('animate-enter');
         var animateExit = $(this).data('animate-exit');
         var colorName = $(this).data('color-name');
-        var ticket_id = $(this).attr('data-ticketid');
-        var form = document.getElementById(ticket_id)
-        var price = form.getElementsByClassName('price')[0].value
-        var count = form.getElementsByClassName('count')[0].value
-        // form.hide();
-//         dom_doc = new DOMParser().parseFromString(form, "text/html");
-        var url = '/ticket/update'
-        // event.preventDefault();
+        showNotification(colorName, 'Event Form submitted', placementFrom, placementAlign, animateEnter, animateExit);
+        var url = '/event/create'
         $.ajax({
             url: url,
             dataType: 'json',
             type: 'post',
             contentType: 'application/json',
-            data: JSON.stringify({
-                "ticket_id": ticket_id,
-                "price": price,
-                "count": count
-            }),
+            data: JSON.stringify(data),
             success: function (data, textStatus, jQxhr) {
                 var text = data.data
-                // alert(text)
                 showNotification(colorName, text, placementFrom, placementAlign, animateEnter, animateExit);
             },
             processData: false,
             error: function (jqXhr, textStatus, errorThrown) {
                 // var colorName = "bg-red"
-                howNotification(colorName, errorThrown, placementFrom, placementAlign, animateEnter, animateExit);
+                showNotification("bg-red", errorThrown, placementFrom, placementAlign, animateEnter, animateExit);
             }
         });
 
@@ -90,7 +69,7 @@ $(function () {
             processData: false,
             error: function (jqXhr, textStatus, errorThrown) {
                 // var colorName = "bg-red"
-                howNotification(colorName, errorThrown, placementFrom, placementAlign, animateEnter, animateExit);
+                showNotification(colorName, errorThrown, placementFrom, placementAlign, animateEnter, animateExit);
             }
         });
 

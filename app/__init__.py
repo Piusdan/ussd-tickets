@@ -17,9 +17,6 @@ from flask_uploads import configure_uploads, UploadSet, IMAGES
 from flask_qrcode import QRcode
 from celery.utils.log import get_task_logger
 
-
-import logging
-
 from app.gateway import Gateway
 from config import Config, config
 
@@ -52,8 +49,6 @@ def create_app(config_name):
 
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
-    # logging
-    logging.basicConfig(filename='CVS.log',level=logging.DEBUG)
     db.init_app(app)
     login_manager.init_app(app)
     moment.init_app(app)

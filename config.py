@@ -4,8 +4,9 @@
     ~~~~~~
     Provides the flask config options
 """
-
+import logging
 import os
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -102,9 +103,16 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://' \
                               'valhalla:valhalla@localhost' \
                               '/valhalla'
-    DEBUG = True
     # SERVER_NAME = "0.0.0.0:4040"
     DEBUG_MEMCACHE = False
+
+    @classmethod
+    def init_app(cls, app):
+        Config.init_app(app)
+
+        # logging
+
+        logging.basicConfig(level=logging.DEBUG)
 
 
 class TestingConfig(Config):
