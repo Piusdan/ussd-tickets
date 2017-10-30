@@ -100,7 +100,7 @@ class EditEventForm(Form):
     title = StringField('Event title', validators=[
                         Length(1, 64), DataRequired()])
     logo = FileField("Choose an event logo")
-    description = TextAreaField('Event description', validators=[
+    description = StringField('Event description', validators=[
                                 Length(0, 100), Optional()])
     location = StringField('Event City', validators=[
                            Length(0, 64), DataRequired()])

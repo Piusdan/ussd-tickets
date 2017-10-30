@@ -13,8 +13,8 @@
                             </h2>
                             <ul class="header-dropdown m-r--5">
                                 <li class="dropdown">
-                                    <a class="dropdown-toggle bmd-btn-icon" data-toggle="modal" role="button" data-target="#createEventModal" aria-haspopup="true" aria-expanded="false">
-                                        <i class="material-icons">add</i>
+                                    <a class="dropdown-toggle btn btn-success btn-sm waves-effect"  data-toggle="modal" role="button" data-target="#createEventModal" aria-haspopup="true" aria-expanded="false">
+                                        <span>New Event</span><i class="fa fa-fw fa-plus" aria-hidden="true"></i>
                                     </a>
                                     </ul>
                                 </li>
@@ -42,7 +42,22 @@
                                             <td>{{ event.day }}</td>
                                             <td>{{ event.bought_tickets }}</td>
                                             <td>{{ event.ticket_count }}</td>
-                                            <td>{{ event.ticket_count }}</td>
+                                            <td>
+                                                <a class="label-link" href="{{ url_for('main.get_event', id=event.id)}}">
+                                                <span class="label label-info">Details</span></a>
+                                                {% if current_user.is_administrator() or current_user == event.organiser %}
+                                                <a class="label-link" href="{{ url_for('main.edit_event', id=event.id) }}">
+                                                <span class="label label-warning">Edit</span></a>
+                                                {% endif %}
+                                                {% if not event.is_closed() %}
+                                                {% if current_user == event.organiser or current_user.is_administrator() %}
+                                                <a class="label-link" href="javascript:void()"><span class="label label-danger">Close</span></a>
+                                                {% endif %}
+                                                {% else %}
+                                                <span class="label label-danger">Closed</span>
+                                                {% endif %}
+
+                                            </td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -63,8 +78,7 @@
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
-                                <h2 class="modal-title float-center">New Event</h2>
-
+                                <h2 class="modal-title float-center">Add a New Event</h2>
                             </div>
                             <div class="modal-body">
                                 <form action="" method="post" class="form" method="post" enctype="multipart/form-data" id="create_eventForm" data-placement-from="bottom"

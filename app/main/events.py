@@ -1,7 +1,7 @@
 import os
 import datetime
 import logging
-from flask import render_template,flash,redirect,url_for,request,send_from_directory,current_app, jsonify
+from flask import render_template,flash,redirect,url_for,request,send_from_directory,current_app, jsonify, abort
 from flask_login import login_required, current_user
 from app.decorators import admin_required
 from app.models import Event
@@ -83,6 +83,33 @@ def get_events():
     events = Event.query.all()
     event_form = CreateEventForm()
     return render_template('events/events.html', events=events, event_form=event_form)
+
+
+@main.route('/event/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_event(id):
+    event = Event.query.get(id)
+    if event is None:
+        abort(404)
+    tickets = event.tickets
+    create_ticketForm = CreateTicketForm()
+    # # update ticket type select field
+    create_ticketForm.type.choices = filter(lambda x: x[1] not in
+                                      [ticket.type for ticket in event.tickets],
+                                      [(k, v) for (k, v) in enumerate(
+                                          current_app.config['TICKET_TYPES'])])
+    edit_ticketForm = EditTicketForm()
+    edit_eventForm = EditEventForm()
+    edit_eventForm.title.data = event.name
+    edit_eventForm.description.data = event.description
+    edit_eventForm.location.data = event.city
+    edit_eventForm.venue.data = event.venue
+    edit_eventForm.date.data = event.date
+    return render_template('events/edit.html',
+                           edit_eventForm=edit_eventForm,
+                           edit_ticketForm=edit_ticketForm,
+                           event=event,
+                           tickets=tickets)
 
 
 @main.route('/event/create', methods=['POST', 'GET'])

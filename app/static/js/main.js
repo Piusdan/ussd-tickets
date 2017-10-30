@@ -38,13 +38,13 @@ $(function() { //shorthand document.ready function
 });
 
 $(function () {
-    $('.add-ticket-button button').on('click', function () {
+    $('.edit-ticket-button button').on('click', function () {
         var placementFrom = $(this).data('placement-from');
         var placementAlign = $(this).data('placement-align');
         var animateEnter = $(this).data('animate-enter');
         var animateExit = $(this).data('animate-exit');
         var colorName = $(this).data('color-name');
-        var form = document.getElementById("add_ticket")
+        var form = document.getElementById("edit_ticket")
         var price = form.getElementsByClassName('price')[0].value
         var count = form.getElementsByClassName('count')[0].value
         // form.hide();
@@ -69,7 +69,7 @@ $(function () {
             processData: false,
             error: function (jqXhr, textStatus, errorThrown) {
                 // var colorName = "bg-red"
-                showNotification(colorName, errorThrown, placementFrom, placementAlign, animateEnter, animateExit);
+                showNotification("bg-red", errorThrown, placementFrom, placementAlign, animateEnter, animateExit);
             }
         });
 

@@ -233,6 +233,9 @@ class Event(db.Model):
     def to_bin(self):
         return pickle.dumps(self)
 
+    def is_closed(self):
+        return self.closed
+
     @classmethod
     def to_model(cls):
         return pickle.loads(cls)

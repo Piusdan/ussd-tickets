@@ -1,6 +1,7 @@
  {% extends "base.html" %} {% block custom_css %}
 <!-- JQuery DataTable Css -->
-<link href="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css') }}" rel="stylesheet"> {% endblock %} {% block event %}class="active"{% endblock %} {% block events %}class="active"{% endblock %} {% import "bootstrap/wtf.html"
+<link href="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css') }}" rel="stylesheet">
+ {% endblock %} {% block event %}class="active"{% endblock %} {% block events %}class="active"{% endblock %} {% import "bootstrap/wtf.html"
 as wtf %} {% import "bootstrap/wtf.html" as wtf %} {% block title %}Event - {{ event.name }}{% endblock %} {% block page_content
 %}
 <div class="container-fluid">
