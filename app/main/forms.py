@@ -107,7 +107,7 @@ class EditEventForm(Form):
     venue = StringField('Event Venue', validators=[
                         Length(0, 64), DataRequired()])
     date = DateTimeField(
-        "Event Date", format="%d/%m/%Y %H:%M", validators=[DataRequired()])
+        "Event Date", format="%d/%m/%Y", validators=[DataRequired()])
     submit = SubmitField('Update')
 
 

@@ -186,7 +186,6 @@ class Role(db.Model):
         db.session.commit()
 
 
-
 class Permission:
     BUY_TICKET = 0x01
     ORGANIZE_EVENT = 0x04
@@ -255,7 +254,8 @@ class Event(db.Model):
     @property
     def ticket_count(self):
         if self.tickets:
-            return reduce(lambda x, y: x.count + y.count, self.tickets)
+            numbers = [ticket.count for ticket in self.tickets]
+            return reduce(lambda x, y: x + y, numbers)
         return 0
 
     @property
@@ -263,7 +263,8 @@ class Event(db.Model):
         purchases = Purchase.query.join(
             Ticket, Ticket.id == Purchase.ticket_id).filter(Ticket.event_id == self.id).all()
         if purchases:
-            return reduce(lambda x, y: x.count + y.count, purchases)
+            numbers = [purchase.count for purchase in purchases]
+            return reduce(lambda x, y: x + y, numbers)
         return 0
 
 
@@ -276,17 +277,18 @@ class Purchase(db.Model):
     account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
     confirmed = db.Column(db.Boolean, default=False)
 
+
 class Ticket(db.Model):
     __tablename__ = "tickets"
     id = db.Column(db.Integer, primary_key=True)
     count = db.Column(db.Integer)
     price = db.Column(db.Float)
-    type = db.Column(db.String(64), default='regular', index=True)
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'))
     purchases = db.relationship('Purchase', backref='ticket', lazy='dynamic')
+    type_id = db.Column(db.Integer, db.ForeignKey('ticket_types.id'))
 
     def __repr__(self):
-        return "<Type> {} <Price> {}".format(self.type, self.price)
+        return "<Type> {} <Price> {}".format(self.type.name, self.price)
 
     def to_bin(self):
         return pickle.dumps(self)
@@ -294,6 +296,33 @@ class Ticket(db.Model):
     @classmethod
     def to_model(cls):
         return pickle.loads(cls)
+
+
+class TicketType(db.Model):
+    """Ticket types
+    Regular - Basi ticket type
+    VVIP - 
+    VIP - 
+    """
+    __tablename__ = 'ticket_types'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)
+    default = db.Column(db.Boolean, default=False, index=True)
+    tickets = db.relationship('Ticket', backref='type', lazy='dynamic')
+
+    def __repr__(self):
+        return "{} Ticket".format(self.name)
+
+    @staticmethod
+    def insert_types():
+        types = ['Regular','VIP','VVIP']
+        for t in types:
+            type = TicketType.query.filter_by(name=t).first()
+            if type is None:
+                type = TicketType(name=t)
+            db.session.add(type)
+        db.session.commit()
+
 
 
 class Location():

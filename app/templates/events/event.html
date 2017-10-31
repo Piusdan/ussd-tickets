@@ -1,12 +1,18 @@
  {% extends "base.html" %} {% block custom_css %}
-<!-- JQuery DataTable Css -->
-<link href="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css') }}" rel="stylesheet">
- {% endblock %} {% block event %}class="active"{% endblock %} {% block events %}class="active"{% endblock %} {% import "bootstrap/wtf.html"
-as wtf %} {% import "bootstrap/wtf.html" as wtf %} {% block title %}Event - {{ event.name }}{% endblock %} {% block page_content
-%}
+ {% endblock %}
+ {% block event %}class="active"{% endblock %} {% block events %}class="active"{% endblock %}
+ {% import "bootstrap/wtf.html" as wtf %} {% import "bootstrap/wtf.html" as wtf %}
+ {% block page %}{{ event.name }} Details{% endblock %}
+ {% block page_content%}
 <div class="container-fluid">
     <div class="row clearfix">
-        <!-- Event Info -->
+        <ol class="breadcrumb breadcrumb-col-orange">
+            <li><a href="{{ url_for('.get_events')}}"><i class="material-icons">home</i> Events</a></li>
+            <li class="active"><i class="material-icons">event_available</i> Event Details</li>
+            <li><a href="{{ url_for('.edit_event', id=event.id)}}"><i class="material-icons">mode_edit</i> Edit Event Details</a></li>
+        </ol>
+    </div>
+    <div class="row clearfix">
         <div class="col-xs-12 col-sm-12 col-md-9 col-lg-9">
 
                 <div class="card">
@@ -26,64 +32,16 @@ as wtf %} {% import "bootstrap/wtf.html" as wtf %} {% block title %}Event - {{ e
                     </div>
                     <div class="body">
                         <div class="container-fluid">
-                            {% if event.logo_url %}
-                            <style>
-                                .img {
-                                    height: 100%;
-                                    width: 100%;
-                                }
-                            </style>
-                            <div class="col-xs-3 col-sm-3 col-md-2 col-lg-2">
-                                <img class="img img-responsive" src="{{event.logo_url}}">
-                            </div>
-                            {% endif %}
                             <div class="col-xs-7 col-sm-7 col-md-7 col-lg-7">
                                 <h5 class="text-warning">{{ event.description }}</h5>
                                 <p><a href="http://maps.google.com/?q={{ event.location }}{{ event.venue }}">{{ event.venue }}</a></p>
                                 {{ event.location }}<br/>{{ event.day }}<br/>
                                 <!-- edit and delete event modals -->
-                                {% include('_delete_event.html') %} {% include('_edit_event.html') %}
                                 <!-- #END# Edit and delete event modals -->
                             </div>
                         </div>
                     </div>
                 </div>
-        </div>
-        <!-- #END# Event Info -->
-        <!-- Tickets -->
-        <div class="col-xs-12 col-sm-12 col-md-9 col-lg-9">
-            <div class="card">
-                <div class="header">
-                    <h2>Tickets</h2>
-                    <!-- Colored FAB button -->
-                    {% if event.can_add_tickets() %}
-
-                    <ul class="header-dropdown m-r--5">
-                        <li class="dropdown">
-                            <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                            <i class="material-icons">more_vert</i>
-                        </a>
-                            <ul class="dropdown-menu pull-right">
-                                <li><a href="javascript:void(0);" data-toggle="modal" data-target="#ticketModal">Add Ticket</a></li>
-                            </ul>
-                        </li>
-                    </ul>
-                    </a>
-                    {% endif %}
-                </div>
-                <div class="body">
-                    <div class="container-fluid">
-                        {% if tickets %} {% include '_tickets.html' %} {% else %}
-                        <h3>No tickets available</h3>
-                        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#ticketModal"><span class="fa fa-plus "></span>&nbsp; Add a Ticket</button>{%endif %}
-                        {% if event.can_add_tickets() %}
-                        {% include '_add_ticket.html' %}
-                        {% endif %}
-
-                    </div>
-
-                </div>
-            </div>
         </div>
     </div>
     <div class="row clearfix">

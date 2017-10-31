@@ -1,5 +1,6 @@
 from functools import wraps
-from flask import abort, request, render_template
+import logging
+from flask import abort, request, render_template, jsonify
 from flask_login import current_user
 from models import Permission, User, AnonymousUser
 
@@ -24,6 +25,7 @@ def handle_errors(code):
             message = f(*args, **kwargs)
             if request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
                 response = jsonify({'error': message})
+                logging.info(message)
                 response.status_code = code
                 return response
             return render_template('errors/error.html', message=message, code=code), code         

@@ -1,7 +1,8 @@
 // Data Picker Initialization
-$('#date').bootstrapMaterialDatePicker({ weekStart : 0, time: false, format : 'DD/MM/YY', minDate : moment() });
+$('#date').bootstrapMaterialDatePicker({ weekStart : 0, time: false, format : 'DD/MM/YYYY', minDate : moment(), nowButton: true, nowText: 'Today' });
 
-$(function() { //shorthand document.ready function
+$(function() {
+//uses ajax to submit request to create event
     $('#create_eventForm').on('submit', function(e) { //use on if jQuery 1.7+
         e.preventDefault();  //prevent form from submitting
         var data = $("#create_eventForm :input").serializeArray();
@@ -37,14 +38,92 @@ $(function() { //shorthand document.ready function
     });
 });
 
-$(function () {
-    $('.edit-ticket-button button').on('click', function () {
+$(function() {
+//uses ajax to submit request to create event
+    $('#edit_eventForm').on('submit', function(e) { //use on if jQuery 1.7+
+        e.preventDefault();  //prevent form from submitting
+        var data = $("#edit_eventForm :input").serializeArray();
+        var json_data = [];
+        console.log(data)
+        console.log(JSON.stringify(data)); //use the console for debugging, F12 in Chrome, not alerts
         var placementFrom = $(this).data('placement-from');
         var placementAlign = $(this).data('placement-align');
         var animateEnter = $(this).data('animate-enter');
         var animateExit = $(this).data('animate-exit');
         var colorName = $(this).data('color-name');
-        var form = document.getElementById("edit_ticket")
+        var event_id = $(this).attr('data-eventId');
+        var url = '/event/update/' + event_id
+        $('edit-event-preloader').show();
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            type: 'post',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (data, textStatus, jQxhr) {
+                var text = data.data
+                showNotification(colorName, text, placementFrom, placementAlign, animateEnter, animateExit);
+            },
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                // var colorName = "bg-red"
+                showNotification("bg-red", errorThrown, placementFrom, placementAlign, animateEnter, animateExit);
+            }
+        });
+
+    });
+});
+
+$(function() {
+//uses ajax to submit request to create event
+    $('#add_ticketForm').on('submit', function(e) { //use on if jQuery 1.7+
+        e.preventDefault();  //prevent form from submitting
+        $('#add_ticketModal').modal('toggle');
+        var data = $("#add_ticketForm :input").serializeArray();
+        var json_data = [];
+        console.log(data)
+        console.log(JSON.stringify(data)); //use the console for debugging, F12 in Chrome, not alerts
+        var placementFrom = $(this).data('placement-from');
+        var placementAlign = $(this).data('placement-align');
+        var animateEnter = $(this).data('animate-enter');
+        var animateExit = $(this).data('animate-exit');
+        var colorName = $(this).data('color-name');
+        var event_id = $(this).attr('data-ticket-eventId');
+        var url = '/ticket/add/' + event_id
+        document.getElementById('add_ticketForm').reset();
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            type: 'post',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (data, textStatus, jQxhr) {
+                var text = data.data
+                showNotification(colorName, text, placementFrom, placementAlign, animateEnter, animateExit);
+            },
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                // var colorName = "bg-red"
+                showNotification("bg-red", errorThrown, placementFrom, placementAlign, animateEnter, animateExit);
+            }
+        });
+
+    });
+});
+
+
+
+$(function () {
+// edit ticket ajax
+    $('.edit-ticket-button button').on('click', function (e) {
+        e.preventDefault();
+        var placementFrom = $(this).data('placement-from');
+        var placementAlign = $(this).data('placement-align');
+        var animateEnter = $(this).data('animate-enter');
+        var animateExit = $(this).data('animate-exit');
+        var colorName = $(this).data('color-name');
+        var ticket_id = $(this).attr('data-ticketid');
+        var form = document.getElementById(ticket_id)
         var price = form.getElementsByClassName('price')[0].value
         var count = form.getElementsByClassName('count')[0].value
         // form.hide();
@@ -69,7 +148,7 @@ $(function () {
             processData: false,
             error: function (jqXhr, textStatus, errorThrown) {
                 // var colorName = "bg-red"
-                showNotification("bg-red", errorThrown, placementFrom, placementAlign, animateEnter, animateExit);
+                showNotification(colorName, errorThrown, placementFrom, placementAlign, animateEnter, animateExit);
             }
         });
 

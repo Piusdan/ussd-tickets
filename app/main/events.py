@@ -4,7 +4,7 @@ import logging
 from flask import render_template,flash,redirect,url_for,request,send_from_directory,current_app, jsonify, abort
 from flask_login import login_required, current_user
 from app.decorators import admin_required
-from app.models import Event
+from app.models import Event, TicketType
 from app import photos, db
 from app.main.utils import get_country, create_event as new_event
 from app.controllers import get_event_tickets_query,edit_event, async_delete_event, get_event_attendees_query
@@ -24,58 +24,11 @@ def get_event(id):
     tickets = get_event_tickets_query(event_id=event.id).all()
 
     attendees = get_event_attendees_query(event.id).all()
-
-    # # update ticket type select field
-    ticket_form.type.choices = filter(lambda x: x[1] not in
-                                      [ticket.type for ticket in event.tickets],
-                                      [(k, v) for (k, v) in enumerate(
-                                          current_app.config['TICKET_TYPES'])])
-
-    # list of all ticket types
-    types = current_app.config['TICKET_TYPES']
-
-    # to help us edit tickets
-    edit_ticket_form = EditTicketForm()
-    # initialise validate event form
-    event_form = EditEventForm()
-    if ticket_form.validate_on_submit():
-        pass
-        flash("hell yeah")
-    if event_form.validate_on_submit():
-        try:
-            filename = photos.save(request.files['logo'])
-            url = photos.url(filename)
-        except:
-            url = event.logo_url
-        payload = {
-            "event_id": event.id,
-            "logo_url": url,
-            "title": event_form.title.data,
-            "description": event_form.description.data,
-            "location": event_form.location.data,
-                "date": event_form.date.data,
-                "venue": event_form.venue.data
-            }
-        edit_event.apply_async(args=[payload], countdown=0)
-        db.session.commit()
-        flash("Edited {}".format(event_form.title.data), category="success")
-        return redirect(url_for('.get_event', id=event.id))
-    else:
-        flash_errors(event_form)
-    event_form.title.data = event.name
-    event_form.description.data = event.description
-    event_form.location.data = event.city
-    event_form.venue.data = event.venue
-    event_form.date.data = event.date
-
     return render_template('events/event.html',
                            event=event,
                            tickets=tickets,
-                           event_form=event_form,
                            purchases=attendees,
-                           ticket_form=ticket_form,
-                           edit_ticket_form=edit_ticket_form)
-
+                           ticket_form=ticket_form)
 
 @main.route('/event', methods=['POST', 'GET'])
 @login_required
@@ -92,12 +45,9 @@ def edit_event(id):
     if event is None:
         abort(404)
     tickets = event.tickets
+    TicketType.query.all()
     create_ticketForm = CreateTicketForm()
-    # # update ticket type select field
-    create_ticketForm.type.choices = filter(lambda x: x[1] not in
-                                      [ticket.type for ticket in event.tickets],
-                                      [(k, v) for (k, v) in enumerate(
-                                          current_app.config['TICKET_TYPES'])])
+    create_ticketForm.type.choices = [(type.id, type.name) for type in TicketType.query.all()]
     edit_ticketForm = EditTicketForm()
     edit_eventForm = EditEventForm()
     edit_eventForm.title.data = event.name
@@ -108,8 +58,45 @@ def edit_event(id):
     return render_template('events/edit.html',
                            edit_eventForm=edit_eventForm,
                            edit_ticketForm=edit_ticketForm,
+                           create_ticketForm=create_ticketForm,
                            event=event,
                            tickets=tickets)
+
+
+@main.route('/event/update/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def update_event(id):
+    data = request.get_json()
+    request_dict = {}
+    map(lambda x: request_dict.setdefault(x.get('name'), x.get('value')), data)
+    event_date = request_dict["date"]
+    event = Event.query.get(id)
+    logging.info(type(id))
+    if event is None:
+        abort(404)
+    event.venue = request_dict["venue"]
+    event.date = datetime.datetime.strptime(event_date, '%d/%m/%Y').date()
+    event.name = request_dict["title"]
+    event.city = request_dict["location"]
+    event.description = request_dict["description"]
+    event.organiser_id = current_user.id
+    country = get_country(event.city)
+    logging.info(data)
+    try:
+        if country is None:
+            raise Exception
+        event.country = country
+    except Exception as exc:
+        response = jsonify(dict(data="Error:Please enter  a valid location/city/town"))
+        response.status_code = 300
+        return response
+    db.session.add(event)
+    db.session.commit()
+    response = jsonify(dict(data="Event {} edited".format(event.name)))
+    response.status_code = 201
+    logging.info(response)
+    return response
 
 
 @main.route('/event/create', methods=['POST', 'GET'])
@@ -122,7 +109,7 @@ def add_event():
     event_date = request_dict["date"]
     event = Event()
     event.venue = request_dict["venue"]
-    event.date = datetime.datetime.strptime(event_date, '%d/%m/%y').date()
+    event.date = datetime.datetime.strptime(event_date, '%d/%m/%Y').date()
     event.name = request_dict["title"]
     event.city = request_dict["location"]
     event.description = request_dict["description"]
@@ -142,7 +129,6 @@ def add_event():
     db.session.commit()
     response = jsonify(dict(data="Event {} created".format(event.name)))
     response.status_code = 201
-
     return response
 
 

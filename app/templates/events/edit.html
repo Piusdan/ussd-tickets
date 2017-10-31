@@ -7,6 +7,13 @@
 <div class="container-fluid">
     <div class="row clearfix">
         <!-- Event Info -->
+        <ol class="breadcrumb breadcrumb-col-orange">
+            <li><a href="{{ url_for('.get_events')}}"><i class="material-icons">home</i> Events</a></li>
+            <li><a href="{{ url_for('.get_event', id=event.id)}}"><i class="material-icons">event_available</i> Event Details</a></li>
+            <li class="active"><i class="material-icons">mode_edit</i> Edit Event Details</li>
+        </ol>
+    </div>
+    <div class="row clearfix">
         <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4">
             <div class="card">
                 <div class="header">
@@ -16,7 +23,7 @@
                 </div>
                 <div class="body">
                     <div class="container-fluid">
-                        <form action="" class="form" method="post"
+                        <form action="" class="form" data-eventId="{{ event.id }}" method="post"
                               enctype="multipart/form-data" id="edit_eventForm"
                               data-placement-from="bottom" data-placement-align="center"
                               data-animate-enter="" data-animate-exit="" data-color-name="bg-green">
@@ -73,7 +80,18 @@
                                             </div>
                                         </div>
                                         <div class="footer">
-                                            <button class="btn btn-success waves-effect" id='editEventButton' type="submit">SUBMIT</button>
+                                            <button class="btn btn-success waves-effect" id='editEventButton' type="submit">Update</button>
+
+                                            <div class="preloader pl-size-sm" id="edit-event-preloader" style="display:none">
+                                                <div class="spinner-layer pl-orange">
+                                                    <div class="circle-clipper left">
+                                                        <div class="circle"></div>
+                                                    </div>
+                                                    <div class="circle-clipper right">
+                                                        <div class="circle"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                 </form>
                     </div>
@@ -84,6 +102,14 @@
             <div class="card">
                 <div class="header">
                     <h2 class="title-text">Tickets</h2>
+                    {% if event.can_add_tickets() %}
+                    <ul class="header-dropdown m-r--5">
+                        <li class="dropdown">
+                            <a class="dropdown-toggle btn btn-success btn-sm waves-effect"  data-toggle="modal" role="button" data-target="#add_ticketModal" aria-haspopup="true" aria-expanded="false">
+                                <span>Add Ticket</span><i class="material-icons">add</i>
+                            </a>
+                    </ul>
+                    {% endif %}
                 </div>
                 <div class="body">
                     {% if tickets %}
@@ -93,7 +119,7 @@
                         <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
                             <div class="card">
                                 <div class="header">
-                                    <h2 class="title-text text-info">{{ ticket.type }} ticket Details</h2>
+                                    <h2 class="title-text text-info">{{ ticket.type.name }} ticket Details</h2>
                                 </div>
                                 <div class="body">
                                     <form class="edit-ticket" id="{{ ticket.id }}" method="post" action="" role="form" name="register">
@@ -115,8 +141,8 @@
                                             </div>
                                         </div>
                                         <div class="form-group edit-ticket-button">
-                                            <button type="button" class="btn bg-orange waves-effect edit-ticket" data-ticketid="{{ticket.id}}" data-placement-from="bottom"
-                                                    data-placement-align="center" data-animate-enter="" data-animate-exit="" data-color-name="bg-green">submit</button>
+                                            <button type="button" class="btn btn-success waves-effect edit-ticket" data-ticketid="{{ticket.id}}" data-placement-from="bottom"
+                                                    data-placement-align="center" data-animate-enter="" data-animate-exit="" data-color-name="bg-green">Update</button>
                                         </div>
                                     </form>
                                 </div>
@@ -125,10 +151,59 @@
                         {% endfor %}
                     </div>
                     {% endif %}
-
                 </div>
             </div>
         </div>
     </div>
+    <!--addTicket modal-->
+    <div class="modal fade" id="add_ticketModal" tabindex="-1" role="dialog" id="edit">
+        <div class="modal-dialog modal-sm" role="document">
+        <div class="card">
+            <div class="header">
+                <h2 class="title-text">{{ event.name}}<small> add ticket</small></h2>
+            </div>
+                <form id="add_ticketForm" data-ticket-eventId="{{ event.id }}" method="post" action="" role="form" name="add_Ticket" data-placement-from="bottom"
+                            data-placement-align="center" data-animate-enter="" data-animate-exit="" data-color-name="bg-green">
+                    <div class="body modal-body">
+                    {{ create_ticketForm.hidden_tag() }}
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                                <i class="material-icons">info</i>
+                            </span>
+                        <div class="form-line">
+                            {{ create_ticketForm.type(class_="show-tick") }}
+
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                                        <i class="material-icons">attach_money</i>
+                                    </span>
+                        <div class="form-line">
+                            {{ create_ticketForm.price(class_="form-control", placeholder="Price " + event.currency_code,required=True, autofocus=True)}}
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-addon">
+                                            <i class="material-icons">group</i>
+                                        </span>
+                        <div class="form-line">
+                            {{ create_ticketForm.count(class_="form-control", placeholder="Number of Tickets",required=True, autofocus=True)}}
+
+                        </div>
+                    </div>
+                    </div>
+                    <div class="modal-footer">
+                        {{ create_ticketForm.submit(class_="btn btn-sm bg-orange waves-effect add_tiket_button") }}
+                        <button type="button" class="btn btn-link waves-effect" data-dismiss="modal">CLOSE</button>
+
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+    <!--end editTicket modal-->
 </div>
 {% endblock %}

@@ -9,7 +9,7 @@ from flask_migrate import MigrateCommand, Migrate
 import logging
 
 from app import create_app, db
-from app.models import User, Role, Event, Ticket, Account, Location, Purchase
+from app.models import User, Role, Event, Ticket, Account, Location, Purchase, TicketType
 
 app = create_app(os.environ.get('FLASK_CONFIG') or 'default')
 
@@ -29,7 +29,7 @@ if os.environ.get('VALHALLA_COVERAGE'):
 def make_shell_context():
     return dict(app=app, User=User, Role=Role, Ticket=Ticket,
                 Event=Event, Account=Account,
-                Location=Location, db=db, Purchase=Purchase)
+                Location=Location, db=db, Purchase=Purchase, TicketType=TicketType)
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
@@ -44,8 +44,6 @@ def reset_db():
     db.drop_all()
     logging.info("Initializing new db")
     db.create_all()
-    logging.info("Creating roles")
-    Role.insert_roles()
     logging.info("DB reset")
 
 from sqlalchemy.ext.compiler import compiles
@@ -58,77 +56,20 @@ def _compile_drop_table(element, compiler, **kwargs):
 
 
 @manager.command
-def add_roles():
+def deploy():
+    """Run deployment tasks"""
     from flask_migrate import upgrade
-    from app.models import Role
+    from app.models import Role, TicketType
 
     # migrate db to latest version
     logging.info("migrating database to latest state")
     upgrade()
-
     # create user roles
     logging.info("adding user roles")
     Role.insert_roles()
-
-
-@manager.command
-def deploy():
-    """Run deployment tasks"""
-    from flask_migrate import upgrade
-    from app.models import Role, User
-
-    # migrate db to latest version
-    upgrade()
-
     # create user roles
-    Role.insert_roles()
-
-
-@manager.command
-def reset_db():
-    logging.info("Prepairing to reset db")
-    db.session.commit()
-    db.session.close_all()
-    logging.info("Droping all Columns")
-    db.drop_all()
-    logging.info("Initializing new db")
-    db.create_all()
-    logging.info("Creating roles")
-    Role.insert_roles()
-    logging.info("DB reset")
-
-from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.schema import DropTable
-
-@compiles(DropTable, "postgresql")
-def _compile_drop_table(element, compiler, **kwargs):
-    return compiler.visit_drop_table(element) + " CASCADE"
-
-@manager.command
-def add_roles():
-    from flask_migrate import upgrade
-    from app.models import Role
-
-    # migrate db to latest version
-    logging.info("migrating database to latest state")
-    upgrade()
-
-    # create user roles
-    logging.info("adding user roles")
-    Role.insert_roles()
-
-
-@manager.command
-def deploy():
-    """Run deployment tasks"""
-    from flask_migrate import upgrade
-    from app.models import Role, User
-
-    # migrate db to latest version
-    upgrade()
-
-    # create user roles
-    Role.insert_roles()
+    logging.info("adding ticket types")
+    TicketType.insert_types()
 
 
 @manager.command

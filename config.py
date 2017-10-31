@@ -105,6 +105,7 @@ class DevelopmentConfig(Config):
                               '/valhalla'
     # SERVER_NAME = "0.0.0.0:4040"
     DEBUG_MEMCACHE = False
+    TEMPLATES_AUTO_RELOAD = True
 
     @classmethod
     def init_app(cls, app):
