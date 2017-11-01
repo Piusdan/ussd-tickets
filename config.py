@@ -137,7 +137,7 @@ class ProductionConfig(Config):
     REDIS_URL = os.environ.get('REDIS_URL')
     CACHE_URL = os.environ.get('HEROKU_REDIS_RED_URL')
     # celery conf
-    BROKER_URL = os.environ.get('HEROKU_REDIS_NAVY_URL')
+    CELERY_BROKER_URL = os.environ.get('HEROKU_REDIS_NAVY_URL')
     CELERY_RESULT_BACKEND = os.environ.get('HEROKU_REDIS_NAVY_URL')
     DEBUG_MEMCHACHE = True
     @classmethod
