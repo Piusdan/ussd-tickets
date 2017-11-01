@@ -1,218 +1,286 @@
-{% extends "bootstrap/base.html" %} {% block metas %}
-<meta charset="UTF-8">
-<meta http-equiv="X-UA-Compatible" content="IE=Edge">
-<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"> {% endblock %} {% block title %}Welcome To | Cash Value Solutions - Dashboard{% endblock %}
-<!-- Favicon-->
+{% extends "bootstrap/base.html" %}
+
+{% block metas %}
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+{% endblock %}
+
+{% block title %}Cash Value Solutions | Admin Dashboard -
+    {% block page %}Dashboard{% endblock %}
+{% endblock %}
+    <!-- Favicon-->
 {% block favicon %}
-<link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon"> {% endblock %} {% block styles %}
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+{% endblock %}
+{% block styles %}
 
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css?family=Roboto:400,700&subset=latin,cyrillic-ext" rel="stylesheet" type="text/css">
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&subset=latin,cyrillic-ext" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" type="text/css">
+    <!--font awesome icons-->
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 
-<!-- Bootstrap Core Css -->
-<link href="{{ url_for('static', filename='plugins/bootstrap/css/bootstrap.css') }}" rel="stylesheet">
 
-<!-- Waves Effect Css -->
-<link href="{{ url_for('static', filename='plugins/node-waves/waves.css') }}" rel="stylesheet" />
+    <!-- Jquery Core Js -->
+    <script src="{{ url_for('static', filename='plugins/jquery/jquery.min.js') }}"></script>
 
-<!-- Animation Css -->
-<link href="{{ url_for('static', filename='plugins/animate-css/animate.css') }}" rel="stylesheet" />
 
-<!-- Morris Chart Css-->
-<link href="{{ url_for('static', filename='plugins/morrisjs/morris.css') }}" rel="stylesheet" /> {% block custom_css %} {% endblock %}
-<!-- datetime picker css -->
-<link href="{{ url_for('static', filename='plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css') }}"
-    rel="stylesheet" />
+    <!-- Bootstrap Core Css -->
+    <link href="{{ url_for('static', filename='plugins/bootstrap/css/bootstrap.css') }}" rel="stylesheet">
 
-<!-- Custom Css -->
-<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <!-- Waves Effect Css -->
+    <link href="{{ url_for('static', filename='plugins/node-waves/waves.css') }}" rel="stylesheet" />
 
-<!-- AdminBSB Themes. -->
-<link href="{{ url_for('static', filename='css/theme-orange.css') }}" rel="stylesheet" /> {% endblock %} {% block body_attribs %} class="container-fluid"{% endblock %} {% block content %}
-<div class="theme-orange">
-    <!-- Page Loader -->
-    <div class="page-loader-wrapper">
-        <div class="loader">
-            <div class="preloader">
-                <div class="spinner-layer pl-red">
-                    <div class="circle-clipper left">
-                        <div class="circle"></div>
-                    </div>
-                    <div class="circle-clipper right">
-                        <div class="circle"></div>
+    <!-- Animation Css -->
+    <link href="{{ url_for('static', filename='plugins/animate-css/animate.css') }}" rel="stylesheet" />
+
+    <!-- Morris Chart Css-->
+    <link href="{{ url_for('static', filename='plugins/morrisjs/morris.css') }}" rel="stylesheet" />
+
+    {% block custom_css %} {% endblock %}
+
+    <!-- JQuery DataTable Css -->
+    <link href="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css') }}" rel="stylesheet">
+
+    <!-- datetime picker css -->
+    <link href="{{ url_for('static', filename='plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css') }}"
+        rel="stylesheet" />
+
+    <!-- Bootstrap Select Css -->
+    <link href="{{ url_for('static', filename='plugins/bootstrap-select/css/bootstrap-select.css') }}" rel="stylesheet" />
+
+
+
+    <!-- Jquery CountTo Plugin Js -->
+    <script src="{{ url_for('static', filename='plugins/jquery-countto/jquery.countTo.js') }}"></script>
+
+    <!-- Sparkline Chart Plugin Js -->
+    <script src="{{ url_for('static', filename='plugins/jquery-sparkline/jquery.sparkline.js') }}"></script>
+
+
+
+    <!-- Custom Css -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+    <!-- AdminBSB Themes. -->
+    <link href="{{ url_for('static', filename='css/theme-orange.css') }}" rel="stylesheet" />
+{% endblock %}
+
+{% block body_attribs %} class="container-fluid"{% endblock %}
+
+{% block content %}
+    <div class="theme-orange">
+        <!-- Page Loader -->
+        <div class="page-loader-wrapper">
+            <div class="loader">
+                <div class="preloader">
+                    <div class="spinner-layer pl-red">
+                        <div class="circle-clipper left">
+                            <div class="circle"></div>
+                        </div>
+                        <div class="circle-clipper right">
+                            <div class="circle"></div>
+                        </div>
                     </div>
                 </div>
+                <p>Please wait...</p>
             </div>
-            <p>Please wait...</p>
         </div>
-    </div>
-    <!-- #END# Page Loader -->
-    <!-- Overlay For Sidebars -->
-    <div class="overlay"></div>
-    <!-- #END# Overlay For Sidebars -->
-    <!-- Top Bar -->
-    <nav class="navbar">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <a href="javascript:void(0);" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false"></a>
-                <a href="javascript:void(0);" class="bars"></a>
-                <a class="navbar-brand" href="{{ url_for('.index') }}">CASH VALUE SOLUTIONS</a>
-            </div>
-            <div class="collapse navbar-collapse" id="navbar-collapse">
-                <ul class="nav navbar-nav navbar-right">
-                    <!-- Home -->
-                    <li class="dropdown">
-                        <a href="{{ url_for('main.index') }}" role="button">
-                            <i class="material-icons">home</i>
-                        </a>
-                    </li>
-                    <!-- #END# Home -->
-                </ul>
-            </div>
-        </div>
-    </nav>
-    <!-- #Top Bar -->
-    <section>
-        <!-- Left Sidebar -->
-        <aside id="leftsidebar" class="sidebar">
-            <!-- User Info -->
-            <div class="user-info">
-                <div class="image">
-                    <img src="{{ current_user.gravatar() }}" width="48" height="48" alt="User" />
+        <!-- #END# Page Loader -->
+        <!-- Overlay For Sidebars -->
+        <div class="overlay"></div>
+        <!-- #END# Overlay For Sidebars -->
+        <!-- Top Bar -->
+        <nav class="navbar">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a href="javascript:void(0);" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false"></a>
+                    <a href="javascript:void(0);" class="bars"></a>
+                    <a class="navbar-brand" href="{{ url_for('.index') }}">CASH VALUE SOLUTIONS</a>
                 </div>
-                <div class="info-container">
-                    <div class="name" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ current_user.username }}</div>
-                    <div class="email">{{current_user.email}}</div>
-                    <div class="btn-group user-helper-dropdown">
-                        <i class="material-icons" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">keyboard_arrow_down</i>
-                        <ul class="dropdown-menu pull-right">
-                            <li><a href="{{ url_for('main.get_user', id=current_user.id) }}"><i class="material-icons">person</i>Profile</a></li>
-                            <li role="seperator" class="divider"></li>
-                            <li><a href="{{ url_for('main.edit_profile') }}"><i class="material-icons">settings</i>Settings</a></li>
-                            <li><a href="{{ url_for('auth.logout') }}"><i class="material-icons">input</i>Sign Out</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <!-- #User Info -->
-            <!-- Menu -->
-            <div class="menu">
-                <ul class="list">
-                    <li class="header">MENU</li>
-
-                    <li {% block dashboard %}{% endblock %}>
-                        <a href="{{ url_for('main.index') }}">
-                            <i class="material-icons">dashboard</i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li {% block event %}{% endblock %}>
-                        <a href="javascript:void(0);" class="menu-toggle">
-                            <i class="material-icons">event</i>
-                            <span>Events</span>
-                        </a>
-                        <ul class="ml-menu">
-                            {% if current_user.is_administrator() %}
-                            <li {% block create_event %}{% endblock %}>
-                                <a href="{{ url_for('main.create_event') }}">Create Event</a>
-                            </li>
-                            {% endif %}
-                            <li {% block events %}{% endblock %}>
-                                <a href="{{ url_for('main.get_events') }}">View Events</a>
-                            </li>
-                        </ul>
-                    </li>
-                    {% if current_user.is_administrator() %}
-                    <li>
-                        <a href="javascript:void(0);" class="menu-toggle"><i class="material-icons">textsms</i>
-                                        <span>SMS Campaigns</span>
-                                    </a>
-                        <ul class="ml-menu">
-                            <li {% block start_campaign %}{% endblock %}>
-                                <a href="#">Start Campaign</a>
-                            </li>
-                            <li{% block view_campaigns%} %}{% endblock %}>
-                                <a href="#">View Campaigns</a>
-                    </li>
-
+                <div class="collapse navbar-collapse" id="navbar-collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <!-- Home -->
+                        <li class="dropdown">
+                            <a href="{{ url_for('main.index') }}" role="button">
+                                <i class="material-icons">home</i>
+                            </a>
+                        </li>
+                        <!-- #END# Home -->
                     </ul>
-                    </li>
-                    {% endif %}
-                    <li {% block users %}{% endblock %}>
+                </div>
+            </div>
+        </nav>
+        <!-- #Top Bar -->
+        <section>
+            <!-- Left Sidebar -->
+            <aside id="leftsidebar" class="sidebar">
+                <!-- User Info -->
+                <div class="user-info">
+                    <div class="image">
+                        <img src="{{ current_user.gravatar() }}" width="48" height="48" alt="User" />
+                    </div>
+                    <div class="info-container">
+                        <div class="name" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ current_user.username }}</div>
+                        <div class="email">{{current_user.email}}</div>
+                        <div class="btn-group user-helper-dropdown">
+                            <i class="material-icons" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">keyboard_arrow_down</i>
+                            <ul class="dropdown-menu pull-right">
+                                <li><a href="{{ url_for('main.get_user', id=current_user.id) }}"><i class="material-icons">person</i>Profile</a></li>
+                                <li role="seperator" class="divider"></li>
+                                <li><a href="{{ url_for('main.edit_profile') }}"><i class="material-icons">settings</i>Settings</a></li>
+                                <li><a href="{{ url_for('auth.logout') }}"><i class="material-icons">input</i>Sign Out</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- #User Info -->
+                <!-- Menu -->
+                <div class="menu">
+                    <ul class="list">
+                        <li class="header">MENU</li>
+
+                        <li {% block dashboard %}{% endblock %}>
+                            <a href="{{ url_for('main.index') }}">
+                                <i class="material-icons">dashboard</i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        {% if current_user.is_administrator() %}
+                        <li {% block event %}{% endblock %}>
                             <a href="javascript:void(0);" class="menu-toggle">
-                                    <i class="material-icons">supervisor_account</i>
-                                    <span>Members</span>
+                                <i class="material-icons">event</i>
+                                <span>Events</span>
                             </a>
                             <ul class="ml-menu">
-                                {% if current_user.is_administrator() %}
-                                <li {% block add_user %}{% endblock %}>
-                                    <a href="{{ url_for('main.add_user') }}">Add Member</a>
-                                </li>
-                                {% endif %}
-                                <li {% block all_users %}{% endblock %}>
-                                    {% if current_user.is_administrator() %}
-                                    <a href="{{ url_for('main.get_users') }}">All Members</a>
-                                {% else %}
-                                    <a href="{{ url_for('main.get_user', id=current_user.id) }}">Profile</a>
-                                 {% endif %}
+                                <li {% block events %}{% endblock %}>
+                                    <a href="{{ url_for('main.get_events') }}">All Events</a>
                                 </li>
                             </ul>
-                    </li>
-                </ul>
-            </div>
-            <!-- #Menu -->
-            <!-- Footer -->
-            <div class="legal">
-                <div class="copyright">
-                    &copy; 2017 <a href="javascript:void(0);">Cash Value Solutions</a>.
+                        </li>
+
+                        <li>
+                            <a href="javascript:void(0);" class="menu-toggle"><i class="material-icons">textsms</i>
+                                            <span>SMS Campaigns</span>
+                                        </a>
+                            <ul class="ml-menu">
+                                <li {% block start_campaign %}{% endblock %}>
+                                    <a href="#">Start Campaign</a>
+                                </li>
+                                <li {% block view_campaigns%} %}{% endblock %}>
+                                    <a href="#">View Campaigns</a>
+                        </li>
+
+                        </ul>
+                        </li>
+                        {% endif %}
+                        <li {% block users %}{% endblock %}>
+                                <a href="javascript:void(0);" class="menu-toggle">
+                                        <i class="material-icons">supervisor_account</i>
+                                        <span>Members</span>
+                                </a>
+                                <ul class="ml-menu">
+                                    {% if current_user.is_administrator() %}
+                                    <li {% block add_user %}{% endblock %}>
+                                        <a href="{{ url_for('main.add_user') }}">Add Member</a>
+                                    </li>
+                                    {% endif %}
+                                    <li {% block all_users %}{% endblock %}>
+                                        {% if current_user.is_administrator() %}
+                                        <a href="{{ url_for('main.get_users') }}">All Members</a>
+                                    {% else %}
+                                        <a href="{{ url_for('main.get_user', id=current_user.id) }}">Profile</a>
+                                     {% endif %}
+                                    </li>
+                                </ul>
+                        </li>
+                    </ul>
                 </div>
-            </div>
-            <!-- #Footer -->
-        </aside>
-        <!-- #END# Left Sidebar -->
-    </section>
-    <section class="content">
-        {% include '_get_flashed_messages.html' %} {% block page_content %}{% endblock %}
-    </section>
-</div>
-{% endblock %} {% block scripts %}
-<!-- Jquery Core Js -->
-<script src="{{ url_for('static', filename='plugins/jquery/jquery.min.js') }}"></script>
+                <!-- #Menu -->
+                <!-- Footer -->
+                <div class="legal">
+                    <div class="copyright">
+                        &copy; 2017 <a href="javascript:void(0);">Cash Value Solutions</a>.
+                    </div>
+                </div>
+                <!-- #Footer -->
+            </aside>
+            <!-- #END# Left Sidebar -->
+        </section>
+        <section class="content">
+            {% include '_get_flashed_messages.html' %}
+            <!--our custom page is placed here-->
+            {% block page_content %}{% endblock %}
 
-<!-- Moment js -->
-<script src="{{ url_for('static', filename='plugins/momentjs/moment.js') }}"></script>
+        </section>
+    </div>
+{% endblock %}
+<!--end content-->
+{% block scripts %}
+    <!-- Jquery Core Js -->
+    <script src="{{ url_for('static', filename='plugins/jquery/jquery.min.js') }}"></script>
 
-<!-- datetime picker -->
-<script src="{{ url_for('static', filename='plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js') }}"></script>
+    <!-- Moment js -->
+    <script src="{{ url_for('static', filename='plugins/momentjs/moment.js') }}"></script>
 
-
-<!-- Bootstrap Core Js -->
-<script src="{{ url_for('static', filename='plugins/bootstrap/js/bootstrap.js') }}"></script>
-
-<!-- Bootstrap Notify Plugin Js -->
-<script src="{{ url_for('static', filename='plugins/bootstrap-notify/bootstrap-notify.js') }}"></script>
-
-
-<!-- Dropzone Plugin Js -->
-<script src="{{ url_for('static', filename='plugins/dropzone/dropzone.js') }}"></script>
-
-<!-- Slimscroll Plugin Js -->
-<script src="{{ url_for('static', filename='plugins/jquery-slimscroll/jquery.slimscroll.js') }}"></script>
-
-<!-- Waves Effect Plugin Js -->
-<script src="{{ url_for('static', filename='plugins/node-waves/waves.js') }}"></script>
+    <!-- datetime picker -->
+    <script src="{{ url_for('static', filename='plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js') }}"></script>
 
 
-<!-- Jquery CountTo Plugin Js -->
-<script src="{{ url_for('static', filename='plugins/jquery-countto/jquery.countTo.js') }}"></script>
-{% block table_scripts %} {% endblock %}
+    <!-- Select Plugin Js -->
+    <script src="{{ url_for('static', filename='plugins/bootstrap-select/js/bootstrap-select.js') }}"></script>
 
-<!-- Custom Js -->
-<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 
-{% block custom_scipts %} {% endblock %}
-<!-- Demo Js -->
-<script src="{{ url_for('static', filename='js/demo.js') }}"></script>
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <!-- Bootstrap Core Js -->
+    <script src="{{ url_for('static', filename='plugins/bootstrap/js/bootstrap.js') }}"></script>
+
+    <!-- Select Plugin Js -->
+    <script src="{{ url_for('static', filename='plugins/bootstrap-select/js/bootstrap-select.js') }}"></script>
+
+
+    <!-- Bootstrap Notify Plugin Js -->
+    <script src="{{ url_for('static', filename='plugins/bootstrap-notify/bootstrap-notify.js') }}"></script>
+
+
+    <!-- Dropzone Plugin Js -->
+    <script src="{{ url_for('static', filename='plugins/dropzone/dropzone.js') }}"></script>
+
+    <!-- Slimscroll Plugin Js -->
+    <script src="{{ url_for('static', filename='plugins/jquery-slimscroll/jquery.slimscroll.js') }}"></script>
+
+    <!-- Waves Effect Plugin Js -->
+    <script src="{{ url_for('static', filename='plugins/node-waves/waves.js') }}"></script>
+
+
+    <!-- Jquery CountTo Plugin Js -->
+    <script src="{{ url_for('static', filename='plugins/jquery-countto/jquery.countTo.js') }}"></script>
+    {% block table_scripts %}
+
+    {% endblock %}
+
+    <!-- Morris Plugin Js -->
+    <script src="{{ url_for('static', filename='plugins/raphael/raphael.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/morrisjs/morris.js') }}"></script>
+
+    <!-- ChartJs -->
+    <script src="{{ url_for('static', filename='plugins/chartjs/Chart.bundle.js') }}"></script>
+
+    <!-- Flot Charts Plugin Js -->
+    <script src="{{ url_for('static', filename='plugins/flot-charts/jquery.flot.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/flot-charts/jquery.flot.resize.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/flot-charts/jquery.flot.pie.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/flot-charts/jquery.flot.categories.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/flot-charts/jquery.flot.time.js') }}"></script>
+    <!-- Sparkline Chart Plugin Js -->
+    <script src="{{ url_for('static', filename='plugins/jquery-sparkline/jquery.sparkline.js') }}"></script>
+    <!-- Custom Js -->
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+
+    {% block page_scripts %}<!--all custom page scripts go here-->{% endblock %}
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <!-- Demo Js -->
+    <script src="{{ url_for('static', filename='js/demo.js') }}"></script>
 {% endblock %}

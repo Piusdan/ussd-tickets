@@ -4,14 +4,15 @@ import pickle
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import request
+datetime
 
 from flask_sqlalchemy import current_app
 from sqlalchemy.ext.serializer import dumps
 from flask_login import UserMixin, AnonymousUserMixin
-from flask import url_for
 
 from . import login_manager
 from . import db
+
 
 class User(UserMixin, db.Model):
     """
@@ -186,7 +187,6 @@ class Role(db.Model):
         db.session.commit()
 
 
-
 class Permission:
     BUY_TICKET = 0x01
     ORGANIZE_EVENT = 0x04
@@ -212,7 +212,6 @@ class Event(db.Model):
     description = db.Column(db.String, index=True)
 
     date = db.Column(db.DateTime)
-    filename = db.Column(db.String)
     closed = db.Column(db.Boolean, default=False)
 
     tickets = db.relationship('Ticket', backref='event', lazy='subquery', cascade='all, delete-orphan')
@@ -234,14 +233,12 @@ class Event(db.Model):
     def to_bin(self):
         return pickle.dumps(self)
 
+    def is_closed(self):
+        return self.closed
+
     @classmethod
     def to_model(cls):
         return pickle.loads(cls)
-
-    @property
-    def logo_url(self):
-        from app import photos
-        return photos.url(self.filename)
 
     @property
     def day(self):
@@ -255,27 +252,45 @@ class Event(db.Model):
     def country_code(self):
         return Location.country_code(self.country)
 
+    @property
+    def ticket_count(self):
+        if self.tickets:
+            numbers = [ticket.count for ticket in self.tickets]
+            return reduce(lambda x, y: x + y, numbers)
+        return 0
+
+    @property
+    def bought_tickets(self):
+        purchases = Purchase.query.join(
+            Ticket, Ticket.id == Purchase.ticket_id).filter(Ticket.event_id == self.id).all()
+        if purchases:
+            numbers = [purchase.count for purchase in purchases]
+            return reduce(lambda x, y: x + y, numbers)
+        return 0
+
 
 class Purchase(db.Model):
     __tablename__ = "purchases"
     id = db.Column(db.Integer, primary_key=True)
     count = db.Column(db.Integer)
+    timestamp = db.Column(db.DateTime(), default=datetime.utcnow)
     code = db.Column(db.String(64), unique=True)
     ticket_id = db.Column(db.Integer, db.ForeignKey('tickets.id'))
     account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
     confirmed = db.Column(db.Boolean, default=False)
+
 
 class Ticket(db.Model):
     __tablename__ = "tickets"
     id = db.Column(db.Integer, primary_key=True)
     count = db.Column(db.Integer)
     price = db.Column(db.Float)
-    type = db.Column(db.String(64), default='regular', index=True)
     event_id = db.Column(db.Integer, db.ForeignKey('events.id'))
     purchases = db.relationship('Purchase', backref='ticket', lazy='dynamic')
+    type_id = db.Column(db.Integer, db.ForeignKey('ticket_types.id'))
 
     def __repr__(self):
-        return "<Type> {} <Price> {}".format(self.type, self.price)
+        return "<Type> {} <Price> {}".format(self.type.name, self.price)
 
     def to_bin(self):
         return pickle.dumps(self)
@@ -283,6 +298,33 @@ class Ticket(db.Model):
     @classmethod
     def to_model(cls):
         return pickle.loads(cls)
+
+
+class TicketType(db.Model):
+    """Ticket types
+    Regular - Basi ticket type
+    VVIP - 
+    VIP - 
+    """
+    __tablename__ = 'ticket_types'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True)
+    default = db.Column(db.Boolean, default=False, index=True)
+    tickets = db.relationship('Ticket', backref='type', lazy='dynamic', cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return "{} Ticket".format(self.name)
+
+    @staticmethod
+    def insert_types():
+        types = ['Regular','VIP','VVIP']
+        for t in types:
+            type = TicketType.query.filter_by(name=t).first()
+            if type is None:
+                type = TicketType(name=t)
+            db.session.add(type)
+        db.session.commit()
+
 
 
 class Location():

@@ -1,11 +1,12 @@
-from flask import render_template, make_response,jsonify, Response, request, current_app as app
-from json import dumps
-from xhtml2pdf import pisa
+from flask import render_template, make_response,jsonify, request, abort
+from flask_login import login_required
+from app.decorators import admin_required
 from cStringIO import StringIO
+import logging
 
 from app import db
 from app.main import main
-from app.models import  Purchase, Ticket
+from app.models import  Purchase, Ticket, TicketType, Event
 
 
 @main.route('/ticket/update', methods=['POST', 'GET'])
@@ -26,20 +27,31 @@ def edit_ticket():
     return response
 
 
-@main.route('/ticket/add/{int:event_id}', methods=['POST', 'GET'])
+@main.route('/ticket/add/<int:event_id>', methods=['POST', 'GET'])
+@login_required
+@admin_required
 def add_ticket(event_id):
     data = request.get_json()
+    request_dict = {}
+    map(lambda x: request_dict.setdefault(x.get('name'), x.get('value')), data)
+    logging.info("event {}".format(event_id))
+    event = Event.query.get(event_id)
+    if event is None:
+        abort(404)
+    # if request_dict["type"] in [ticket.type_id for ticket in event.tickets]:
+    #     response = jsonify(data="Cannot create ticket, ticket already exists")
+    #     response.status_code = 300
+    #     return response
     ticket = Ticket()
     ticket.event_id = event_id
-    ticket.type = data.get("ticket_type")
-    ticket.price = float(data.get("price"))
-    ticket.count = int(data.get("count"))
+    ticket.type_id = request_dict["type"]
+    ticket.price = request_dict["price"]
+    ticket.count = request_dict["count"]
     db.session.add(ticket)
     db.session.commit()
     response = jsonify(data="Ticket Created")
     response.status_code = 201
     return response
-
 
 @main.route('/download/<string:code>')
 def download_ticket(code):

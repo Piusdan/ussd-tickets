@@ -1,21 +1,165 @@
-{% extends "base.html" %}{% block event %}class="active"{% endblock %} {% block events %}class="active"{% endblock %} {%
-import "bootstrap/wtf.html" as wtf %} {% import "_pagination_macro.html" as macros %} {% block title %}Events - All Events{%
-endblock %} {% block page_content %}
-<h4 class="block-header">Events</h4>
-{% if events %}
-<div class="row clearfix">
-<ul class="list-group">
-    {% for event in events %} {% include '_event.html' %} {% endfor %}
-</ul>
-</div>
-<div class="row clearfix">
-    {{ macros.pagination_widget(pagination, '.get_events') }}
-</div>
-{% else %}
-    {% if current_user.is_administrator() %}
-    <a href="{{ url_for('main.create_event') }}"><button type="button" class="btn btn-warning btn-lg"><span class="fa fa-plus"></span> Add Event</button></a>
-    {% else %}
-    <p class="text-muted">No events to display</p>
-    {% endif %}
+{% extends "base.html" %}
+{% block page %}Events{% endblock %}
+{% block event %}class="active"{% endblock %}
+{% block events %}class="active"{% endblock %}
+{% import "bootstrap/wtf.html" as wtf %}{% block page_content %}
+            <div class="row clearfix">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="card">
+                        <div class="header">
+                            <h2>
+                                Events
+                            </h2>
+                            <ul class="header-dropdown m-r--5">
+                                <li class="dropdown">
+                                    <a class="dropdown-toggle btn btn-success btn-sm waves-effect"  data-toggle="modal" role="button" data-target="#createEventModal" aria-haspopup="true" aria-expanded="false">
+                                        <span>New Event</span><i class="fa fa-fw fa-plus" aria-hidden="true"></i>
+                                    </a>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="body">
+                            {% if events %}
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped table-hover dataTable js-exportable">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Venue</th>
+                                            <th>Date</th>
+                                            <th>Tickets Bought</th>
+                                            <th>Remaining Tickets</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for event in events %}
+                                        <tr>
+                                            <td>{{ event.name }}</td>
+                                            <td>{{ event.venue }}</td>
+                                            <td>{{ event.day }}</td>
+                                            <td>{{ event.bought_tickets }}</td>
+                                            <td>{{ event.ticket_count }}</td>
+                                            <td>
+                                                <a class="label-link" href="{{ url_for('main.get_event', id=event.id)}}">
+                                                <span class="label label-info">View event details</span></a>
+                                                {% if current_user.is_administrator() or current_user == event.organiser %}
+                                                <a class="label-link" href="{{ url_for('main.edit_event', id=event.id) }}">
+                                                <span class="label label-warning">Edit event details</span></a>
+                                                {% endif %}
+                                                {% if not event.is_closed() %}
+                                                {% if current_user == event.organiser or current_user.is_administrator() %}
+                                                <a class="label-link" href="javascript:void()"><span class="label label-danger">Close</span></a>
+                                                {% endif %}
+                                                {% else %}
+                                                <span class="label label-danger">Closed</span>
+                                                {% endif %}
 
-{% endif %} {% endblock %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- #END# Exportable Table -->
+            <!--create event modal-->
+            <div class="modal fade" id="createEventModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="card">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <h2 class="modal-title float-center">Add a New Event</h2>
+                            </div>
+                            <div class="modal-body">
+                                <form action="" method="post" class="form" method="post" enctype="multipart/form-data" id="create_eventForm" data-placement-from="bottom"
+                            data-placement-align="center" data-animate-enter="" data-animate-exit="" data-color-name="bg-green">
+                                    <div class="form-group  required">{{ event_form.hidden_tag() }}
+                                        <div class="col-md-12">
+                                            <b>Title</b>
+                                                <div class="input-group">
+                                                    <span class="input-group-addon">
+                                                        <i class="material-icons">bookmark</i></span>
+                                                    <div class="form-line">
+                                                        {{ event_form.title(class_="form-control", placeholder="A short heading for your event", required=True) }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <b>Description</b>
+                                                <div class="input-group">
+                                                    <span class="input-group-addon">
+                                                        <i class="material-icons">description</i></span>
+                                                    <div class="form-line">
+                                                        {{ event_form.description(class_="form-control", placeholder="Say something about the event", required=True) }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <b>Venue</b>
+                                                <div class="input-group">
+                                                    <span class="input-group-addon">
+                                                        <i class="material-icons">local_bar</i></span>
+                                                    <div class="form-line">
+                                                        {{ event_form.venue(class_="form-control", placeholder="Place where the event will be held", required=True) }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <b>Location</b>
+                                                <div class="input-group">
+                                                    <span class="input-group-addon">
+                                                        <i class="material-icons">location_on</i></span>
+                                                    <div class="form-line">
+                                                        {{ event_form.location(class_="form-control", placeholder="Town/City/location where the event will take place", required=True) }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <b>Date</b>
+                                                <div class="input-group">
+                                                    <span class="input-group-addon">
+                                                        <i class="material-icons">today</i></span>
+                                                    <div class="form-line">
+                                                          {{ event_form.date(class_="form-control datepicker", placeholder="Date and Time for event") }}
+                                                  </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- logo -->
+                                        <!--- End Logo -->
+                                        <div class="modal-footer">
+                                            <button class="btn btn-primary waves-effect" id='createEventButton' type="submit">SUBMIT</button>
+                                            <button type="button" class="btn btn-link waves-effect" data-dismiss="modal">CLOSE</button>
+                                        </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--end modal-->
+{% endblock %}
+{% block table_scripts %}
+
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/jquery.dataTables.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.flash.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/jszip.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/pdfmake.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/vfs_fonts.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.html5.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.print.min.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/pages/tables/jquery-datatable.js') }}"></script>
+{% endblock %}

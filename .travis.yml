@@ -1,0 +1,29 @@
+language: python
+
+python:
+    - 2.7
+
+before_install:
+  - echo "START"
+
+script:
+  - pip install -r requirements.txt
+
+# blacklist
+branches:
+  except:
+    - changes
+
+# whitelist
+branches:
+  only:
+    - master
+    - stable
+    - heroku
+    - gcloud
+
+notifications:
+  email:
+    - npiusdan@gmail.com
+  on_success: change
+  on_failure: always

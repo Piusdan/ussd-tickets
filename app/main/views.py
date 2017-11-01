@@ -13,10 +13,10 @@ def index():
 @main.route('/dashboard')
 @login_required
 def dashboard():
-    users = len(User.query.all())
-    tickets = len(Ticket.query.all())
-    purchases = len(Purchase.query.all())
-    events = len(Event.query.all())
+    users = User.query.count()
+    tickets = Ticket.query.count()
+    purchases = Purchase.query.count()
+    events = Event.query.count()
     campaigns = 0
 
     context = {

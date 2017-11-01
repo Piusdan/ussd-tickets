@@ -1,9 +1,8 @@
 from uuid import uuid1
 import json
 import pickle
-
 from flask import url_for
-
+from app.models import Event, Ticket
 from app.ussd.utils import respond, current_user,get_event_tickets_text, create_ticket_code
 from app.ussd.tasks import async_buy_ticket
 
@@ -35,10 +34,10 @@ class ElecticronicTicketing(Menu):
         :rtype: str
         """
         events_dict = self.get_events()
-        event = events_dict.get(self.user_response)     # get event selected by user
-        if event is None:
+        event_id = events_dict.get(self.user_response)     # get event selected by user
+        if event_id is None:
             return self.invalid_response()
-        event = pickle.loads(str(event))
+        event = Event.query.get(event_id)
         tickets = event.tickets
         text, tickets_dict = get_event_tickets_text(event, tickets)
         if tickets:
@@ -46,13 +45,13 @@ class ElecticronicTicketing(Menu):
                 event_title = event.name,
                 text=text)
             self.session_dict.setdefault("tickets", tickets_dict)
-            self.session_dict.setdefault("selected_event", event.to_bin())
+            self.session_dict.setdefault("selected_event", event.id)
             self.session_dict['level'] = 32  # update the user's session level
             self.update_session()
         else:
             menu_text = "END {} has no tickets available at the moment".format(event.name)
 
-        return respond(menu_text)
+        return respond(menu_text, preformat=False)
 
     def quantity(self):
         tickets_dict = self.get_tickets()
@@ -66,7 +65,7 @@ class ElecticronicTicketing(Menu):
         return respond(menu_text)
 
     def payment_option(self):
-        ticket = pickle.loads(str(self.session_dict["selected_ticket"]))
+        ticket = Ticket.query.get(self.session_dict["selected_ticket"])
 
         if self.user_response == 0:
             self.end_session()
@@ -85,13 +84,12 @@ class ElecticronicTicketing(Menu):
 
 
     def buy_ticket(self):
-        pickled_ticket = str(self.session_dict.get("selected_ticket"))
-        selected_ticket = pickle.loads(pickled_ticket)
-        event = pickle.loads(str(self.session_dict.get("selected_event")))
+        ticket = Ticket.query.get(self.session_dict.get("selected_ticket"))
+        event = Event.query.get(self.session_dict.get("selected_event"))
         number_of_tickets = self.session_dict["number_of_tickets"]
         value = "{curency_code} {amount}".format(
             curency_code=event.currency_code,
-            amount=selected_ticket.price)
+            amount=ticket.price)
         ticket_code = create_ticket_code()
         ticket_url = url_for('main.get_purchase', code=ticket_code,_external=True)
 
@@ -105,7 +103,7 @@ class ElecticronicTicketing(Menu):
             dict(
                 category="ET",
                 number_of_tickets=number_of_tickets,
-                ticket=pickled_ticket,
+                ticket=ticket.id,
                 user=pickle.dumps(current_user()),
                 payment_method=self.user_response,
                 ticket_url=ticket_url,
@@ -118,17 +116,17 @@ class ElecticronicTicketing(Menu):
                                          count=number_of_tickets,
                                          event_name=event.name,
                                          currency_code=event.currency_code,
-                                         ticket_type=selected_ticket.type,
+                                         ticket_type=ticket.type,
                                          ticket_cost=value
                                          )
         elif self.user_response == "2":
-            if selected_ticket.price*number_of_tickets < current_user().account.balance:
+            if ticket.price*number_of_tickets < current_user().account.balance:
 
                 menu_text = menu_text.format(notification_type="a confirmatory SMS",
                                          count=number_of_tickets,
                                          event_name=event.name,
                                          currency_code=event.currency_code,
-                                         ticket_type=selected_ticket.type,
+                                         ticket_type=ticket.type,
                                          ticket_cost=value
                                              )
             else:

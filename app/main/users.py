@@ -56,6 +56,7 @@ def add_user():
 @login_required
 def edit_profile():
     form = EditProfileForm(user=current_user)
+
     if form.validate_on_submit():
         current_user.name = form.name.data
         current_user.email = form.email.data 

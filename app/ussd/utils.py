@@ -60,10 +60,10 @@ def get_event_tickets_text(event, tickets):
     tickets = filter(lambda ticket: ticket.count > 0, tickets)
     for index, ticket in enumerate(tickets):
         index += 1
-        ticket_cache_dict[str(index)] = ticket.to_bin()
+        ticket_cache_dict[str(index)] = ticket.id
         menu_text += "{index}. {type} {code} {price}\n".format(
             index = index,
-            type= ticket.type,
+            type= ticket.type.name,
             code=event.currency_code,
             price=ticket.price)
     return menu_text, ticket_cache_dict
