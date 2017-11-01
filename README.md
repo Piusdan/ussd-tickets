@@ -1,1 +1,1 @@
-## Cash Value Solutions backend
+## Cash Value Solutions backend                     [![Build Status](https://travis-ci.com/Piusdan/cashvaluesolutions-backend.svg?token=HFpsahkgnYQyjyBCVFkb&branch=heroku)](https://travis-ci.com/Piusdan/cashvaluesolutions-backend)

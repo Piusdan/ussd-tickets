@@ -160,13 +160,13 @@
                             </ul>
                         </li>
 
-                        <li>
+                        <li {% block sms %}{% endblock %}>
                             <a href="javascript:void(0);" class="menu-toggle"><i class="material-icons">textsms</i>
                                             <span>SMS Campaigns</span>
                                         </a>
                             <ul class="ml-menu">
                                 <li {% block start_campaign %}{% endblock %}>
-                                    <a href="#">Start Campaign</a>
+                                    <a href="{{ url_for('.start_campaign') }}">Start Campaign</a>
                                 </li>
                                 <li {% block view_campaigns%} %}{% endblock %}>
                                     <a href="#">View Campaigns</a>
