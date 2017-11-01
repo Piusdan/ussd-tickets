@@ -3,6 +3,7 @@ from flask import current_app
 import json
 
 from app import db, cache, gateway
+from app.models import Event, Ticket
 from app import celery
 from app import celery_logger
 from app.ussd.utils import purchase_ticket,get_ticket_by_id,get_user_by_phone_number, validate_cache, set_cache
@@ -208,8 +209,7 @@ def async_buy_ticket(self, payload):
     payload = json.loads(payload)
     user = cPickle.loads(str(payload["user"]))
     number_of_tickets = payload["number_of_tickets"]
-
-    ticket = cPickle.loads(str(payload["ticket"]))
+    ticket = Ticket.query.get(payload["ticket"])
     method = payload["payment_method"]
 
     if method == "2": # Wallet

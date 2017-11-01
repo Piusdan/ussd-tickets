@@ -21,6 +21,11 @@
     <!--font awesome icons-->
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 
+
+    <!-- Jquery Core Js -->
+    <script src="{{ url_for('static', filename='plugins/jquery/jquery.min.js') }}"></script>
+
+
     <!-- Bootstrap Core Css -->
     <link href="{{ url_for('static', filename='plugins/bootstrap/css/bootstrap.css') }}" rel="stylesheet">
 
@@ -44,6 +49,15 @@
 
     <!-- Bootstrap Select Css -->
     <link href="{{ url_for('static', filename='plugins/bootstrap-select/css/bootstrap-select.css') }}" rel="stylesheet" />
+
+
+
+    <!-- Jquery CountTo Plugin Js -->
+    <script src="{{ url_for('static', filename='plugins/jquery-countto/jquery.countTo.js') }}"></script>
+
+    <!-- Sparkline Chart Plugin Js -->
+    <script src="{{ url_for('static', filename='plugins/jquery-sparkline/jquery.sparkline.js') }}"></script>
+
 
 
     <!-- Custom Css -->
@@ -133,23 +147,19 @@
                                 <span>Dashboard</span>
                             </a>
                         </li>
+                        {% if current_user.is_administrator() %}
                         <li {% block event %}{% endblock %}>
                             <a href="javascript:void(0);" class="menu-toggle">
                                 <i class="material-icons">event</i>
                                 <span>Events</span>
                             </a>
                             <ul class="ml-menu">
-                                {% if current_user.is_administrator() %}
-                                <li {% block create_event %}{% endblock %}>
-                                    <a href="{{ url_for('main.create_event') }}">Create Event</a>
-                                </li>
-                                {% endif %}
                                 <li {% block events %}{% endblock %}>
-                                    <a href="{{ url_for('main.get_events') }}">View Events</a>
+                                    <a href="{{ url_for('main.get_events') }}">All Events</a>
                                 </li>
                             </ul>
                         </li>
-                        {% if current_user.is_administrator() %}
+
                         <li>
                             <a href="javascript:void(0);" class="menu-toggle"><i class="material-icons">textsms</i>
                                             <span>SMS Campaigns</span>
@@ -264,7 +274,7 @@
     <script src="{{ url_for('static', filename='plugins/flot-charts/jquery.flot.categories.js') }}"></script>
     <script src="{{ url_for('static', filename='plugins/flot-charts/jquery.flot.time.js') }}"></script>
     <!-- Sparkline Chart Plugin Js -->
-    <script src="plugins/jquery-sparkline/jquery.sparkline.js"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-sparkline/jquery.sparkline.js') }}"></script>
     <!-- Custom Js -->
     <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 

@@ -22,13 +22,22 @@ def get_event(id):
     event = Event.query.filter_by(id=id).first_or_404()
 
     tickets = get_event_tickets_query(event_id=event.id).all()
-
     attendees = get_event_attendees_query(event.id).all()
+    total_sales = 0
+    if attendees:
+        total_sales = reduce(lambda x, y: (x.count*x.ticket.price) + (y.count * y.ticket.price), attendees)
+    daily_sales = [x.count*x.ticket.price for x in filter(lambda x: x.timestamp.date() == datetime.datetime.today().date(), attendees)]
+    if len(daily_sales) == 0:
+        daily_sales = 0
+    else:
+        daily_sales = reduce(lambda x, y: x + y, daily_sales)
     return render_template('events/event.html',
                            event=event,
                            tickets=tickets,
                            purchases=attendees,
-                           ticket_form=ticket_form)
+                           ticket_form=ticket_form,
+                           total_sales=total_sales,
+                           daily_sales=daily_sales)
 
 @main.route('/event', methods=['POST', 'GET'])
 @login_required

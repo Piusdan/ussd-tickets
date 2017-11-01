@@ -5,7 +5,7 @@
  {% block page %}{{ event.name }} Details{% endblock %}
  {% block page_content%}
 <div class="container-fluid">
-    <div class="row clearfix">
+    <div class="block-header">
         <ol class="breadcrumb breadcrumb-col-orange">
             <li><a href="{{ url_for('.get_events')}}"><i class="material-icons">home</i> Events</a></li>
             <li class="active"><i class="material-icons">event_available</i> Event Details</li>
@@ -13,72 +13,110 @@
         </ol>
     </div>
     <div class="row clearfix">
-        <div class="col-xs-12 col-sm-12 col-md-9 col-lg-9">
-
-                <div class="card">
-                    <div class="header">
-                        <h2>{{ event.title }}</h2>
-                        <ul class="header-dropdown m-r--5">
-                            <li class="dropdown">
-                                <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                            <i class="material-icons">more_vert</i>
-                        </a>
-                                <ul class="dropdown-menu pull-right">
-                                    <li><a href="javascript:void(0);" data-toggle="modal" data-target="#defaultModal">Edit</a></li>
-                                    <li><a href="javascript:void(0);" data-toggle="modal" data-target="#exampleModal">Delete</a></li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="body">
-                        <div class="container-fluid">
-                            <div class="col-xs-7 col-sm-7 col-md-7 col-lg-7">
-                                <h5 class="text-warning">{{ event.description }}</h5>
-                                <p><a href="http://maps.google.com/?q={{ event.location }}{{ event.venue }}">{{ event.venue }}</a></p>
-                                {{ event.location }}<br/>{{ event.day }}<br/>
-                                <!-- edit and delete event modals -->
-                                <!-- #END# Edit and delete event modals -->
-                            </div>
-                        </div>
-                    </div>
+        <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+            <div class="info-box-3 bg-brown hover-expand-effect">
+                <div class="icon">
+                    <span class="chart chart-line">3</span>
                 </div>
+                <div class="content">
+                    <div class="text">TODAYS SALES</div>
+                    <div class="number">{{ event.currency_code }} {{ daily_sales }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+            <div class="info-box-3 bg-grey hover-expand-effect">
+                <div class="icon">
+                    <span class="chart chart-line">3</span>
+                </div>
+                <div class="content">
+                    <div class="text">TOTAL SALES</div>
+                    <div class="number">{{ event.currency_code }} {{ total_sales }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+            <div class="info-box-3 bg-blue-grey hover-expand-effect">
+                <div class="icon">
+                    <i class="material-icons">shopping_cart</i>
+                </div>
+                <div class="content">
+                    <div class="text">TICKET SOLD</div>
+                    <div class="number count-to" data-from="0" data-to="{{ event.bought_tickets }}" data-speed="1000" data-fresh-interval="20">{{ event.bought_tickets }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
+            <div class="info-box-3 bg-black hover-expand-effect">
+                <div class="icon">
+                    <i class="material-icons">face</i>
+                </div>
+                <div class="content">
+                    <div class="text">TICKETS REMAINING</div>
+                    <div class="number count-to" data-from="0" data-to="{{ event.remaining_tickets }}" data-speed="1000" data-fresh-interval="20">{{ event.remaining_tickets }}</div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="row clearfix">
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
             <div class="card">
-                {% if purchases %}
                 <div class="header">
                     <h2>Purchased Tickets</h2>
 
                 </div>
                 <div class="body">
-                    {% include('_event_detail.html') %}
+                {% if purchases %}
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped table-hover dataTable js-exportable">
+                                    <thead>
+                                        <tr>
+                                            <th>Purchaser Username</th>
+                                            <th>Date of Purchase</th>
+                                            <th>Number of Tickets Bought</th>
+                                            <th>Ticket Type</th>
+                                            <th>Confirmed</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for purchase in purchases %}
+                                        <tr>
+                                            <td>{{ purchase.account.holder.username }}</td>
+                                            <td>{{ moment(purchase.timestamp).format('MM/DD/YY') }}</td>
+                                            <td>{{ purchase.count }}</td>
+                                            <td>{{ purchase.ticket.type.name }}</td>
+                                            <td>{{ purchase.confirmed }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
 
-                </div>
                 {% else %}
-                <div class="header">
-                    <h2>No ticket Has been bought yet</h2>
 
+                    <h2>No ticket Has been bought yet</h2>
                 </div>
+
                 {% endif %}
             </div>
         </div>
         <!-- #END# Tickets -->
     </div>
 </div>
-{% endblock %} {% block table_scripts %}
-<!-- Jquery DataTable Plugin Js -->
-<script src="{{ url_for('static', filename='plugins/jquery-datatable/jquery.dataTables.js') }}"></script>
-<script src="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js') }}"></script>
-<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/dataTables.buttons.min.js') }}"></script>
-<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.flash.min.js') }}"></script>
-<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/jszip.min.js') }}"></script>
-<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/pdfmake.min.js') }}"></script>
-<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/vfs_fonts.js') }}"></script>
-<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.html5.min.js') }}"></script>
-<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.print.min.js') }}"></script>
-{% endblock %} {% block custom_scipts %}
-<script src="{{ url_for('static', filename='js/pages/tables/jquery-datatable.js') }}"></script>
- <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+{% endblock %}
+ {% block table_scripts %}
+    {{ moment.include_moment() }}
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/jquery.dataTables.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.flash.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/jszip.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/pdfmake.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/vfs_fonts.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.html5.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.print.min.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/pages/tables/jquery-datatable.js') }}"></script>
+     <script src="{{ url_for('static', filename='js/pages/widgets/infobox/infobox-4.js') }}"></script>
+
 {% endblock %}

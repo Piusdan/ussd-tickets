@@ -1,5 +1,7 @@
-init: python manage.py deploy
+init: python manage.py reset_db
 
-web: gunicorn manage:app --preload --reload --workers 5
+deploy: python manage.py deploy
 
-worker: celery worker -A app.celery_worker.celery -E --without-gossip --without-mingle --without-heartbeat --concurrency=3 --autoscale=10,3 --loglevel=INFO
+web: gunicorn manage:app --preload --reload
+
+worker: celery worker -A app.celery_worker.celery --concurrency=3 --autoscale=10,3 --loglevel=INFO

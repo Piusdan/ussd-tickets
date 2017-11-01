@@ -46,7 +46,7 @@ class Home(Menu):
             for index, event in enumerate(events):
                 index+=1
                 menu_text += str(index) + ". " + str(event.name) + "\n"
-                event_dict[str(index)] = event.to_bin()
+                event_dict[str(index)] = event.id
             # cache events stored
             self.session_dict.setdefault('events', event_dict)
             if pagination.has_next:

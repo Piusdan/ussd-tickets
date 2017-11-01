@@ -4,6 +4,7 @@ import pickle
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import request
+datetime
 
 from flask_sqlalchemy import current_app
 from sqlalchemy.ext.serializer import dumps
@@ -272,6 +273,7 @@ class Purchase(db.Model):
     __tablename__ = "purchases"
     id = db.Column(db.Integer, primary_key=True)
     count = db.Column(db.Integer)
+    timestamp = db.Column(db.DateTime(), default=datetime.utcnow)
     code = db.Column(db.String(64), unique=True)
     ticket_id = db.Column(db.Integer, db.ForeignKey('tickets.id'))
     account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'))
@@ -308,7 +310,7 @@ class TicketType(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     default = db.Column(db.Boolean, default=False, index=True)
-    tickets = db.relationship('Ticket', backref='type', lazy='dynamic')
+    tickets = db.relationship('Ticket', backref='type', lazy='dynamic', cascade='all, delete-orphan')
 
     def __repr__(self):
         return "{} Ticket".format(self.name)
