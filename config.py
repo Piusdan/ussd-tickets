@@ -91,17 +91,12 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://' \
                               'valhalla:valhalla@localhost' \
                               '/valhalla'
-    # SERVER_NAME = "0.0.0.0:4040"
     DEBUG_MEMCACHE = False
     TEMPLATES_AUTO_RELOAD = True
-
     @classmethod
     def init_app(cls, app):
         Config.init_app(app)
-
-        # logging
-
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.ERROR)
 
 
 class TestingConfig(Config):
@@ -137,11 +132,19 @@ class ProductionConfig(Config):
 class HerokuConfig(ProductionConfig):
     SSL_DISABLE = bool(os.environ.get('SSL_DISABLE'))
     CACHE_URL = os.environ.get('HEROKU_REDIS_RED_URL')
+    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    FLASKS3_BUCKET_NAME = 'cashvaluesolution-static-files'
+    FLASKS3_REGION = 'EU'
     @classmethod
     def init_app(cls, app):
+        from flask_s3 import FlaskS3
+        s3 = FlaskS3()
         ProductionConfig.init_app(app)
-        # log to stderr
-        import logging
+        logging.info("Uploading to s3")
+        flask_s3.create_all(app)
+        s3.init_app(app)
+
         from logging import StreamHandler
         file_handler = StreamHandler()
         file_handler.setLevel(logging.WARNING)
