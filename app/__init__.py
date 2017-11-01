@@ -4,7 +4,7 @@
     ~~~
     Provides the flask application
 """
-
+import os
 from celery import Celery
 from flask import Flask
 from flask_bootstrap import Bootstrap
@@ -30,7 +30,6 @@ __email__ = 'npiusdan@gmail.com'
 __copyright__ = 'Copyright 2017 Cash Value Solutions'
 
 db = SQLAlchemy()
-celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 bootsrap = Bootstrap()
 redis = Redis()
 cache = Redis()
@@ -42,6 +41,8 @@ login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
 
+config_name = os.environ.get('FLASK_CONFIG', 'default')
+celery = Celery(__name__, broker=config[config_name].CELERY_BROKER_URL)
 celery_logger = get_task_logger(__name__)
 
 def create_app(config_name):
