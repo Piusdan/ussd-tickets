@@ -23,28 +23,6 @@ class Config(object):
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SSL_DISABLE = True
 
-    REDIS_URL = "redis://{HOST}:{PORT}/{DB}".format(
-        HOST=os.getenv("REDIS_HOST", "localhost"),
-        PORT=os.getenv("REDIS_PORT", "6379"),
-        DB="1"
-    )
-    CACHE_URL = "redis://{HOST}:{PORT}/{DB}".format(
-        HOST=os.getenv("REDIS_HOST", "localhost"),
-        PORT=os.getenv("REDIS_PORT", "6379"),
-        DB="2"
-    )
-
-    # celery conf
-    CELERY_BROKER_URL = "redis://{HOST}:{PORT}/{DB}".format(
-        HOST=os.getenv("REDIS_HOST", "localhost"),
-        PORT=os.getenv("REDIS_PORT", "6379"),
-        DB="3"
-    )
-    CELERY_RESULT_BACKEND = "redis://{HOST}:{PORT}/{DB}".format(
-        HOST=os.getenv("REDIS_HOST", "localhost"),
-        PORT=os.getenv("REDIS_PORT", "6379"),
-        DB="3"
-    )
     ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER', '+254703554404')
     SECRET_KEY = os.getenv('SECRET_KEY', '\xdf\xd2i\xe1\xa0\xc7p)j\x18\x91\xdb3{\n\x02\x7f\xb4OMt\x9c\x0ec')
 
@@ -99,6 +77,29 @@ class Config(object):
 
 class DevelopmentConfig(Config):
     """Configuration for development options"""
+
+    REDIS_URL = "redis://{HOST}:{PORT}/{DB}".format(
+        HOST=os.getenv("REDIS_HOST", "localhost"),
+        PORT=os.getenv("REDIS_PORT", "6379"),
+        DB="1"
+    )
+    CACHE_URL = "redis://{HOST}:{PORT}/{DB}".format(
+        HOST=os.getenv("REDIS_HOST", "localhost"),
+        PORT=os.getenv("REDIS_PORT", "6379"),
+        DB="2"
+    )
+
+    # celery conf
+    CELERY_BROKER_URL = "redis://{HOST}:{PORT}/{DB}".format(
+        HOST=os.getenv("REDIS_HOST", "localhost"),
+        PORT=os.getenv("REDIS_PORT", "6379"),
+        DB="3"
+    )
+    CELERY_RESULT_BACKEND = "redis://{HOST}:{PORT}/{DB}".format(
+        HOST=os.getenv("REDIS_HOST", "localhost"),
+        PORT=os.getenv("REDIS_PORT", "6379"),
+        DB="3"
+    )
 
     SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://' \
                               'valhalla:valhalla@localhost' \
