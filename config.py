@@ -26,6 +26,7 @@ class Config(object):
     ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER', '+254703554404')
     SECRET_KEY = os.getenv('SECRET_KEY', '\xdf\xd2i\xe1\xa0\xc7p)j\x18\x91\xdb3{\n\x02\x7f\xb4OMt\x9c\x0ec')
 
+
     ADMIN_MAIL = os.getenv('ADMIN_MAIL')          # admins email address
     MAIL_SUBJECT_PREFIX = "[Cash Value Solutions]"
     MAIL_SENDER = 'Cash Value Solutions <cashvaluesolutions@gmail.com>'
@@ -59,6 +60,14 @@ class Config(object):
     # ticket types allowed
     TICKET_TYPES = ["Regular", "VVIP", "VIP"]
 
+
+    # celery conf
+    # celery conf
+
+    REDIS_URL = os.environ.get('REDIS_URL', "redis://localhost:6379/0")
+    CELERY_BROKER_URL = os.environ.get('REDIS_URL', "redis://localhost:6379/0")
+    CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL', "redis://localhost:6379/0")
+
     # country codesgit
     CODES = {
         "+254": {
@@ -78,29 +87,7 @@ class Config(object):
 class DevelopmentConfig(Config):
     """Configuration for development options"""
 
-    REDIS_URL = "redis://{HOST}:{PORT}/{DB}".format(
-        HOST=os.getenv("REDIS_HOST", "localhost"),
-        PORT=os.getenv("REDIS_PORT", "6379"),
-        DB="1"
-    )
-    CACHE_URL = "redis://{HOST}:{PORT}/{DB}".format(
-        HOST=os.getenv("REDIS_HOST", "localhost"),
-        PORT=os.getenv("REDIS_PORT", "6379"),
-        DB="2"
-    )
-
-    # celery conf
-    CELERY_BROKER_URL = "redis://{HOST}:{PORT}/{DB}".format(
-        HOST=os.getenv("REDIS_HOST", "localhost"),
-        PORT=os.getenv("REDIS_PORT", "6379"),
-        DB="3"
-    )
-    CELERY_RESULT_BACKEND = "redis://{HOST}:{PORT}/{DB}".format(
-        HOST=os.getenv("REDIS_HOST", "localhost"),
-        PORT=os.getenv("REDIS_PORT", "6379"),
-        DB="3"
-    )
-
+    CACHE_URL = os.environ.get('CACHE_URL', "redis://localhost:6379/2")
     SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://' \
                               'valhalla:valhalla@localhost' \
                               '/valhalla'
@@ -135,11 +122,7 @@ class PythonAnyWhereConfig(Config):
 class ProductionConfig(Config):
     """Production configuration options"""
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
-    REDIS_URL = os.environ.get('REDIS_URL')
-    CACHE_URL = os.environ.get('HEROKU_REDIS_RED_URL')
-    # celery conf
-    CELERY_BROKER_URL = os.environ.get('HEROKU_REDIS_NAVY_URL')
-    CELERY_RESULT_BACKEND = os.environ.get('HEROKU_REDIS_NAVY_URL')
+    CACHE_URL = os.environ.get('CACHE_URL')
     DEBUG_MEMCHACHE = True
     @classmethod
     def init_app(cls, app):
@@ -153,6 +136,7 @@ class ProductionConfig(Config):
 
 class HerokuConfig(ProductionConfig):
     SSL_DISABLE = bool(os.environ.get('SSL_DISABLE'))
+    CACHE_URL = os.environ.get('HEROKU_REDIS_RED_URL')
     @classmethod
     def init_app(cls, app):
         ProductionConfig.init_app(app)

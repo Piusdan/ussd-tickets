@@ -41,8 +41,7 @@ login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
 
-config_name = os.environ.get('FLASK_CONFIG', 'default')
-celery = Celery(__name__, broker=config[config_name].CELERY_BROKER_URL)
+celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 celery_logger = get_task_logger(__name__)
 
 def create_app(config_name):
