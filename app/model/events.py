@@ -104,5 +104,5 @@ class Ticket(db.Model):
     created_at = Column(DateTime, default=eastafrican_time)
     code = Column(String(64), unique=True, nullable=False)
     package_id = Column(Integer, ForeignKey('packages.id'))
-    user_id = Column(Integer, ForeignKey('users.id'))
+    user_id = Column(Integer, ForeignKey('user.id'))
     confirmed = Column(Boolean, default=False)
