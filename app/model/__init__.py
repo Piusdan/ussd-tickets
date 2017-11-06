@@ -1,3 +1,3 @@
 """Contains all database relations
 """
-from app.model import events, tickets, users, address
+from app.model import events, users, address

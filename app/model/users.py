@@ -10,11 +10,14 @@ from sqlalchemy.orm  import relationship
 from flask_sqlalchemy import current_app
 from flask_login import UserMixin, AnonymousUserMixin
 
+
 from app import login_manager
 from app.database import db
+from app.utils.database import CRUDMixin, slugify
+from app.utils.web import eastafrican_time
 
 
-class User(UserMixin, db.Model):
+class User(UserMixin, CRUDMixin,db.Model):
     """
     :param id: Users ID unique for every user
     :param username: Unique username for every user
@@ -38,15 +41,15 @@ class User(UserMixin, db.Model):
     email = Column(String, index=True, unique=True)
     confirmed = Column(Boolean, default=False)
     avatar_hash = db.Column(db.String(32))
-    member_since = Column(DateTime, default=datetime.utcnow)
-    last_seen = Column(DateTime, default=datetime.utcnow)
-    password_hash = Column(String(128))
+    member_since = Column(DateTime, default=eastafrican_time)
+    last_seen = Column(DateTime, default=eastafrican_time)
+    _password = Column(String(128))
     role_id = Column(Integer, ForeignKey('roles.id'))
     address_id = Column(Integer, ForeignKey('addresses.id'))
     account = relationship("Account", back_populates="user", uselist=False, lazy='dynamic')
     tickets = relationship("Ticket", back_populates="user", lazy='dynamic')
 
-    slug = Column(String, nullable=False)
+    slug = Column(String)
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -62,6 +65,7 @@ class User(UserMixin, db.Model):
                 self.email.encode('utf-8')).hexdigest()
         # create a new user account
         self.account = Account()
+        self.slug = slugify(self.username)
 
     def __repr__(self):
         return "<User {}>".format(self.username)
@@ -90,7 +94,7 @@ class User(UserMixin, db.Model):
 
     @password.setter
     def password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self._password = generate_password_hash(password)
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)

@@ -3,9 +3,11 @@ from sqlalchemy import DateTime, Integer, String, Column, ForeignKey, Text, Bool
 from sqlalchemy.orm import relationship
 
 from app.database import db
+from app.utils.database import CRUDMixin, slugify
+from app.utils.web import eastafrican_time
 
 
-class Event(db.Model):
+class Event(CRUDMixin,db.Model):
     """
     :param id:
     :param name:
@@ -23,6 +25,16 @@ class Event(db.Model):
     is_active = Column(Boolean, default=True)
     address_id = Column(Integer, ForeignKey('address.id'))
     packages = relationship('Package', backref='event', lazy='subquery', cascade='all, delete-orphan')
+    slug = Column(String, default=slugify(name))
+
+    @name.setter
+    def name(self, name):
+        self.name = name
+        self.slug = slugify(name)
+
+    @name.getter
+    def name(self):
+        return self.name
 
     def __repr__(self):
         return "<Event {}>".format(self.name)
@@ -36,13 +48,13 @@ class Event(db.Model):
 
 
 class Package(db.Model):
-    """
-    :param id:
-    :param remaining:
-    :param price:
-    :param event_id:
-    :param type_id:
-    :param tickets:
+    """ Type of various packages on offer for a given event
+    :param id: Unique identifier for the package
+    :param remaining: Number of packages of a specific type remaining
+    :param price: Price of the given package
+    :param event_id: Id of the event the package belongs to
+    :param type_id: Id of the type the package belongs to
+    :param tickets: Tickets belonging to a specific package
     """
     __tablename__ = "packages"
     id = Column(Integer, primary_key=True)
@@ -58,12 +70,10 @@ class Package(db.Model):
 
 
 class Type(db.Model):
-    """
-    :param id:
-    :param name:
-    :param default:
-    :param package:
-    :param tickets:
+    """Type of  a package for a given event
+    :param id: Uniqe identifier for the package type
+    :param name: Name of the package type
+    :param default: 
     """
     __tablename__ = 'type'
     id = Column(Integer, primary_key=True)
@@ -86,17 +96,17 @@ class Type(db.Model):
 
 class Ticket(db.Model):
     """
-    :param id:
-    :param number:
-    :param created_at:
-    :param package_id:
-    :param user_id:
-    :param confirmed:
+    :param id: Unique identifier for the ticket
+    :param number: Number of tickets purchased
+    :param created_at: Date the ticket was purchsed
+    :param package_id: ID of the package the ticket belongs to
+    :param user_id: Id of the user the ticket belongs to
+    :param confirmed: Boolean to chack if the ticket has been confirmed or not
     """
     __tablename__ = "tickets"
     id = Column(Integer, primary_key=True)
     number = Column(Integer)
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=eastafrican_time)
     code = Column(String(64), unique=True, nullable=False)
     package_id = Column(Integer, ForeignKey('packages.id'))
     user_id = Column(Integer, ForeignKey('users.id'))

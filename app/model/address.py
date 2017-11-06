@@ -5,10 +5,10 @@ from app.database import db
 
 class Address(db.Model):
     """
-    :param id:
-    :param city:
-    :param code_id:
-    :param code:
+    :param id: Unique identifier for address
+    :param city: Specifc city or town
+    :param code_id: Address code id
+    :param code: Association to Code
     """
     __tablename__ = "addresses"
     city = Column(String(64))
@@ -17,9 +17,9 @@ class Address(db.Model):
 
 class Code(db.Model):
     """
-    :param country:
-    :param currency_code:
-    :param country_code:
+    :param country: Country
+    :param currency_code: Currency code for the country
+    :param country_code: Telephone code for the country
     """
     __tablename__ = 'codes'
     country = Column(String(12), Nullable=False, unique=True)
