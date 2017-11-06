@@ -11,7 +11,6 @@ from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_moment import Moment
 from flask_redis import Redis
-from flask_sqlalchemy import SQLAlchemy
 from flask_uploads import configure_uploads, UploadSet, IMAGES
 
 from flask_qrcode import QRcode
@@ -19,6 +18,7 @@ from celery.utils.log import get_task_logger
 
 from app.gateway import Gateway
 from config import Config, config
+from app.database import db
 
 __version__ = '0.1.0'
 
@@ -29,7 +29,6 @@ __description__ = 'Cash Value Solutions Backend'
 __email__ = 'npiusdan@gmail.com'
 __copyright__ = 'Copyright 2017 Cash Value Solutions'
 
-db = SQLAlchemy()
 bootsrap = Bootstrap()
 redis = Redis()
 cache = Redis()
@@ -43,6 +42,7 @@ login_manager.login_view = 'auth.login'
 
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 celery_logger = get_task_logger(__name__)
+
 
 def create_app(config_name):
     app = Flask(__name__)

@@ -6,7 +6,7 @@ from app import db, cache, gateway
 from app.models import Event, Ticket
 from app import celery
 from app import celery_logger
-from app.ussd.utils import purchase_ticket,get_ticket_by_id,get_user_by_phone_number, validate_cache, set_cache
+from app.ussd.utils import purchase_ticket, get_ticket_by_id, get_user_by_phone_number, validate_cache, set_cache
 
 
 @celery.task(bind=True)
@@ -39,7 +39,7 @@ def async_cvswallet_checkout(self, payload):
     user = get_user_by_phone_number(phone_number=metadata['phone_number'])
     if user:
         user.account.balance -= amount
-        user.account.points = float(amount*0.5)
+        user.account.points = float(amount * 0.5)
         db.session.commit()
         try:
             gateway.sendMessage(to_=user.phone_number, message_=metadata['message'])
@@ -56,15 +56,15 @@ def async_checkoutb2c(self, payload):
          "currencyCode": payload["currency_code"],
          "amount": payload["amount"],
          "reason": reason,
-         "metadata":{
-            "phone_number": user.phone_number,
-            "reason": "Withdraw"
+         "metadata": {
+             "phone_number": user.phone_number,
+             "reason": "Withdraw"
          }
-        }
+         }
     ]
 
     try:
-        response= gateway.mobilePaymentB2CRequest(
+        response = gateway.mobilePaymentB2CRequest(
             productName_=current_app.config["PRODUCT_NAME"], recipients_=recipients)[0]
         celery_logger.warn("response is {}".format(response))
 
@@ -89,7 +89,7 @@ def async_checkoutb2c(self, payload):
         raise self.retry(exc=exc, countdown=5)
 
 
-@celery.task(bind=True, default_retry_delay=2*1)
+@celery.task(bind=True, default_retry_delay=2 * 1)
 def async_purchase_airtime(self, payload):
     try:
         resp = gateway.sendAirtime([payload])
@@ -107,7 +107,7 @@ def async_validate_cache(self, payload):
     phone_number = payload["phone_number"]
     user = get_user_by_phone_number(phone_number=phone_number)
     if user:
-        cache.set(phone_number,json.dumps(user.to_dict()))
+        cache.set(phone_number, json.dumps(user.to_dict()))
     else:
         cache.delete(phone_number)
         celery_logger.info("deleted cache item at {}".format(phone_number))
@@ -168,8 +168,8 @@ def async_mobile_money_callback(self, payload):
             ticket_id = metadata["ticket_id"]
             number_of_tickets = metadata["number_of_tickets"]
             message, recipients = purchase_ticket(number_of_tickets=int(number_of_tickets),
-                                                     user_id=int(user_id),
-                                                     ticket_id=int(ticket_id))
+                                                  user_id=int(user_id),
+                                                  ticket_id=int(ticket_id))
 
             if message is not None:
                 # notify user of the transaction
@@ -199,12 +199,12 @@ def async_mobile_money_callback(self, payload):
     celery_logger.info("recived a mobile money call back for {}".format(phone_number))
 
 
-@celery.task(bind=True, default_retry_delay=2*1)
+@celery.task(bind=True, default_retry_delay=2 * 1)
 def async_mobile_wallet_purchse(self, payload):
     pass
 
 
-@celery.task(bind=True, default_retry_delay=2*1)
+@celery.task(bind=True, default_retry_delay=2 * 1)
 def async_buy_ticket(self, payload):
     payload = json.loads(payload)
     user = cPickle.loads(str(payload["user"]))
@@ -212,7 +212,7 @@ def async_buy_ticket(self, payload):
     ticket = Ticket.query.get(payload["ticket"])
     method = payload["payment_method"]
 
-    if method == "2": # Wallet
+    if method == "2":  # Wallet
         message, recepients = purchase_ticket(
             ticket_id=ticket.id,
             user_id=user.id,
@@ -232,9 +232,9 @@ def async_buy_ticket(self, payload):
         event = ticket.event
         currency_code = event.currency_code
         # metadata = cPickle.loads(str(payload["metadata"]))
-        metadata ={
-            "reason":"ET",
-            "ticket_id":str(ticket.id),
+        metadata = {
+            "reason": "ET",
+            "ticket_id": str(ticket.id),
             "event_id": str(event.id),
             "user_id": str(user.id),
             "number_of_tickets": str(number_of_tickets)
@@ -252,8 +252,3 @@ def async_buy_ticket(self, payload):
             celery_logger.warn("Transaction id {}".format(transaction_id))
         except Exception as exc:
             raise self.retry(exc=exc, countdown=5)
-
-
-
-
-

@@ -2,6 +2,7 @@ from app.models import User
 from app.ussd.base_menu import Menu as Base
 from app.ussd.utils import respond, create_user
 
+
 class RegistrationMenu(Base):
     """
     Serves registration callbacks
@@ -20,7 +21,7 @@ class RegistrationMenu(Base):
         if self.user_response:
             # insert user name into db request for city
             username = self.user_response
-            payload = {"username":username, "phone_number":self.phone_number, "ussd":True}
+            payload = {"username": username, "phone_number": self.phone_number, "ussd": True}
             if User.query.filter_by(username=username).first():
                 menu_text = "CON Username already taken. Please choose another username.\n"
             else:

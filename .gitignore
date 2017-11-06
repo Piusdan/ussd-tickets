@@ -10,3 +10,5 @@ requirements
 
 /valhalla.pem
 /app/static.zip
+app/static.zip
+upload_s3.py
