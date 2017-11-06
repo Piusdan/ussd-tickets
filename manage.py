@@ -9,7 +9,7 @@ from flask_migrate import MigrateCommand, Migrate
 import logging
 
 from app import create_app, db
-from app.models import User, Role, Event, Ticket, Account, Location, Purchase, TicketType
+from app.model import User, Role, Account, Event, Package, Type, Ticket, Address, Code
 
 app = create_app(os.environ.get('FLASK_CONFIG') or 'default')
 
@@ -28,8 +28,8 @@ if os.environ.get('VALHALLA_COVERAGE'):
 
 def make_shell_context():
     return dict(app=app, User=User, Role=Role, Ticket=Ticket,
-                Event=Event, Account=Account,
-                Location=Location, db=db, Purchase=Purchase, TicketType=TicketType)
+                Event=Event, Account=Account, Package=Package,
+                Address=Address, Type=Type, Code=Code)
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
@@ -59,7 +59,7 @@ def _compile_drop_table(element, compiler, **kwargs):
 def deploy():
     """Run deployment tasks"""
     from flask_migrate import upgrade
-    from app.models import Role, TicketType
+    from app.model import Role, Type
 
     # migrate db to latest version
     logging.info("migrating database to latest state")
@@ -69,7 +69,7 @@ def deploy():
     Role.insert_roles()
     # create user roles
     logging.info("adding ticket types")
-    TicketType.insert_types()
+    Type.insert_types()
 
 
 @manager.command

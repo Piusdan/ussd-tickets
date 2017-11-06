@@ -10,7 +10,7 @@ class Address(db.Model):
     :param code_id: Address code id
     :param code: Association to Code
     """
-    __tablename__ = "addresses"
+    __tablename__ = "address"
     city = Column(String(64))
     code_id = Column(Integer, ForeignKey('codes.id'))
     code = relationship('Code', back_populates="address", lazy="subquery")
