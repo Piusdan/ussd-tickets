@@ -17,7 +17,7 @@ class Event(CRUDMixin,db.Model):
     :param address_id:
     :param tickets:
     """
-    __tablename__ = "events"
+    __tablename__ = "event"
     id = Column(Integer, primary_key=True)
     name = Column(String, index=True, nullable=False, unique=True)
     description = Column(Text, nullable=False)
