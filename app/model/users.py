@@ -181,6 +181,6 @@ class Account(db.Model):
     """
     __tablename__ = "accounts"
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, db.ForeignKey("users.id"))
+    user_id = Column(Integer, db.ForeignKey("user.id"))
     balance = Column(Float, default=0.00)
     points =Column(Float, default=0.00)
