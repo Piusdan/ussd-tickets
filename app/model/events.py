@@ -59,7 +59,7 @@ class Package(db.Model):
     event_id = Column(Integer, ForeignKey('event.id'))
     tickets = relationship('Ticket', backref='package', lazy='dynamic', cascade='all, delete-orphan')
     type_id = Column(Integer, ForeignKey('type.id'))
-    type = relationship('Type', back_populates='packages')
+    type = relationship('Type', backref='packages')
 
     def __repr__(self):
         return "<Type> {} <Price> {}".format(self.type.name, self.price)

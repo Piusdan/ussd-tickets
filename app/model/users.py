@@ -47,8 +47,8 @@ class User(UserMixin, CRUDMixin,db.Model):
     role_id = Column(Integer, ForeignKey('roles.id'))
     address_id = Column(Integer, ForeignKey('address.id'))
     address = relationship('Address', backref="users", lazy="subquery")
-    account = relationship("Account", back_populates="user", uselist=False, lazy='dynamic')
-    tickets = relationship("Ticket", back_populates="user", lazy='dynamic')
+    account = relationship("Account", backref="user", uselist=False, lazy='dynamic')
+    tickets = relationship("Ticket", backref="user", lazy='dynamic')
 
     slug = Column(String)
 
@@ -134,7 +134,7 @@ class Role(db.Model):
     name = Column(String(64), unique=True, nullable=False)
     default = db.Column(Boolean, default=False, index=True)
     permissions = Column(Integer)
-    users = relationship('User', back_populates='role', lazy='dynamic')
+    users = relationship('User', backref='role', lazy='dynamic')
 
     def __repr__(self):
         return "Role " + self.name
