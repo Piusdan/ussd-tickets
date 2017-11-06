@@ -5,7 +5,7 @@ from flask import request
 import hashlib
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from sqlalchemy import Integer, String, DateTime, Column, Boolean, ForeignKey
+from sqlalchemy import Integer, String, DateTime, Column, Boolean, ForeignKey, Float
 from sqlalchemy.orm  import relationship
 from flask_sqlalchemy import current_app
 from flask_login import UserMixin, AnonymousUserMixin
@@ -166,3 +166,17 @@ class AnonymousUser(AnonymousUserMixin):
 
     def is_administrator(self):
         return False
+
+
+class Account(db.Model):
+    """
+    :param id: Unique identifier
+    :param user_id: User's account id
+    :param balance: User's account balance
+    :param points: User's CVS points balance
+    """
+    __tablename__ = "accounts"
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, db.ForeignKey("users.id"))
+    balance = Column(Float, default=0.00)
+    points =Column(Float, default=0.00)
