@@ -14,7 +14,7 @@ class Address(db.Model):
     id = Column(Integer, primary_key=True)
     city = Column(String(64))
     code_id = Column(Integer, ForeignKey('codes.id'))
-    code = relationship('Code', back_populates="address", lazy="subquery")
+    code = relationship('Code', backref="address", lazy="subquery")
 
 class Code(db.Model):
     """
