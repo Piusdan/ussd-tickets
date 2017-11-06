@@ -45,7 +45,8 @@ class User(UserMixin, CRUDMixin,db.Model):
     last_seen = Column(DateTime, default=eastafrican_time)
     _password = Column(String(128))
     role_id = Column(Integer, ForeignKey('roles.id'))
-    address_id = Column(Integer, ForeignKey('addresses.id'))
+    address_id = Column(Integer, ForeignKey('address.id'))
+    address = relationship('Address', back_populates="users", lazy="subquery")
     account = relationship("Account", back_populates="user", uselist=False, lazy='dynamic')
     tickets = relationship("Ticket", back_populates="user", lazy='dynamic')
 

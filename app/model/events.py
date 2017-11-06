@@ -24,6 +24,7 @@ class Event(CRUDMixin,db.Model):
     date = Column(DateTime, nullable=False)
     is_active = Column(Boolean, default=True)
     address_id = Column(Integer, ForeignKey('address.id'))
+    address = relationship('Address', back_populates="users", lazy="subquery")
     packages = relationship('Package', backref='event', lazy='subquery', cascade='all, delete-orphan')
     slug = Column(String)
 
