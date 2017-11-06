@@ -25,16 +25,11 @@ class Event(CRUDMixin,db.Model):
     is_active = Column(Boolean, default=True)
     address_id = Column(Integer, ForeignKey('address.id'))
     packages = relationship('Package', backref='event', lazy='subquery', cascade='all, delete-orphan')
-    slug = Column(String, default=slugify(name))
+    slug = Column(String)
 
-    @name.setter
-    def name(self, name):
-        self.name = name
-        self.slug = slugify(name)
-
-    @name.getter
-    def name(self):
-        return self.name
+    def __init__(self, **kwargs):
+        super(Event, self).__init__(**kwargs)
+        self.slug = slugify(self.name)
 
     def __repr__(self):
         return "<Event {}>".format(self.name)
