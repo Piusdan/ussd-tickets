@@ -24,6 +24,6 @@ class Code(db.Model):
     """
     __tablename__ = 'codes'
     id = Column(Integer, primary_key=True)
-    country = Column(String(12), Nullable=False, unique=True)
+    country = Column(String(12), nullable=False, unique=True)
     currency_code = Column(String(4), nullable=False)
     country_code = Column(String(4), nullable=False)
