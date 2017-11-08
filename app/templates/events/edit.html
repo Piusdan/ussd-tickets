@@ -5,12 +5,13 @@
 {% block events %}class="active"{% endblock %}
  {% block page_content %}
 <div class="container-fluid">
-    <div class="block-header">
+    <div class="block-header row clearfix">
         <!-- Event Info -->
         <ol class="breadcrumb breadcrumb-col-orange">
             <li><a href="{{ url_for('.get_events')}}"><i class="material-icons">home</i> Events</a></li>
-            <li><a href="{{ url_for('.get_event', id=event.id)}}"><i class="material-icons">event_available</i> Event Details</a></li>
+            <li><a href="{{ url_for('.get_event', slug=event.slug )}}"><i class="material-icons">event_available</i> Event Details</a></li>
             <li class="active"><i class="material-icons">mode_edit</i> Edit Event Details</li>
+
         </ol>
     </div>
     <div class="row clearfix">
@@ -101,35 +102,35 @@
         <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8">
             <div class="card">
                 <div class="header">
-                    <h2 class="title-text">Tickets</h2>
-                    {% if event.can_add_tickets() %}
+                    <h2 class="title-text">Packages</h2>
+                    {% if none_event_types %}
                     <ul class="header-dropdown m-r--5">
                         <li class="dropdown">
-                            <a class="dropdown-toggle btn btn-success btn-sm waves-effect"  data-toggle="modal" role="button" data-target="#add_ticketModal" aria-haspopup="true" aria-expanded="false">
-                                <span>Add Ticket</span><i class="material-icons">add</i>
+                            <a class="dropdown-toggle btn btn-success btn-sm waves-effect"  data-toggle="modal" role="button" data-target="#add_packageModal" aria-haspopup="true" aria-expanded="false">
+                                <span>Add Package</span><i class="material-icons">add</i>
                             </a>
                     </ul>
                     {% endif %}
                 </div>
                 <div class="body">
-                    {% if tickets %}
+                    {% if packages %}
                     <!-- /.col-lg-4 -->
                     <div class="row clearfix">
-                        {% for ticket in tickets %}
+                        {% for package in packages %}
                         <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
                             <div class="card">
                                 <div class="header">
-                                    <h2 class="title-text text-info">{{ ticket.type.name }} ticket Details</h2>
+                                    <h2 class="title-text text-info">{{ package.type.name }} Package Details</h2>
                                 </div>
                                 <div class="body">
-                                    <form class="edit-ticket" id="{{ ticket.id }}" method="post" action="" role="form" name="register">
-                                        {{ edit_ticketForm.hidden_tag() }}
+                                    <form class="edit-package" id="{{ package.id }}" method="post" action="" role="form" name="register">
+                                        {{ edit_packageForm.hidden_tag() }}
                                         <div class="input-group">
                                             <span class="input-group-addon">
                                                 <i class="material-icons">attach_money</i>
                                             </span>
                                             <div class="form-line">
-                                                {{ edit_ticketForm.price(class_="form-control price", value=ticket.price,required=True, autofocus=True, id="price")}}
+                                                {{ edit_packageForm.price(class_="form-control price", value=package.price,required=True, autofocus=True, id="price")}}
                                             </div>
                                         </div>
                                         <div class="input-group">
@@ -137,11 +138,11 @@
                                                 <i class="material-icons">group</i>
                                             </span>
                                             <div class="form-line">
-                                                {{ edit_ticketForm.count(class_="form-control count", value=ticket.count,required=True, autofocus=True, id="count")}}
+                                                {{ edit_packageForm.number(class_="form-control number", value=package.remaining,required=True, autofocus=True, id="number")}}
                                             </div>
                                         </div>
-                                        <div class="form-group edit-ticket-button">
-                                            <button type="button" class="btn btn-success waves-effect edit-ticket" data-ticketid="{{ticket.id}}" data-placement-from="bottom"
+                                        <div class="form-group edit-package-button">
+                                            <button type="button" class="btn btn-success waves-effect edit-package" data-packageid="{{package.id}}" data-placement-from="bottom"
                                                     data-placement-align="center" data-animate-enter="" data-animate-exit="" data-color-name="bg-green">Update</button>
                                         </div>
                                     </form>
@@ -155,23 +156,23 @@
             </div>
         </div>
     </div>
-    <!--addTicket modal-->
-    <div class="modal fade" id="add_ticketModal" tabindex="-1" role="dialog" id="edit">
+    <!--addPackage modal-->
+    <div class="modal fade" id="add_packageModal" tabindex="-1" role="dialog" id="edit">
         <div class="modal-dialog modal-sm" role="document">
         <div class="card">
             <div class="header">
-                <h2 class="title-text">{{ event.name}}<small> add ticket</small></h2>
+                <h2 class="title-text">{{ event.name}}<small> add package</small></h2>
             </div>
-                <form id="add_ticketForm" data-ticket-eventId="{{ event.id }}" method="post" action="" role="form" name="add_Ticket" data-placement-from="bottom"
+                <form id="add_packageForm" data-package-eventId="{{ event.id }}" method="post" action="" role="form" name="add_Package" data-placement-from="bottom"
                             data-placement-align="center" data-animate-enter="" data-animate-exit="" data-color-name="bg-green">
                     <div class="body modal-body">
-                    {{ create_ticketForm.hidden_tag() }}
+                    {{ create_packageForm.hidden_tag() }}
                     <div class="input-group">
                         <span class="input-group-addon">
                                 <i class="material-icons">info</i>
                             </span>
                         <div class="form-line">
-                            {{ create_ticketForm.type(class_="show-tick") }}
+                            {{ create_packageForm.type(class_="show-tick") }}
 
                         </div>
                     </div>
@@ -181,7 +182,7 @@
                                         <i class="material-icons">attach_money</i>
                                     </span>
                         <div class="form-line">
-                            {{ create_ticketForm.price(class_="form-control", placeholder="Price " + event.currency_code,required=True, autofocus=True)}}
+                            {{ create_packageForm.price(class_="form-control", placeholder="Price " + event.address.code.currency_code ,required=True, autofocus=True)}}
                         </div>
                     </div>
                     <div class="input-group">
@@ -189,13 +190,13 @@
                                             <i class="material-icons">group</i>
                                         </span>
                         <div class="form-line">
-                            {{ create_ticketForm.count(class_="form-control", placeholder="Number of Tickets",required=True, autofocus=True)}}
+                            {{ create_packageForm.number(class_="form-control", placeholder="Number of Packages",required=True, autofocus=True)}}
 
                         </div>
                     </div>
                     </div>
                     <div class="modal-footer">
-                        {{ create_ticketForm.submit(class_="btn btn-sm bg-orange waves-effect add_tiket_button") }}
+                        {{ create_packageForm.submit(class_="btn btn-sm bg-orange waves-effect add_tiket_button") }}
                         <button type="button" class="btn btn-link waves-effect" data-dismiss="modal">CLOSE</button>
 
                     </div>
@@ -204,6 +205,6 @@
             </div>
         </div>
     </div>
-    <!--end editTicket modal-->
+    <!--end editPackage modal-->
 </div>
 {% endblock %}

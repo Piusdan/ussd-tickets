@@ -5,6 +5,7 @@
     Provides the flask application
 """
 import os
+from hashids import Hashids
 from celery import Celery
 from flask import Flask
 from flask_bootstrap import Bootstrap
@@ -43,7 +44,8 @@ login_manager.login_view = 'auth.login'
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 celery_logger = get_task_logger(__name__)
 
-
+# hashing purposes
+hashids = Hashids(min_length=12, alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890')
 def create_app(config_name):
     app = Flask(__name__)
 
@@ -65,14 +67,10 @@ def create_app(config_name):
         SSLify(app)
 
     # register blueprints
-    # from app.common import common as base_blueprint
-    # app.register_blueprint(base_blueprint, url_prefix="/base")
-    # from app.auth import auth as auth_blueprint
-    # app.register_blueprint(auth_blueprint, url_prefix="/auth")
-    # from app.main import main as main_blueprint
-    # app.register_blueprint(main_blueprint)
-    # from app.api_1_0 import api as api_1_0_blueprint
-    # app.register_blueprint(api_1_0_blueprint, url_prefix="/api/v1.0")
+    from app.auth import auth as auth_blueprint
+    app.register_blueprint(auth_blueprint, url_prefix="/auth")
+    from app.main import main as main_blueprint
+    app.register_blueprint(main_blueprint)
     # from app.ussd import ussd as ussd_blueprint
     # app.register_blueprint(ussd_blueprint, url_prefix="/ussd")
 

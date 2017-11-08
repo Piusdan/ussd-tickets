@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for
 from flask_login import login_required, current_user
-from ..models import User, Event, Ticket, Purchase
+from app.model import User, Event, Ticket, Package
 from . import main
 
 

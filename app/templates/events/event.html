@@ -9,7 +9,7 @@
         <ol class="breadcrumb breadcrumb-col-orange">
             <li><a href="{{ url_for('.get_events')}}"><i class="material-icons">home</i> Events</a></li>
             <li class="active"><i class="material-icons">event_available</i> Event Details</li>
-            <li><a href="{{ url_for('.edit_event', id=event.id)}}"><i class="material-icons">mode_edit</i> Edit Event Details</a></li>
+            <li><a href="{{ url_for('.edit_event', slug=event.slug)}}"><i class="material-icons">mode_edit</i> Edit Event Details</a></li>
         </ol>
     </div>
     <div class="row clearfix">
@@ -53,7 +53,7 @@
                 </div>
                 <div class="content">
                     <div class="text">TICKETS REMAINING</div>
-                    <div class="number count-to" data-from="0" data-to="{{ event.remaining_tickets }}" data-speed="1000" data-fresh-interval="20">{{ event.remaining_tickets }}</div>
+                    <div class="number count-to" data-from="0" data-to="{{ event.remaining_tickets() }}" data-speed="1000" data-fresh-interval="20">{{ event.remaining_tickets() }}</div>
                 </div>
             </div>
         </div>
@@ -75,7 +75,7 @@
                                             <th>Date of Purchase</th>
                                             <th>Number of Tickets Bought</th>
                                             <th>Ticket Type</th>
-                                            <th>Confirmed</th>
+                                            <th>Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -105,7 +105,6 @@
 </div>
 {% endblock %}
  {% block table_scripts %}
-    {{ moment.include_moment() }}
     <script src="{{ url_for('static', filename='plugins/jquery-datatable/jquery.dataTables.js') }}"></script>
     <script src="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js') }}"></script>
     <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/dataTables.buttons.min.js') }}"></script>

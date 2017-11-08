@@ -2,20 +2,21 @@ import datetime
 from sqlalchemy import DateTime, Integer, String, Column, ForeignKey, Text, Boolean, Float
 from sqlalchemy.orm import relationship
 
+from app import hashids
 from app.database import db
 from app.utils.database import CRUDMixin, slugify
 from app.utils.web import eastafrican_time
-
+from app.utils.web import get_country
 
 class Event(CRUDMixin,db.Model):
     """
-    :param id:
-    :param name:
-    :param description:
-    :param date:
-    :param is_active:
-    :param address_id:
-    :param tickets:
+    :param id: Unique identification code
+    :param name: Name/title for event
+    :param description: More details about the event
+    :param date: Day the event will be held
+    :param is_active: Boolean to indicate wether the event is still open
+    :param address_id: ID of the events address
+    :param packages: Association to event package types
     """
     __tablename__ = "event"
     id = Column(Integer, primary_key=True)
@@ -24,8 +25,8 @@ class Event(CRUDMixin,db.Model):
     date = Column(DateTime, nullable=False)
     is_active = Column(Boolean, default=True)
     address_id = Column(Integer, ForeignKey('address.id'))
-    address = relationship('Address', backref="users", lazy="subquery")
-    packages = relationship('Package', backref='event', lazy='subquery', cascade='all, delete-orphan')
+    address = relationship('Address', backref="event", lazy='subquery')
+    packages = relationship('Package', backref='event', lazy='dynamic', cascade='all, delete-orphan')
     slug = Column(String)
 
     def __init__(self, **kwargs):
@@ -38,12 +39,42 @@ class Event(CRUDMixin,db.Model):
     def is_closed(self):
         return not self.is_active
 
+    @staticmethod
+    def by_slug(slug):
+        return Event.query.filter_by(slug=slug).first()
+
+    def remaining_tickets(self):
+        packages = self.packages.join(Type).filter(~Type.name.in_(['Organiser'])).all()
+        total = 0
+        for package in packages:
+            total += package.remaining
+        return total
+
+    def purchased_tickets(self):
+        tickets = Ticket.by_event(self)
+        if tickets:
+            return reduce(lambda x, y: x.number + y.number, tickets)
+        return 0
+
+    @staticmethod
+    def organiser(user_id):
+        package = Package.create()
+        pass
+
+    @staticmethod
+    def by_id(id):
+        return Event.query.get(id)
+
+    @staticmethod
+    def by_date():
+        return db.session.query(Event).order_by(Event.date).all()
+
     @property
     def day(self):
-        return self.date.strftime('%B %d, %y')
+        return self.date.strftime('%d/%m/%y')
 
 
-class Package(db.Model):
+class Package(CRUDMixin,db.Model):
     """ Type of various packages on offer for a given event
     :param id: Unique identifier for the package
     :param remaining: Number of packages of a specific type remaining
@@ -54,7 +85,7 @@ class Package(db.Model):
     """
     __tablename__ = "packages"
     id = Column(Integer, primary_key=True)
-    remaining = Column(Integer)
+    remaining = Column(Integer, default=0.00)
     price = Column(Float)
     event_id = Column(Integer, ForeignKey('event.id'))
     tickets = relationship('Ticket', backref='package', lazy='dynamic', cascade='all, delete-orphan')
@@ -64,8 +95,16 @@ class Package(db.Model):
     def __repr__(self):
         return "<Type> {} <Price> {}".format(self.type.name, self.price)
 
+    @staticmethod
+    def by_event(event):
+        db.session.query(Package).filter(Package.event_id==event.id).all()
 
-class Type(db.Model):
+    @staticmethod
+    def by_id(id):
+        return Package.query.get(id)
+
+
+class Type(CRUDMixin ,db.Model):
     """Type of  a package for a given event
     :param id: Uniqe identifier for the package type
     :param name: Name of the package type
@@ -77,7 +116,7 @@ class Type(db.Model):
     default = Column(db.Boolean, default=False)
 
     def __repr__(self):
-        return "{} Ticket".format(self.name)
+        return "Type {}".format(self.name)
 
     @staticmethod
     def insert_types():
@@ -85,12 +124,20 @@ class Type(db.Model):
         for t in types:
             type = Type.query.filter_by(name=t).first()
             if type is None:
-                type = Type(name=t)
+                type = Type.create(name=t)
             db.session.add(type)
         db.session.commit()
 
+    @staticmethod
+    def all():
+        return db.session.query(Type).all()
 
-class Ticket(db.Model):
+    @staticmethod
+    def by_name(name):
+        return db.session.query(Type).filter(Type.name==name).first()
+
+
+class Ticket(CRUDMixin, db.Model):
     """
     :param id: Unique identifier for the ticket
     :param number: Number of tickets purchased
@@ -103,7 +150,25 @@ class Ticket(db.Model):
     id = Column(Integer, primary_key=True)
     number = Column(Integer)
     created_at = Column(DateTime, default=eastafrican_time)
-    code = Column(String(64), unique=True, nullable=False)
+    code = Column(String(64))
     package_id = Column(Integer, ForeignKey('packages.id'))
     user_id = Column(Integer, ForeignKey('user.id'))
     confirmed = Column(Boolean, default=False)
+
+    def __init__(self, **kwargs):
+        super(Ticket, self).__init__(**kwargs)
+        ticket = self.save()
+        ticket.code = hashids.encode(ticket.id)
+
+    @staticmethod
+    def by_id(id):
+        Ticket.query.get(id)
+
+    @staticmethod
+    def by_code(code):
+        id = hashids.decode(code)[0]
+        return Ticket.by_id(id)
+
+    @staticmethod
+    def by_event(event):
+        db.session.query(Ticket).join(Package).filter(Package.event_id==event.id).all()

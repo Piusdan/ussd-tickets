@@ -1,3 +1,9 @@
+// clickabel table rows
+$(function() {
+      $(".clickableRow").on("click", function() {
+          location.href="http://google.com";
+      });
+});
 // Data Picker Initialization
 $('#date').bootstrapMaterialDatePicker({ weekStart : 0, time: false, format : 'DD/MM/YYYY', minDate : moment(), nowButton: true, nowText: 'Today' });
 
@@ -76,10 +82,10 @@ $(function() {
 
 $(function() {
 //uses ajax to submit request to create event
-    $('#add_ticketForm').on('submit', function(e) { //use on if jQuery 1.7+
+    $('#add_packageForm').on('submit', function(e) { //use on if jQuery 1.7+
         e.preventDefault();  //prevent form from submitting
-        $('#add_ticketModal').modal('toggle');
-        var data = $("#add_ticketForm :input").serializeArray();
+        $('#add_packageModal').modal('toggle');
+        var data = $("#add_packageForm :input").serializeArray();
         var json_data = [];
         console.log(data)
         console.log(JSON.stringify(data)); //use the console for debugging, F12 in Chrome, not alerts
@@ -88,9 +94,9 @@ $(function() {
         var animateEnter = $(this).data('animate-enter');
         var animateExit = $(this).data('animate-exit');
         var colorName = $(this).data('color-name');
-        var event_id = $(this).attr('data-ticket-eventId');
-        var url = '/ticket/add/' + event_id
-        document.getElementById('add_ticketForm').reset();
+        var event_id = $(this).attr('data-package-eventId');
+        var url = '/package/add/' + event_id
+        document.getElementById('add_packageForm').reset();
         $.ajax({
             url: url,
             dataType: 'json',
@@ -107,28 +113,66 @@ $(function() {
                 showNotification("bg-red", errorThrown, placementFrom, placementAlign, animateEnter, animateExit);
             }
         });
+        location.reload(false);
+
+    });
+});
+
+$(function() {
+//uses ajax to submit request to add a new user
+    $('#add_userForm').on('submit', function(e) { //use on if jQuery 1.7+
+        e.preventDefault();  //prevent form from submitting
+        $('#add_userModal').modal('toggle');
+        var data = $("#add_userForm :input").serializeArray();
+        var json_data = [];
+        console.log(data)
+        console.log(JSON.stringify(data)); //use the console for debugging, F12 in Chrome, not alerts
+        var placementFrom = $(this).data('placement-from');
+        var placementAlign = $(this).data('placement-align');
+        var animateEnter = $(this).data('animate-enter');
+        var animateExit = $(this).data('animate-exit');
+        var colorName = $(this).data('color-name');
+        var event_id = $(this).attr('data-package-eventId');
+        var url = '/add-user'
+        document.getElementById('add_userForm').reset();
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            type: 'post',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (data, textStatus, jQxhr) {
+                var text = data.data
+                showNotification(colorName, text, placementFrom, placementAlign, animateEnter, animateExit);
+            },
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                // var colorName = "bg-red"
+                showNotification("bg-red", errorThrown, placementFrom, placementAlign, animateEnter, animateExit);
+            }
+        });
+        location.reload(false);
 
     });
 });
 
 
-
 $(function () {
-// edit ticket ajax
-    $('.edit-ticket-button button').on('click', function (e) {
+// edit package ajax
+    $('.edit-package-button button').on('click', function (e) {
         e.preventDefault();
         var placementFrom = $(this).data('placement-from');
         var placementAlign = $(this).data('placement-align');
         var animateEnter = $(this).data('animate-enter');
         var animateExit = $(this).data('animate-exit');
         var colorName = $(this).data('color-name');
-        var ticket_id = $(this).attr('data-ticketid');
-        var form = document.getElementById(ticket_id)
+        var package_id = $(this).attr('data-packageid');
+        var form = document.getElementById(package_id)
         var price = form.getElementsByClassName('price')[0].value
-        var count = form.getElementsByClassName('count')[0].value
+        var number = form.getElementsByClassName('number')[0].value
         // form.hide();
 //         dom_doc = new DOMParser().parseFromString(form, "text/html");
-        var url = '/ticket/update'
+        var url = '/package/update'
         // event.preventDefault();
         $.ajax({
             url: url,
@@ -136,9 +180,9 @@ $(function () {
             type: 'post',
             contentType: 'application/json',
             data: JSON.stringify({
-                "ticket_id": ticket_id,
+                "package_id": package_id,
                 "price": price,
-                "count": count
+                "number": number
             }),
             success: function (data, textStatus, jQxhr) {
                 var text = data.data

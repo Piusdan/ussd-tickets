@@ -1,22 +1,21 @@
-from flask import render_template, abort, flash, redirect, url_for
-
+from flask import render_template, abort, flash, redirect, url_for, request, jsonify
 from flask_login import login_required, current_user
 
+from app.main import main
+from app.database import db
 from app.decorators import admin_required
-from app.models import User, db, Role
+from app.model import User, Role, Code, Address
 from app.main.utils import get_country, update_balance_and_send_sms, create_user
-from app.common.utils import flash_errors
+from app.utils.web import flash_errors
 from forms import EditProfileForm, EditProfileAdminForm, AddUserForm
-from . import main
 
 
-@main.route('/user/<int:id>')
+@main.route('/user/<string:slug>')
 @login_required
-def get_user(id):
-    user = User.query.filter_by(id=id).first_or_404()
+def get_user(slug):
+    user = User.by_slug(slug)
     has_purchases = False
-    if user.account.purchases:
-        has_purchases = True
+    has_purchases = False
     if current_user.is_administrator() or current_user == user:
         user = user
     else:
@@ -28,28 +27,42 @@ def get_user(id):
 @login_required
 @admin_required
 def get_users():
-    users = User.query.all()
-    return render_template('users/user_list.html', users=users)
+    form = AddUserForm()
+    users = User.all()
+    count = len(users)
+    return render_template('users/users.html', users=users, user_count=count, form=form)
 
 
-@main.route('/add', methods=['GET', 'POST'])
+@main.route('/add-user', methods=['POST'])
 @login_required
 @admin_required
 def add_user():
-    form = AddUserForm()
-    if form.validate_on_submit():
-        payload = {"username": form.username.data,
-                   "phone_number": form.phone_number.data,
-                   "role": form.role.data,
-                   "account_balance": form.account_balance.data
-                   }
-        create_user(payload)
-        flash('New member added.', category="success")
-        return redirect(url_for('.get_users'))
+    data = request.get_json()
+    request_dict = {}
+    map(lambda x: request_dict.setdefault(x.get('name'), x.get('value')), data)
+    username = request_dict['username']
+    role_id = request_dict['role']
+    balance = request_dict["account_balance"]
+    phone_number = request_dict["phone_number"]
+    if User.by_phonenumber(phone_number) is None:
+        if User.by_username(username) is None:
+            if phone_number.startswith('+') and Code.by_code(phone_number[:4]) is not None:
+                user = User.create(role_id=role_id, username=username, phone_number=phone_number)
+                code = Code.by_code(phone_number[:4])
+                user.address = Address.create(code=code)
+                user.account.balance = balance
+                user.save()
+                response = jsonify('User {} created',format(username))
+                response.status_code = 201
+                return response
+            else:
+                response = jsonify('Invalid telephone code')
+        else:
+            response = jsonify('Username already in use')
     else:
-        flash_errors(form)
-
-    return render_template('users/add_user.html', form=form)
+        response = jsonify('Phone number already in use')
+    response.status_code = 300
+    return response
 
 
 @main.route('/edit-profile', methods=['GET', 'POST'])

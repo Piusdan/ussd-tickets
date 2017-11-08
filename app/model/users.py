@@ -11,7 +11,7 @@ from flask_sqlalchemy import current_app
 from flask_login import UserMixin, AnonymousUserMixin
 
 
-from app import login_manager
+from app import login_manager, hashids
 from app.database import db
 from app.utils.database import CRUDMixin, slugify
 from app.utils.web import eastafrican_time
@@ -46,8 +46,8 @@ class User(UserMixin, CRUDMixin,db.Model):
     _password = Column(String(128))
     role_id = Column(Integer, ForeignKey('roles.id'))
     address_id = Column(Integer, ForeignKey('address.id'))
-    address = relationship('Address', backref="users", lazy="subquery")
-    account = relationship("Account", backref="user", uselist=False, lazy='dynamic')
+    address = relationship('Address', backref="users", lazy='subquery')
+    account = relationship("Account", backref="user", uselist=False)
     tickets = relationship("Ticket", backref="user", lazy='dynamic')
 
     slug = Column(String)
@@ -93,17 +93,41 @@ class User(UserMixin, CRUDMixin,db.Model):
     def password(self):
         raise AttributeError('Password is not a readable property')
 
+    @property
+    def code(self):
+        return hashids.encode(self.id)
+
     @password.setter
     def password(self, password):
         self._password = generate_password_hash(password)
 
     def verify_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        return check_password_hash(self._password, password)
 
     # user loader
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    @staticmethod
+    def by_slug(slug):
+        return db.session.query(User).filter(User.slug==slug).first()
+
+    @staticmethod
+    def by_phonenumber(phonenumber):
+        return db.session.query(User).filter(User.phone_number==phonenumber).first()
+
+    @staticmethod
+    def by_username(username):
+        return db.session.query(User).filter(User.username==username).first()
+
+    @staticmethod
+    def by_id(id):
+        return User.query.get(id)
+
+    @staticmethod
+    def all():
+        return db.session.query(User).all()
 
     # role verification
     def can(self, permissions):

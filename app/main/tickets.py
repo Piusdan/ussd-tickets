@@ -6,31 +6,31 @@ import logging
 
 from app import db
 from app.main import main
-from app.models import  Purchase, Ticket, TicketType, Event
+from app.model import  Package, Type, Event
 
 
-@main.route('/ticket/update', methods=['POST', 'GET'])
-def edit_ticket():
+@main.route('/package/update', methods=['POST', 'GET'])
+def edit_package():
     data = request.get_json()
-    ticket_id = data.get("ticket_id")
-    ticket = Ticket.query.filter_by(id=ticket_id).first()
-    print ticket
-    if ticket is None:
-        response = jsonify(error="Invalid Ticket")
+    package_id = data.get("package_id")
+    package = Package.by_id(package_id)
+    logging.info(data)
+    if package is None:
+        response = jsonify(error="Invalid Package")
         response.status_code = 404
     else:
-        ticket.price = float(data.get("price"))
-        ticket.count = int(data.get("count"))
-        db.session.commit()
+        package.price = float(data.get("price"))
+        package.remaining = int(data.get("number"))
+        package.save()
         response = jsonify(data="Ticket updated")
         response.status_code = 200
     return response
 
 
-@main.route('/ticket/add/<int:event_id>', methods=['POST', 'GET'])
+@main.route('/package/add/<int:event_id>', methods=['POST', 'GET'])
 @login_required
 @admin_required
-def add_ticket(event_id):
+def add_package(event_id):
     data = request.get_json()
     request_dict = {}
     map(lambda x: request_dict.setdefault(x.get('name'), x.get('value')), data)
@@ -38,18 +38,11 @@ def add_ticket(event_id):
     event = Event.query.get(event_id)
     if event is None:
         abort(404)
-    # if request_dict["type"] in [ticket.type_id for ticket in event.tickets]:
-    #     response = jsonify(data="Cannot create ticket, ticket already exists")
-    #     response.status_code = 300
-    #     return response
-    ticket = Ticket()
-    ticket.event_id = event_id
-    ticket.type_id = request_dict["type"]
-    ticket.price = request_dict["price"]
-    ticket.count = request_dict["count"]
-    db.session.add(ticket)
-    db.session.commit()
-    response = jsonify(data="Ticket Created")
+    type_id = request_dict["type"]
+    price = request_dict["price"]
+    number = request_dict["number"]
+    package = Package.create(type_id=type_id, price=price, remaining=number, event_id=event.id)
+    response = jsonify(data="Package Added")
     response.status_code = 201
     return response
 

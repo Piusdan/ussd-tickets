@@ -1,10 +1,12 @@
 from functools import wraps
 import logging
 from flask import g, request, session
+import pickle
+import json
 
-from app.models import AnonymousUser
-from app.ussd.utils import get_user_by_phone_number
-from . import ussd
+from app.model import AnonymousUser, User
+from app import redis
+from app.ussd import ussd
 
 
 def validate_ussd_user(func):
@@ -12,13 +14,22 @@ def validate_ussd_user(func):
     def wrapper(*args, **kwargs):
         phone_number = request.values.get("phoneNumber")
         session_id = request.values.get("sessionId")
-        logging.info("DB call to get users")
-        user = get_user_by_phone_number(phone_number)
-        if user is None:
-            user = AnonymousUser()
-            logging.info("Anonymous user")
-        logging.info("setting session cookie")
-        g.current_user = user
+        session = redis.get(session_id)
+        if session is not None:
+            # user session is in redis db
+            session = json.loads(session)
+            g.current_user =pickle.loads(session.get('current_user'))
+        else:
+            # get user from db
+            user = User.by_phonenumber(phone_number)
+            if user is None:
+                # user is not registered
+                g.current_user = AnonymousUser()
+            else:
+                # user is registered so start tracking his session
+                g.current_user = user
+                session = dict(current_user=pickle.dumps(user))
+                redis.set(session_id, json.dumps(session))
         return func(*args, **kwargs)
     return wrapper
 

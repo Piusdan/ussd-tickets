@@ -2,7 +2,7 @@ from functools import wraps
 import logging
 from flask import abort, request, render_template, jsonify
 from flask_login import current_user
-from models import Permission, User, AnonymousUser
+from model import Permission
 
 
 def permission_Required(permission):

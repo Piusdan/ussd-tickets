@@ -5,7 +5,7 @@ from wtforms import (StringField, SubmitField, TextAreaField,
 from wtforms.validators import (Length, DataRequired,
                                 Email, Regexp, ValidationError, Optional)
 
-from app.models import Role, User, Event, Ticket
+from app.model import Role, User, Event, Package, Code
 
 
 class EditProfileForm(Form):
@@ -76,6 +76,8 @@ class AddUserForm(Form):
             raise ValidationError('Invalid Phone number format.')
         if User.query.filter_by(phone_number=field.data).first():
             raise ValidationError('Phone number already in use.')
+        if Code.by_code(field.data[:4]) is None:
+            raise ValidationError("Please use a Kenyan or Ugandan line")
 
     def validate_username(self, field):
         if User.query.filter_by(username=field.data).first():
@@ -99,7 +101,6 @@ class CreateEventForm(Form):
 class EditEventForm(Form):
     title = StringField('Event title', validators=[
                         Length(1, 64), DataRequired()])
-    logo = FileField("Choose an event logo")
     description = StringField('Event description', validators=[
                                 Length(0, 100), Optional()])
     location = StringField('Event City', validators=[
@@ -111,10 +112,10 @@ class EditEventForm(Form):
     submit = SubmitField('Update')
 
 
-class CreateTicketForm(Form):
+class CreatePackageForm(Form):
     type = SelectField('Ticket Type', coerce=int)
     price = StringField('Price of Ticket', validators=[DataRequired()])
-    count = IntegerField("Number of Tickets Available",
+    number = IntegerField("Number of Tickets Available",
                          validators=[DataRequired()])
     submit = SubmitField('Submit')
 
@@ -125,9 +126,9 @@ class CreateTicketForm(Form):
             raise ValidationError("Price must be a valid integer.")
 
 
-class EditTicketForm(Form):
+class EditPackageForm(Form):
     price = StringField('Price of Ticket', validators=[DataRequired()])
-    count = IntegerField("Number of Tickets Available",
+    number = IntegerField("Number of Tickets Available",
                          validators=[DataRequired()])
     submit = SubmitField('Update')
 

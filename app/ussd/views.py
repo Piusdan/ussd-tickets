@@ -1,14 +1,15 @@
 from flask import request, g, jsonify, current_app as app
 import logging
+import json
 
-from app.models import AnonymousUser
+from app import redis
+from app.model import AnonymousUser
 from app.ussd.utils import respond
 from app.ussd.tasks import async_mobile_money_callback
 from electronic_ticketing import ElecticronicTicketing
 from home import Home
 from mobile_Wallet import MobileWallet
 from registration import RegistrationMenu
-from session import add_session, get_level
 from . import ussd
 
 @ussd.route('/', methods=['POST', 'GET'])
@@ -25,43 +26,18 @@ def ussd_callback():
     text = request.values.get("text")
     text_array = text.split("*")  # split chained response from AT gateway
     user_response = text_array[len(text_array) - 1]  # get the latest response
-
-    logging.info("received call back from user {phone_number} with response {text_array}".format(
-        phone_number=phone_number,
-        text_array=request.values.get("text")
-    ))
-    logging.info("User responded with {}".format(user_response))
-
-    add_session(session_id)  # save user's ussd journey
+    # get the tracked session object
+    session = json.loads(redis.get(session_id))
+    level = session.get('level')
 
     if (isinstance(g.current_user, AnonymousUser)):  # register anonymous user
-        menu = RegistrationMenu(
-            session_id=session_id, phone_number=phone_number,
-            user_response=user_response)
-        level = get_level(session_id)
-        menus = {
-            0: menu.get_number,
-            21: menu.get_username,
-            "default": menu.register_default
-        }
-        return menus.get(level)()
-    level = get_level(session_id)
-    logging.info("At level {}".format(level))
+        menu = RegistrationMenu(session_id=session_id, phone_number=phone_number, user_response=user_response)
+        return menu.execute()
+
     if level < 2:
         menu = Home(session_id=session_id, user_response=user_response)
-        menus = {
-                "-1": menu.home,
-                "0": menu.end_session,
-                "1": menu.events,
-                "2": menu.mobilewallet,
-                "3": menu.airtime_or_bundles,
-                "4": menu.check_balance,
-                "default": menu.default_menu
-            }
-        if user_response in menus.keys():
-            return menus.get(user_response)()
-        else:
-            return menu.home()
+        return menu.execute()
+
     elif level <= 18:  # mobile wallet
         menu = MobileWallet(session_id=session_id,
                         user_response=user_response)

@@ -9,7 +9,7 @@ from flask_migrate import MigrateCommand, Migrate
 import logging
 
 from app import create_app, db
-from app.model import User, Role, Account, Event, Package, Type, Ticket, Address, Code
+from app.model import User, Role, Account, Event, Package, Type, Ticket, Address, Code, AnonymousUser, Permission
 
 app = create_app(os.environ.get('FLASK_CONFIG') or 'default')
 
@@ -27,7 +27,7 @@ if os.environ.get('VALHALLA_COVERAGE'):
 
 
 def make_shell_context():
-    return dict(app=app, User=User, Role=Role, Ticket=Ticket,
+    return dict(app=app, User=User, Role=Role, Ticket=Ticket,Permission=Permission,AnonymousUser=AnonymousUser,
                 Event=Event, Account=Account, Package=Package,
                 Address=Address, Type=Type, Code=Code)
 
