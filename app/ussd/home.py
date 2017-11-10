@@ -1,6 +1,8 @@
 import logging
-
-from app.ussd.utils import respond, get_events, current_user, get_account_balance
+from flask import g
+from app import db
+from app.model import Event, Address, User, Code
+from app.ussd.utils import respond, paginate_events
 from base_menu import Menu
 
 
@@ -8,118 +10,106 @@ class Home(Menu):
     """
     serve the main menu
     """
+
+    def get_username(self):
+        # Request again for name - level has not changed...
+        if self.user_response is None:
+            return self.ussd_proceed("Username not supposed to be empty. Please enter your username \n")
+
+        username = self.user_response
+
+        if User.by_username(username) is not None:
+            return self.ussd_proceed("Username already taken. Please choose another username.\n")
+
+        address_code = Code.by_code(self.phone_number[:4])
+        if address_code is None:
+            return self.ussd_end("Service not available in your country. Please use a Kenyan or Ugandan line")
+        address = Address()
+        user = User(username=username, phone_number=self.phone_number)
+        user.address = address
+        user.address.code = address_code
+        db.session.commit()
+        # update current user
+        g.current_user = user
+        # run the home menu
+        return self.home()
+
     def home(self):
-        """
-        If user level is zero or zero
-        Serves the home menu
-        :return: a response object with headers['Content-Type'] = "text/plain" headers
-        """
+        """Serves the very first USSD menu for a registered user"""
 
         # upgrade user level and serve home menu
-        self.set_level(1)
-        self.update_session()
-
+        self.session['level'] = 1
         # serve the menu
-        header = "CON"
-        menu_text = "Hello {}, choose a service\n".format(current_user().username)
+        menu_text = "Hello {}\nWelcome to Cash value Solutions\nChoose a service to continue\n".format(g.current_user.username)
         menu_text += "1.Events\n"
         menu_text += "2.MobileWallet\n"
         menu_text += "3.Airtime/Bundles\n"
         menu_text += "4.Check Balance\n"
         menu_text += "0.Exit\n"
-        menu_text = header + menu_text
-        return respond(menu_text, pretext=False)
+        return self.ussd_proceed(menu_text)
 
-    def events(self, page=1):
+    def events(self):
         """Displays a paginated list of available events on the USSD screen
-        :param page: paginates the response-default is 1
-        :return: menu-text
-        :rtype: str
+        :param event_displayed: Key value mapping of events displayed on ussd screen to there slug
+        :param self.session['displayed_events']: cached version of KYC mapping of events displyed on USSD screen
         """
-        events, pagination = get_events()
-        if events:
-            logging.info("events {}".format(events))
-            menu_text = "CON Events\n"
-            event_dict = {}    # a mapping of events to the
-            # displayed number used to chache events
-
-            for index, event in enumerate(events):
-                index+=1
-                menu_text += str(index) + ". " + str(event.name) + "\n"
-                event_dict[str(index)] = event.id
-            # cache events stored
-            self.session_dict.setdefault('events', event_dict)
-            if pagination.has_next:
-                menu_text += "98. More"
-            # Update sessions to level 30
-            self.set_level(30)
-            self.update_session()
-            menu_text += "0.Exit"
-        else:
-            menu_text = "END No events to display."
-
-        return respond(menu_text)
+        menu_text = 'Events\n'
+        self.session, menu_text = paginate_events(self.session, menu_text)
+        # Update sessions to level 30
+        self.session['level']=30
+        return self.ussd_proceed(menu_text)
 
     def mobilewallet(self):
-        menu_text = "CON "
-        menu_text += "1.Withdraw\n"
-        menu_text += "2.Deposit\n"
+        menu_text = "1.Withdraw from your EWallet\n"
+        menu_text += "2. Top up your EWallet\n"
         menu_text += "0.Back"
-        self.set_level(5)
-        self.update_session()
-        return respond(menu_text)
+        self.session['level'] = 5
+        return self.ussd_proceed(menu_text)
 
-    def utility(self):
-        menu_text = "CON Sorry this service s not currently available\n"
-        menu_text += "0.Back"
-        return respond(menu_text)
 
     def airtime_or_bundles(self):
-        menu_text = "CON "
-        menu_text += "1.Buy airtime\n"
-        logging.info("Buy airtime with user response {}".format(self.user_response))
-        logging.info("Update sessions to level 11")
-        self.set_level(11)
-        self.update_session()
-        return respond(menu_text)
+        menu_text = "1.Buy airtime\n"
+        self.session['level'] = 11
+        return self.ussd_proceed(menu_text)
 
     def deposit(self):
         # ask how much and Launch the appropriate mobile money Checkout to the user
-        menu_text = "CON Enter amount you wish to deposit\n"
+        menu_text = "Enter amount you wish to deposit\n"
 
         # Update sessions to level 6
-        self.set_level(6)
-        self.update_session()
-        return respond(menu_text)
+        self.session['level'] = 6
+        return self.ussd_proceed(menu_text)
 
     def withdraw(self):
         # TODO add various chekcout channels
         # Ask how much and Launch B2C to the user
-        menu_text = "CON Enter amount you wish to withdraw\n"
+        menu_text = "Enter amount you wish to withdraw\n"
 
         # Update sessions to level 10
-        self.set_level(10)
-        self.update_session()
+        self.session['level'] = 10
 
-        return respond(menu_text)
+        return self.ussd_proceed(menu_text)
 
     def check_balance(self):
-        balance = get_account_balance(current_user())
+        balance = get_account_balance(g.current_user)
         return respond("END {}".format(balance), preformat=False)
 
+    def execute(self):
+        menus = {
+            "-1": self.home,
+            "0": self.end_session,
+            "1": self.events,
+            "2": self.mobilewallet,
+            "3": self.airtime_or_bundles,
+            "4": self.check_balance,
+        }
+        if self.session['level'] == -1:
+            return self.get_username()
 
-    def default_menu(self):
-        # Return user to Main Menu & Demote user's level
-        menu_text = "CON You have to choose a service.\n"
-        menu_text += "Press 0 to go back to main menu.\n"
-        # demote
-        self.set_level(0)
-        self.update_session()
-        return respond(menu_text)
+        if self.user_response in menus.keys():
+            return menus.get(self.user_response)()
 
-    @staticmethod
-    def class_menu(session_id):
-        # Return user to Main Menu & Demote user's level
-        menu_text = "CON You have to choose a service.\n"
-        menu_text += "Press 0 to go back to main menu.\n"
-        return respond(menu_text)
+        if self.user_response == '98':
+            return self.events()
+
+        return self.home()

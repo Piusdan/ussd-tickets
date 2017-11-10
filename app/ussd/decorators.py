@@ -15,21 +15,19 @@ def validate_ussd_user(func):
         phone_number = request.values.get("phoneNumber")
         session_id = request.values.get("sessionId")
         session = redis.get(session_id)
-        if session is not None:
-            # user session is in redis db
-            session = json.loads(session)
-            g.current_user =pickle.loads(session.get('current_user'))
+        if session is None:
+            user = User.by_phonenumber(phone_number) or AnonymousUser()
+            g.current_user = user
+            session = dict(current_user=pickle.dumps(user))
+            session['level'] = None
+            redis.set(session_id, json.dumps(session))
         else:
-            # get user from db
-            user = User.by_phonenumber(phone_number)
-            if user is None:
-                # user is not registered
-                g.current_user = AnonymousUser()
-            else:
-                # user is registered so start tracking his session
-                g.current_user = user
-                session = dict(current_user=pickle.dumps(user))
-                redis.set(session_id, json.dumps(session))
+            session = json.loads(session)
+            g.current_user = pickle.loads(session.get('current_user'))
+            if session['level'] == -1:
+                g.current_user = None
+        redis.set(session_id, json.dumps(session))
+        g.session = session
         return func(*args, **kwargs)
     return wrapper
 

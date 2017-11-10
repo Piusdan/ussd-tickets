@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# create pid and log files
+mkdir -p /var/run/celery
+mkdir -p /var/log/celery
+
 celery worker -A app.celery_worker.celery -E \
     --without-gossip \
     --without-mingle \

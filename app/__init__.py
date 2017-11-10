@@ -71,8 +71,8 @@ def create_app(config_name):
     app.register_blueprint(auth_blueprint, url_prefix="/auth")
     from app.main import main as main_blueprint
     app.register_blueprint(main_blueprint)
-    # from app.ussd import ussd as ussd_blueprint
-    # app.register_blueprint(ussd_blueprint, url_prefix="/ussd")
+    from app.ussd import ussd as ussd_blueprint
+    app.register_blueprint(ussd_blueprint)
 
     return app
 

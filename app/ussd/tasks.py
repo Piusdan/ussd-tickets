@@ -1,254 +1,330 @@
-import cPickle
 from flask import current_app
-import json
+from africastalking.AfricasTalkingGateway import AfricasTalkingGatewayException
 
-from app import db, cache, gateway
-from app.models import Event, Ticket
+from app import db, gateway
+from app.model import Event, Ticket, User, Transaction, Account, Package
 from app import celery
 from app import celery_logger
-from app.ussd.utils import purchase_ticket, get_ticket_by_id, get_user_by_phone_number, validate_cache, set_cache
+
+__ALL__ = ['mobileCheckout']
 
 
-@celery.task(bind=True)
-def async_mpesa_checkoutc2b(self, payload):
-    phone_number = payload["phone_number"]
-    user = get_user_by_phone_number(phone_number)
-    # currency_code = user.currency_code # TODO uncomment this in production
-    currency_code = 'KES'
-    amount = payload["amount"]
-    metadata = payload['metadata']
-    celery_logger.warn("metadata {}".format(metadata))
+@celery.task(bind=True, ignore_result=True)
+def make_ticketPurchase(self, package_id, number_of_tickets, phone_number, method):
+    """
+    :param package_id: 
+    :param number_of_tickets: 
+    :param event_slug: 
+    :param phone_number: 
+    :param method: 
+    :return: 
+    """
+    package = Package.by_id(package_id)
+    # get event
+    event = package.event
+    # get total ticket cost
+    cost = package.price * number_of_tickets
+    # get requesting user
+    user = User.by_phonenumber(phone_number)
+    # TODO check if the event has enough tickets
+    # handle mobile payment check
+    if method in payments.keys():
+        metadata = dict(event_id=event.id, package_id=package_id, number_of_tickets=number_of_tickets,
+                        reason="Buy Ticket", user_id=user.id)
+        payment = payments.get(method)(phone_number=user.phone_number, amount=cost, metadata=metadata)
+        payment.execute()
+        celery_logger.warn("Sent to mobile payments checkout")
+        return True
+    # do mobile wallet checkout
+    # check user account balance
+    if user.account.balance < cost:
+        gateway.sendMessage(to_=user.phone_number,
+                            message_="Your have insufficient funds to purchase {number_of_tickets} "
+                                     "{ticket_type} ticket(s) for {event_name}. "
+                                     "worth {iso_cost} each. Please top up and try again".format(
+                                number_of_tickets=number_of_tickets,
+                                ticket_type=package.type.name,
+                                event_name=event.name,
+                                iso_cost=iso_format(event.address.code.currency_code, package.price)
+                            ))
+        celery_logger.err("Cannot complete ticket purchase, user has inadequate funds. Sending message to user {}".format(
+            user.phone_number
+        ))
+        return False
+
+    # do actual cvs checkout
+    purchase_ticket.apply_async(kwargs={'number_of_tickets':number_of_tickets,
+                                        'user_id':user.id,
+                                        'package_id':package.id,
+                                        'wallet':True})
+    celery_logger.warn("Transaction queued ")
+    return True
+
+@celery.task(bind=True, ignore_result=True, default_retry_delay=30 * 60)
+def purchase_ticket(self, number_of_tickets, user_id, package_id, wallet=False):
+    """
+    :param number_of_tickets: 
+    :param user_id: 
+    :param package_id: 
+    :param wallet: 
+    :return: 
+    """
+    # compose message
+    message = "You have purchased {number} {ticket_type} ticket(s) for {event_name} worth " \
+              "{currency_code} " \
+              "{ticket_price} each.Your ticket code is {ticket_code}, " \
+              "Download the ticket at {ticket_url}\n"
+
+    package = Package.by_id(package_id)
+    if package is None:
+        celery_logger.err("Invalid package selected")
+        return
+    user = User.by_id(user_id)
+    cost = package.price * number_of_tickets
+    if wallet:
+        user.account.balance -= cost
+        user.account.points += cost * 0.1
+        user.save()
+    package.remaining -= number_of_tickets
+    package.save()
+    ticket = Ticket.create(number=number_of_tickets, package=package, user=user)
+    event = package.event
+    recepients = [user.phone_number]
+    message = message.format(number=number_of_tickets,
+                             event_name=event.name,
+                             ticket_type=ticket.type,
+                             currency_code=event.address.code.currency_code,
+                             ticket_price=package.price,
+                             ticket_url=' ', # TODO add ticket url
+                             ticket_code=ticket.code)
     try:
-        # send the user a mobile checkout
+        resp = gateway.sendMessage(to_=recepients, message_=message)
+    except AfricasTalkingGatewayException as exc:
+        self.retry(exc=exc, countdown=20)
+    return True
+
+
+
+
+@celery.task(bind=True, ignore_result=True)
+def handle_mobilecheckout_callback(self, transaction_id, provider_refId, provider, value, transaction_Fee, provider_fee,
+                                   status,
+                                   description, metadata, phone_number, category):
+    """
+    :param self: 
+    :param transaction_id: This is a unique transactionId from AT.
+    :param provider: This contains the payment provider that facilitated this transaction
+    :param value: value being exchanged in this transaction. [3-digit currencyCode][space][Decimal Value]
+    :type value: str
+    :param transaction_Fee: transaction fee charged by Africa's Talking for this transaction
+    :param provider_fee: any fee charged by a payment provider to facilitate this transaction.
+    :param status: final status of this transaction.Possible values are: Success or Failed 
+    :type status: str 
+    :param description: detailed description of this transaction.
+    :param metadata: map of metadata sent by our application it initiated this transaction. 
+    :param phone_number:
+    :param category:
+    """
+    # update transaction details
+
+    reason = metadata.get('reason')
+    amount = float(value[3:].strip())
+    # get total transaction fees
+    if provider_fee is not None:
+        provider_fee = float(provider_fee[3:].strip())
+    else:
+        provider_fee = 0.0
+    if transaction_Fee is not None:
+        transaction_Fee = float(transaction_Fee[3:].strip())
+    else:
+        transaction_Fee = 0.0
+    transaction_fees = provider_fee + transaction_Fee  # get total transaction fees and charge user
+    # log transaction
+    transaction = Transaction.by_requestid(transaction_id)
+    if transaction is None:
+        user = User.by_phonenumber(phone_number)
+        transaction = Transaction.create(transaction_id=transaction_id, user=user)
+    transaction.status = status
+    transaction.reference_id = provider_refId
+    transaction.description = description
+    transaction.fees = transaction_fees
+    transaction.amount = amount
+    transaction.save()
+    user = transaction.user
+
+    if status is "Failed":
+        # just deduct transaction fees and quit
+        user.account.balance -= transaction_fees
+        user.save()
+        celery_logger.err("Failed transaction {}".format(description))
+        gateway.sendMessage(to_=user.phone_number, message_="Cash value Solutions\n"
+                                                            "Your transaction could not be "
+                                                            "completed at this time due to {}".format(description))
+        return False
+
+    # status is Success
+    currency_code = value[:3]
+    if category is 'MobileCheckout':
+        if reason is "Top up":
+            # handle top up
+            user.account += (amount - transaction_fees)
+            user.save()
+            # send confirmatory message
+            gateway.sendMessage(to_=user.phone_number,
+                                message_="{refid} "
+                                         "You have topped up your Cash Value Wallet with {amount} "
+                                         "via {provider}."
+                                         "Your new wallet balance is {balance}"
+                                         "Transaction fee is {fees}"
+                                         "".format(amount=value,
+                                                   refid=provider_refId,
+                                                   provider=provider,
+                                                   fees=iso_format(currency_code, transaction_fees),
+                                                   balance=iso_format(currency_code, user.account.balance)
+                                                   )
+                                )
+        if reason is "Buy Ticket":  # TODO add context
+            number_of_tickets = metadata['number_of_tickets']
+            phone_number = metadata['phone_number']
+            user_id = User.by_phonenumber(phone_number).id
+            package_id = metadata['package_id']
+            purchase_ticket.apply_async(kwargs={'number_of_tickets': number_of_tickets,
+                                                'user_id': user_id,
+                                                'package_id': package_id,
+                                                'wallet': False})
+
+    if category is 'MobileB2C':
+        # withdrawal request
+        user.account.balance -= (amount + transaction_fees)
+        user.save()
+        gateway.sendMessage(to_=user.phone_number,
+                            message_="{refid} "
+                                     "You have withdrwan {amount} from your Cash Value Wallet to your"
+                                     "{provider} account."
+                                     "Your new wallet balance is {balance}."
+                                     "Transaction fee is {fees}"
+                                     "".format(amount=value,
+                                               refid=provider_refId,
+                                               provider=provider,
+                                               fees=iso_format(currency_code, transaction_fees),
+                                               balance=iso_format(currency_code, user.account.balance)
+                                               )
+                            )
+
+
+@celery.task(bind=True, ignore_result=True)
+def mobileCheckout(self, phone_number, amount, metadata):
+    # get user
+    user = User.by_phonenumber(phone_number)
+    # get currency code
+    currency_code = user.address.code.currency_code
+
+    try:
         transaction_id = gateway.initiateMobilePaymentCheckout(
             productName_=current_app.config['PRODUCT_NAME'],
-            phoneNumber_=user.phone_number,
             currencyCode_=currency_code,
             amount_=amount,
-            providerChannel_="9142",
             metadata_=metadata)
-        celery_logger.warn(transaction_id)
-    except Exception as exc:
-        raise self.retry(exc=exc, countdown=5)
+        trans = Transaction.create(transaction_id=transaction_id, user=user, amount=amount,
+                                   description=metadata["reason"])
+        celery_logger.warn("New transaction id: {} logged".format(transaction_id))
+    except AfricasTalkingGatewayException as exc:
+        celery_logger.err("Could not complete transaction")
 
 
-@celery.task(bind=True, default_retry_delay=30 * 60)
-def async_cvswallet_checkout(self, payload):
-    amount = payload["amount"]
-    metadata = payload['metadata']
-    user = get_user_by_phone_number(phone_number=metadata['phone_number'])
-    if user:
-        user.account.balance -= amount
-        user.account.points = float(amount * 0.5)
-        db.session.commit()
-        try:
-            gateway.sendMessage(to_=user.phone_number, message_=metadata['message'])
-        except Exception as exc:
-            raise self.retry(exc=exc, countdown=5)
-
-
-@celery.task(bind=True)
-def async_checkoutb2c(self, payload):
-    user = get_user_by_phone_number(payload["phone_number"])
-    reason = 'BusinessPayment'
+@celery.task(bind=True, ignore_result=True)
+def make_B2Crequest(self, phone_number, amount, reason):
+    user = User.by_phonenumber(phone_number)
     recipients = [
-        {"phoneNumber": payload["phone_number"],
-         "currencyCode": payload["currency_code"],
-         "amount": payload["amount"],
+        {"phoneNumber": phone_number,
+         "currencyCode": user.address.code.currency_code,
+         "amount": amount,
          "reason": reason,
          "metadata": {
              "phone_number": user.phone_number,
-             "reason": "Withdraw"
+             "reason": reason
          }
          }
     ]
 
     try:
-        response = gateway.mobilePaymentB2CRequest(
-            productName_=current_app.config["PRODUCT_NAME"], recipients_=recipients)[0]
-        celery_logger.warn("response is {}".format(response))
-
-        if response['status'] == 'Queued':
-            transaction_id = response['transactionId']
-            amount = payload["amount"]
-            user.account.balance -= amount
-            amount = user.currency_code + " " + str(amount)
-            message = "{transaction_id} You have withdrawn {amount} from" \
-                      " your Cash value wallet," \
-                      "Your new account balance is {balance}".format(
-                transaction_id=transaction_id,
-                amount=amount,
-                balance=user.account.balance)
-            db.session.commit()
-        else:
-            message = "Dear {username}, network is experiencing problems please try again later"
-            celery_logger.info(response['errorMessage'])
-
-        gateway.sendMessage(to_=user.phone_number, message_=message)
+        response = gateway.mobilePaymentB2CRequest(productName_=current_app.config["PRODUCT_NAME"],
+                                                   recipients_=recipients)[0]
+        transaction = Transaction.create(status=response['status'],
+                                         transaction_id=response['transactionId'],
+                                         description=reason,
+                                         user=user)
     except Exception as exc:
+        celery_logger.err("B2C request experienced an errorr {}".format(exc))
         raise self.retry(exc=exc, countdown=5)
 
 
-@celery.task(bind=True, default_retry_delay=2 * 1)
-def async_purchase_airtime(self, payload):
+@celery.task(bind=True, ignore_result=True)
+def async_purchase_airtime(self, phone_number, amount):
+    user = User.by_phonenumber(phone_number)
+    if user.account.balance < amount:
+        gateway.sendMessage(to_=user.phone_number, message_="You have insufficient funds in your "
+                                                            "wallet to complete the transaction. Please top up and try "
+                                                            "again")
+        celery_logger.err('Insufficient balance')
+        return False
+    currency_code = user.address.code.currency_code
+    value = iso_format(currency_code, amount)
+    recepients = [{"phoneNumber": phone_number, "amount": value}]
     try:
-        resp = gateway.sendAirtime([payload])
-        if resp[0].get('errorMessage') != 'None':
-            gateway.sendMessage(to_=payload["phone_number"],
-                                message_=resp[0]['errorMessage'])
+        responses = gateway.sendAirtime(recipients_=recepients)
+        for response in responses:
+            trans = Transaction.create(description="Buy airtime", amount=amount, status=response['status'],
+                                       transaction_id=response['requestId'])
+            trans.user = user
+            trans.save()
     except Exception as exc:
-        gateway.sendMessage(to_=payload["phoneNumber"], message_="Network "
-                                                                 "experiencing problems,\n"
-                                                                 "Kindly try again later")
+        celery_logger.err("Encountered an error while sending airtime: {}".format(exc))
+
+    return True
 
 
 @celery.task(bind=True)
-def async_validate_cache(self, payload):
-    phone_number = payload["phone_number"]
-    user = get_user_by_phone_number(phone_number=phone_number)
-    if user:
-        cache.set(phone_number, json.dumps(user.to_dict()))
-    else:
-        cache.delete(phone_number)
-        celery_logger.info("deleted cache item at {}".format(phone_number))
-    celery_logger.info("Validated cache item at {}".format(phone_number))
-
-
-@celery.task(bind=True)
-def async_mobile_money_callback(self, payload):
-    message = None
-    celery_logger.warn("recived payload {}".format(payload))
-    payload = json.loads(payload)
-    api_payload = payload.get('api_payload')
-    if payload is None:
-        celery_logger.err("async_mobile_money_callback received an empty payload")
-    category = api_payload.get('category')  # 'MobileCheckout'
-    value = api_payload.get('value')  # e.g 'KES 100.0000'
-    metadata = api_payload.get('requestMetadata')
-    transactionDate = api_payload.get('transactionDate')
-    transactionFee = api_payload.get('transactionFee')[:3] + " "
-    transactionFee += str(
-        float(
-            api_payload.get(
-                'transactionFee')[3:]
-        )
-    )  # e.g 'KES 1.0000'
-    transaction_id = api_payload.get('transactionId')
-
-    currency_code = value[:3]
-    amount = value[3:].lstrip()  # split value to get amount
-    amount = float(amount)  # convert to a floating point
-    phone_number = metadata["phone_number"]
-    user = get_user_by_phone_number(phone_number=phone_number)
-
-    if category == 'MobileCheckout':
-        if metadata.get("reason") == "Deposit":
-            currency_code = value[:3]
-            amount = value[3:].lstrip()  # split value to get amount
-            amount = float(amount)  # convert to a floating point
-            phone_number = metadata["phone_number"]
-            user = get_user_by_phone_number(phone_number=phone_number)
-            # update user after sending checkout
-            user.account.balance += amount
-            amount = "{} {}".format(currency_code, amount)
-            balance = "{} {}".format(currency_code, user.account.balance)
-            message = "{transaction_id} Confirmed, You have deposited {amount} " \
-                      "to your Cash value wallet, Transaction fee is {transactionFee}, " \
-                      "Your new account balance is {balance}".format(
-                username=user.username,
-                amount=amount,
-                balance=balance,
-                transaction_id=transaction_id,
-                transactionFee=transactionFee)
-
-        if metadata.get("reason") == "ET":
-            celery_logger.info("Electronic ticketing")
-            # electronic ticketing
-            user_id = metadata["user_id"]
-            ticket_id = metadata["ticket_id"]
-            number_of_tickets = metadata["number_of_tickets"]
-            message, recipients = purchase_ticket(number_of_tickets=int(number_of_tickets),
-                                                  user_id=int(user_id),
-                                                  ticket_id=int(ticket_id))
-
-            if message is not None:
-                # notify user of the transaction
-                gateway.sendMessage(to_=user.phone_number, message_=message)
-            celery_logger.info("message sent")
-
-    if category == "MobileB2C":
-        if metadata.get("reason") == "Withdraw":
-            user.account.balance -= amount
-            amount = "{} {}".format(currency_code, amount)
-            balance = "{} {}".format(currency_code, user.account.balance)
-            message = "{transaction_id} Confirmed, You have withdrawn {amount} " \
-                      "from your Cash value wallet, Transaction fee is {transactionFee}, " \
-                      "Your new account balance is {balance}".format(
-                username=user.username,
-                amount=amount,
-                balance=balance,
-                transaction_id=transaction_id,
-                transactionFee=transactionFee)
-        if metadata.get("reason") == "Purchase":
-            message = payload['message']
-
-    db.session.commit()
-    if message is not None:
-        # notify user of the transaction
-        gateway.sendMessage(to_=user.phone_number, message_=message)
-    celery_logger.info("recived a mobile money call back for {}".format(phone_number))
-
-
-@celery.task(bind=True, default_retry_delay=2 * 1)
-def async_mobile_wallet_purchse(self, payload):
-    pass
-
-
-@celery.task(bind=True, default_retry_delay=2 * 1)
-def async_buy_ticket(self, payload):
-    payload = json.loads(payload)
-    user = cPickle.loads(str(payload["user"]))
-    number_of_tickets = payload["number_of_tickets"]
-    ticket = Ticket.query.get(payload["ticket"])
-    method = payload["payment_method"]
-
-    if method == "2":  # Wallet
-        message, recepients = purchase_ticket(
-            ticket_id=ticket.id,
-            user_id=user.id,
-            method=method,
-            number_of_tickets=number_of_tickets,
-            ticket_url=payload["ticket_url"],
-            ticket_code=payload["ticket_code"]
-        )
+def handle_airtime_callback(self, request_id, status):
+    transaction = Transaction.by_transactionId(request_id)
+    user = db.session.query(User).join(Account).filter(User.id == transaction.user_id).first()
+    if status == 'Success':
+        user.account.balance -= transaction.amount
+        user.account.points += transaction.amount * 0.1
+        user.save()
         try:
-            # send confirmatory messsage
+            gateway.sendMessage(to_=user.phone_number, message_="You have bought "
+                                                                "{amount} worth of airtime."
+                                                                "".format(amount=transaction.amount))
+        except AfricasTalkingGatewayException as exc:
+            celery_logger.err("Couldn't not send message to AT: {}".format(exc))
+    transaction.save()
 
-            resp = gateway.sendMessage(to_=recepients, message_=message)
-        except Exception as exc:
-            raise self.retry(exc=exc, countdown=5)
-    elif method == "1":  # Mpesa
-        ticket = get_ticket_by_id(ticket_id=ticket.id)
-        event = ticket.event
-        currency_code = event.currency_code
-        # metadata = cPickle.loads(str(payload["metadata"]))
-        metadata = {
-            "reason": "ET",
-            "ticket_id": str(ticket.id),
-            "event_id": str(event.id),
-            "user_id": str(user.id),
-            "number_of_tickets": str(number_of_tickets)
-        }
+def iso_format(code, amount):
+    return "{code} {amount}".format(code=code, amount=amount)
 
-        try:
-            # send the user a mobile checkout
-            transaction_id = gateway.initiateMobilePaymentCheckout(
-                productName_=current_app.config['PRODUCT_NAME'],
-                phoneNumber_=user.phone_number,
-                currencyCode_="KES",
-                amount_=number_of_tickets * ticket.price,
-                providerChannel_='9142',
-                metadata_=metadata)
-            celery_logger.warn("Transaction id {}".format(transaction_id))
-        except Exception as exc:
-            raise self.retry(exc=exc, countdown=5)
+class Payments():
+    """Custom gateway for accepted payments
+    """
+    _name = 'PAYMENTS'
+
+    def __init__(self, phone_number, amount, metadata):
+        self.phone_number = phone_number
+        self.amount = amount
+        self.metadata = metadata
+
+    def __str__(self):
+        return self._name
+
+    # def execute(self):
+        pass
+
+class Mpesa(Payments):
+    _name = "MPESA"
+
+    def execute(self):
+        mobileCheckout.apply_async(args=[self.phone_number,self.amount, self.metadata], countdown=5)
+
+payments = {
+    "1": Mpesa
+}

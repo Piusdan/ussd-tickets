@@ -10,7 +10,6 @@ from sqlalchemy.orm  import relationship
 from flask_sqlalchemy import current_app
 from flask_login import UserMixin, AnonymousUserMixin
 
-
 from app import login_manager, hashids
 from app.database import db
 from app.utils.database import CRUDMixin, slugify
@@ -49,6 +48,7 @@ class User(UserMixin, CRUDMixin,db.Model):
     address = relationship('Address', backref="users", lazy='subquery')
     account = relationship("Account", backref="user", uselist=False)
     tickets = relationship("Ticket", backref="user", lazy='dynamic')
+    transactions =relationship('Transaction', backref='user', lazy='dynamic')
 
     slug = Column(String)
 
@@ -209,3 +209,32 @@ class Account(db.Model):
     user_id = Column(Integer, db.ForeignKey("user.id"))
     balance = Column(Float, default=0.00)
     points =Column(Float, default=0.00)
+
+class Transaction(CRUDMixin, db.Model):
+    """
+    :param id: Unique identifier for the transaction
+    :param request_id: Unique transaction request id
+    :param status: Failed, Pending, Success - Request fro the transaction
+    :param Description: More info about the transaction
+    :param meta: Additional info about the transaction
+    """
+    __tablename__ = 'transactions'
+    id = Column(Integer, primary_key=True)
+    transaction_id = Column(String, nullable=False)
+    reference_id = Column(String)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    status = Column(String(12), default='Pending')
+    Description = Column(String)
+    amount = Column(Float, default=0.00)
+    fees = Column(Float, default=0.00)
+
+    meta = Column(String)
+    created_at = Column(DateTime, default=eastafrican_time)
+
+    @staticmethod
+    def by_id(id):
+        return Transaction.query.get(id)
+
+    @staticmethod
+    def by_transactionId(id):
+        return Transaction.query.filter_by(request_id=id).first()

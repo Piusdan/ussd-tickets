@@ -1,3 +1,4 @@
+from flask import g
 from app import redis
 import json
 from app.ussd.utils import respond
@@ -8,7 +9,7 @@ class Menu:
         self.user_response = user_response
         self.session_id = session_id
         # tracked user session
-        self.session = json.loads(redis.get(session_id))
+        self.session = g.session
         if phone_number is not None:
             self.phone_number = phone_number
 
@@ -25,7 +26,7 @@ class Menu:
         # save session
         redis.set(self.session_id, json.dumps(self.session))
         menu_text = "CON {}".format(text)
-        return respond(text)
+        return respond(menu_text)
 
     def end_session(self, text):
         return self.ussd_end('Thank you for doing bussiness with us.')
