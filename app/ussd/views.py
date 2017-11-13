@@ -1,9 +1,7 @@
-import json
 import logging
 
 from flask import request, g, jsonify
 
-from app import redis
 from app.model import AnonymousUser
 from app.ussd.tasks import handle_airtime_callback, handle_mobilecheckout_callback
 from app.ussd.utils import respond

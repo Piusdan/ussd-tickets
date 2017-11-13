@@ -7,6 +7,7 @@ before_install:
   - echo "START"
 
 script:
+# currently just install requirements
   - pip install -r requirements.txt
 
 # blacklist

@@ -4,7 +4,6 @@
     ~~~
     Provides the flask application
 """
-import os
 from hashids import Hashids
 from celery import Celery
 from flask import Flask

@@ -1,6 +1,6 @@
 from functools import wraps
 import logging
-from flask import g, request, session
+from flask import g, request
 import pickle
 import json
 

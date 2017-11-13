@@ -43,12 +43,6 @@ class Config(object):
 
     # configuration specific to AT gateways
     USSD_CONFIG = 'production'
-    AT_APIKEY = os.getenv('AT_APIKEY',
-                          'ba45842273aed6928fe00'
-                          'afcaddd697755535b7d3d9'
-                          'ad8ec4986727543ff7ea5')
-    AT_USERNAME = os.getenv('AT_USERNAME', 'sandbox')
-    AT_ENVIRONMENT = os.getenv('AT_ENVIRONMENT', 'sandbox')
     SMS_CODE = os.getenv('AT_SMSCODE', None)
     PRODUCT_NAME = os.getenv('AT_PRODUCT_NAME', 'Mobile Wallet')
     PROVIDER_CHANNEL = "9142"
@@ -57,28 +51,11 @@ class Config(object):
     USSD_EVENTS_PER_PAGE = 5
     WEB_EVENTS_PER_PAGE = 8
 
-    # ticket types allowed
-    TICKET_TYPES = ["Regular", "VVIP", "VIP"]
-
-
-    # celery conf
-    # celery conf
-
     REDIS_URL = os.environ.get('REDIS_URL', "redis://localhost:6379/0")
     CELERY_BROKER_URL = os.environ.get('REDIS_URL', "redis://localhost:6379/0")
     CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL', "redis://localhost:6379/0")
 
-    # country codesgit
-    CODES = {
-        "+254": {
-            "currency": "KES",
-            "country": "Kenya"
-        },
-        "+255": {
-            "currency": "UGX",
-            "country": "Uganda"
-        }
-    }
+
     @classmethod
     def init_app(cls, app):
         pass
@@ -132,19 +109,9 @@ class ProductionConfig(Config):
 class HerokuConfig(ProductionConfig):
     SSL_DISABLE = bool(os.environ.get('SSL_DISABLE'))
     CACHE_URL = os.environ.get('HEROKU_REDIS_RED_URL')
-    AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-    AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-    FLASKS3_BUCKET_NAME = 'cashvaluesolution-static-files'
-    FLASKS3_REGION = 'EU'
     @classmethod
     def init_app(cls, app):
-        from flask_s3 import FlaskS3
-        s3 = FlaskS3()
         ProductionConfig.init_app(app)
-        logging.info("Uploading to s3")
-        flask_s3.create_all(app)
-        s3.init_app(app)
-
         from logging import StreamHandler
         file_handler = StreamHandler()
         file_handler.setLevel(logging.WARNING)
