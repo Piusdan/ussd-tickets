@@ -1,9 +1,8 @@
 from flask_wtf import FlaskForm as Form
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, ValidationError, IntegerField
 from wtforms.validators import DataRequired, Length, Optional, Email, Regexp, EqualTo
-from geopy.geocoders.googlev3 import GoogleV3
 
-from ..models import User
+from app.model import User
 
 
 class LoginForm(Form):

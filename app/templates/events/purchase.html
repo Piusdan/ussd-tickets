@@ -1,7 +1,7 @@
-{% extends "bootstrap/base.html" %} {% block metas %}
+{% extends "bootstrap/base.html" %}{% block metas %}
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=Edge">
-<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"> {% endblock %} {% block title %}Welcome To | Cash Value Solutions - Dashboard{% endblock %}
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"> {% endblock %} {% block title %}Print Ticket | Cash Value Solutions{% endblock %}
 <!-- Favicon-->
 {% block favicon %}
 <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon"> {% endblock %} {% block styles %}
@@ -31,9 +31,10 @@
 <!-- AdminBSB Themes. -->
 <link href="{{ url_for('static', filename='css/theme-orange.css') }}" rel="stylesheet" /> {% endblock %} {% block body_attribs %} class="container-fluid"{% endblock %} {% block content %}
 <div class="container-fluid">
-
-    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
-        {% include '_purchase.html' %}
-    </div>
+        <section class="content">
+            <div class="col-lg-8 col-md-12 col-sm-12 col-xs-12">
+                {% include '_purchase.html' %}
+            </div>
+        </section>
 </div>
 {% endblock %}

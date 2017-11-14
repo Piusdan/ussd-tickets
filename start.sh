@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-gunicorn --reload manage:app
+gunicorn manage:app --reload --workers 2

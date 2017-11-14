@@ -1,11 +1,11 @@
-from . import db
-from flask import flash, redirect, url_for
-from .models import User, Ticket, Event, Purchase, Location, Role
-
-from . import celery
-from app_exceptions import GeocoderError
 from dateutil.parser import parse
+import pickle
+import json
+
+from app import celery
 from app import gateway
+from app import db
+from app.models import User, Ticket, Event, Purchase, Location, Role
 
 
 # # @celery.task(bind=True, default_retry_delay=1 * 2)
@@ -114,38 +114,3 @@ def async_delete_event(self, payload):
     db.session.commit()
     return "Deleted"
 
-@celery.task(bind=True, default_retry_delay=1 * 2)
-def async_buy_ticket(self, payload):
-    """
-
-    return True 
-    :param user - payload {"user", "ticket", "number", "ussd", "code", "url"}
-
-    """
-    # payload = {"user":current_user().id, "ticket":ticket.id, "number":1, "ussd":True}
-    ticket = Ticket.query.filter_by(id=int(payload["ticket"])).first()
-    user = User.query.filter_by(id=int(payload["user"])).first()
-    ticket.count -= payload["number"]
-    user.account.balance -= ticket.price
-    code = payload["code"]
-    try:
-        purchase = Purchase(ticket_id=ticket.id, code=code, account_id=user.account.id, count=payload["number"])
-        db.session.add(purchase)
-        # send confirmatory messsage or email
-        recepients = [user.phone_number]
-        message = "You have purchased {} ticket for {} worth {}.\nYour ticket code is {}\nYou can also download the ticket at {}\n".format(
-            ticket.type, ticket.event.title, ticket.price_code, purchase.code, payload.get("url"))
-    except Exception as exc:
-        db.session.rollback()
-        raise self.retry(exc=exc, countdown=5)
-
-    if payload.get("ussd"):
-        try:
-            resp = gateway.sendMessage(to_=recepients, message_=message)
-        except Exception:
-            gateway.sendMessage(to_=user.phone_number, message_="Network experiencing problems.\nKindly try again later")
-    db.session.commit()
-
-
-
-        

@@ -1,0 +1,46 @@
+version: '2'
+services:
+  db:
+    image: 'postgres:9.6'
+    container_name: cashvalue-db
+    volumes:
+      - '/var/lib/postgresql'
+    restart: on-failure
+    environment:
+      POSTGRES_PASSWORD: 'valhalla'
+      POSTGRES_DB: 'postgres'
+      POSTGRES_USER: 'postgres'
+    ports:
+      - "5432"
+  redis:
+    image: 'redis:3.0-alpine'
+    container_name: cashvalue-redis
+    restart: on-failure
+    volumes:
+      - '.:/cashvalue-backend/data/redis'
+    ports:
+      - "6379"
+
+  web:
+    container_name: cashvalue-backend
+    image: '344296193730.dkr.ecr.us-east-2.amazonaws.com/cvs-main-backend:latest'
+    volumes:
+      - .:/app  
+    command: ./prod-start.sh
+    env_file: .env
+    ports:
+      - "8000:8000"
+    links:
+      - db
+      - redis
+      - worker
+  
+  worker:
+    container_name: cashvalue-worker
+    image: '344296193730.dkr.ecr.us-east-2.amazonaws.com/cvs-main-backend:latest'
+    restart: on-failure
+    env_file: .env
+    command: ./prod-start.sh
+    volumes:
+      - .:/worker
+

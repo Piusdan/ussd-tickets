@@ -6,14 +6,17 @@ Creates a shell context for the app
 import os
 from flask_script import Manager, Shell
 from flask_migrate import MigrateCommand, Migrate
+import logging
 
 from app import create_app, db
-from app.models import User, Role, Event, Ticket, Account, Location, Purchase
+from app.model import User, Role, Account, Event, Package, Type, Ticket, Address, Code, AnonymousUser, Permission
 
-app = create_app(os.environ.get('VALHALLA_CONFIG') or 'default')
+app = create_app(os.environ.get('FLASK_CONFIG') or 'default')
+
 migrate = Migrate(app, db)
 manager = Manager(app)
-app.logger.info("initialising app")
+
+logging.info("initialising app")
 
 COV = None
 
@@ -24,9 +27,9 @@ if os.environ.get('VALHALLA_COVERAGE'):
 
 
 def make_shell_context():
-    return dict(app=app, User=User, Role=Role, Ticket=Ticket,
-                Event=Event, Account=Account,
-                Location=Location, db=db, Purchase=Purchase)
+    return dict(app=app, User=User, Role=Role, Ticket=Ticket,Permission=Permission,AnonymousUser=AnonymousUser,
+                Event=Event, Account=Account, Package=Package,
+                Address=Address, Type=Type, Code=Code)
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
@@ -34,16 +37,14 @@ manager.add_command('db', MigrateCommand)
 
 @manager.command
 def reset_db():
-    app.logger.info("Prepairing to reset db")
+    logging.info("Prepairing to reset db")
     db.session.commit()
     db.session.close_all()
-    app.logger.info("Droping all Columns")
+    logging.info("Droping all Columns")
     db.drop_all()
-    app.logger.info("Initializing new db")
+    logging.info("Initializing new db")
     db.create_all()
-    app.logger.info("Creating roles")
-    Role.insert_roles()
-    app.logger.info("DB reset")
+    logging.info("DB reset")
 
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.schema import DropTable
@@ -55,77 +56,20 @@ def _compile_drop_table(element, compiler, **kwargs):
 
 
 @manager.command
-def add_roles():
-    from flask_migrate import upgrade
-    from app.models import Role
-
-    # migrate db to latest version
-    app.logger.info("migrating database to latest state")
-    upgrade()
-
-    # create user roles
-    app.logger.info("adding user roles")
-    Role.insert_roles()
-
-
-@manager.command
 def deploy():
     """Run deployment tasks"""
     from flask_migrate import upgrade
-    from app.models import Role, User
+    from app.model import Role, Type
 
     # migrate db to latest version
+    logging.info("migrating database to latest state")
     upgrade()
-
     # create user roles
+    logging.info("adding user roles")
     Role.insert_roles()
-
-
-@manager.command
-def reset_db():
-    app.logger.info("Prepairing to reset db")
-    db.session.commit()
-    db.session.close_all()
-    app.logger.info("Droping all Columns")
-    db.drop_all()
-    app.logger.info("Initializing new db")
-    db.create_all()
-    app.logger.info("Creating roles")
-    Role.insert_roles()
-    app.logger.info("DB reset")
-
-from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.schema import DropTable
-
-@compiles(DropTable, "postgresql")
-def _compile_drop_table(element, compiler, **kwargs):
-    return compiler.visit_drop_table(element) + " CASCADE"
-
-@manager.command
-def add_roles():
-    from flask_migrate import upgrade
-    from app.models import Role
-
-    # migrate db to latest version
-    app.logger.info("migrating database to latest state")
-    upgrade()
-
     # create user roles
-    app.logger.info("adding user roles")
-    Role.insert_roles()
-
-
-@manager.command
-def deploy():
-    """Run deployment tasks"""
-    from flask_migrate import upgrade
-    from app.models import Role, User
-
-    # migrate db to latest version
-    upgrade()
-
-    # create user roles
-    Role.insert_roles()
+    logging.info("adding ticket types")
+    Type.insert_types()
 
 
 @manager.command
@@ -145,7 +89,7 @@ def test(coverage=False):
     if COV:
         COV.stop()
         COV.save()
-        print('Coverage Summary:')
+        logging.info('Coverage Summary:')
         COV.report()
         # basedir = os.path.abspath(os.path.dirname(__file__))
         # covdir = os.path.join(basedir, 'tmp/coverage')

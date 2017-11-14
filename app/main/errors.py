@@ -1,5 +1,5 @@
-from . import main
-from ..decorators import handle_errors
+from app.main import main
+from app.decorators import handle_errors
 
 @main.app_errorhandler(404)
 @handle_errors(404)
