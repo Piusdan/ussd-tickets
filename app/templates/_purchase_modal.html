@@ -101,7 +101,8 @@
                                     <li class="ls list-group-item d-flex justify-content-between align-items-center">
                                         PURCHASERUSERNAME
                                         <span class="text pull-right">
-                                            <span class="fa fa-user fa-fw" aria-hidden="true"></span>                                        {{ user.username }}
+                                            <span class="fa fa-user fa-fw" aria-hidden="true"></span>
+                                            {{ user.username }}
                                         </span>
                                     </li>
                                 </ul>
@@ -142,8 +143,10 @@
                         </div>
                         <div class="row clearfix">
                         <div class="btn-ground">
-                            <a href="{{ url_for('main.get_purchase', code=purchase.code) }}" type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"><span class="glyphicon glyphicon-download-alt"></span> Download</a>
-                            <a href="" type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent"><span class="glyphicon glyphicon-inbox"></span> Email</a>
+                            <button type="button"
+                                    class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent btn btn-primary"
+                                    onclick="generatePDF('{{ url_for('main.get_purchase', code=purchase.code)}}')">
+                                <span class="glyphicon glyphicon-download-alt"></span> Download</button>
                         </div>
                     </div>
                     </div>

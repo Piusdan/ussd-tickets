@@ -1,9 +1,14 @@
 **.pyc
 **.sqlite
-**/media/**
-app/app
+app/media/
 app/.coverage
-Test Results - tests.html
 requirements
 .idea/
 .vscode/
+**.log
+.env/
+
+/valhalla.pem
+/app/static.zip
+upload_s3.py
+app/common/

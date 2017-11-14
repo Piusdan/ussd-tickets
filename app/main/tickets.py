@@ -1,40 +1,67 @@
-from flask import render_template, make_response,jsonify, request, current_app as app
-from json import dumps
-import pdfkit
+from flask import render_template, make_response,jsonify, request, abort
+from flask_login import login_required
+from app.decorators import admin_required
+from cStringIO import StringIO
+import logging
 
 from app import db
 from app.main import main
-from app.models import  Purchase, Ticket
+from app.model import  Package, Type, Event
 
 
-@main.route('/ticket/update', methods=['POST', 'GET'])
-def edit_ticket():
+@main.route('/package/update', methods=['POST', 'GET'])
+def edit_package():
     data = request.get_json()
-    ticket_id = data.get("ticket_id")
-    ticket = Ticket.query.filter_by(id=ticket_id).first()
-    print ticket
-    if ticket is None:
-        response = jsonify(error="Invalid Ticket")
+    package_id = data.get("package_id")
+    package = Package.by_id(package_id)
+    logging.info(data)
+    if package is None:
+        response = jsonify(error="Invalid Package")
         response.status_code = 404
     else:
-        ticket.price = float(data.get("price"))
-        ticket.count = int(data.get("count"))
-        db.session.commit()
+        package.price = float(data.get("price"))
+        package.remaining = int(data.get("number"))
+        package.save()
         response = jsonify(data="Ticket updated")
         response.status_code = 200
     return response
 
 
+@main.route('/package/add/<int:event_id>', methods=['POST', 'GET'])
+@login_required
+@admin_required
+def add_package(event_id):
+    data = request.get_json()
+    request_dict = {}
+    map(lambda x: request_dict.setdefault(x.get('name'), x.get('value')), data)
+    logging.info("event {}".format(event_id))
+    event = Event.query.get(event_id)
+    if event is None:
+        abort(404)
+    type_id = request_dict["type"]
+    price = request_dict["price"]
+    number = request_dict["number"]
+    package = Package.create(type_id=type_id, price=price, remaining=number, event_id=event.id)
+    response = jsonify(data="Package Added")
+    response.status_code = 201
+    return response
+
 @main.route('/download/<string:code>')
 def download_ticket(code):
     ticket = Purchase.query.filter_by(code=code).first()
     user = ticket.account.holder
-    rendered = render_template('events/purchase.html', purchase=ticket, user=user)
-    pdf = pdfkit.from_string(rendered, False)
-    response = make_response(pdf)
+    pdf_data = render_template('events/print_ticket.html', purchase=ticket, user=user)
+    result = StringIO()
+    print type(pdf_data)
+    pisa.CreatePDF(
+        StringIO(pdf_data.encode("utf-8")),
+        dest=result)
+    response = make_response(result.getvalue())
+    result.close()
+    ticket_name = 'ticket{code}'.format(code=code)
+    # response.headers.set('Content-Disposition', 'attachment', filename=ticket_name + '.pdf')
     response.headers['Content-Type'] = 'application/pdf'
-    response.headers['content-Disposition'] = 'inline; filename=output.pdf'
-
+    return response
 
 @main.route('/ticket/<string:code>')
 def get_purchase(code):

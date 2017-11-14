@@ -1,6 +1,7 @@
-from app.models import User
+import pickle
+from app import db
+from app.model import User, Address, Code
 from app.ussd.base_menu import Menu as Base
-from app.ussd.utils import respond, create_user
 
 class RegistrationMenu(Base):
     """
@@ -9,32 +10,36 @@ class RegistrationMenu(Base):
 
     def get_number(self):
         # promote the user a higher session level
-        self.set_level(21)
-        self.update_session()
-        menu_text = "CON Please choose a Username\n"
+        self.session["level"] = -1
+        menu_text = "Please choose a Username\n"
         # Print the response onto the page so that our gateway can read it
-        return respond(menu_text)
+        return self.ussd_proceed(menu_text)
+
+    def execute(self):
+        level = self.session.get('level')
+        if level is None or level == 0:
+            return self.get_number()
+
 
     def get_username(self):
         # Request again for name - level has not changed...
-        if self.user_response:
-            # insert user name into db request for city
-            username = self.user_response
-            payload = {"username":username, "phone_number":self.phone_number, "ussd":True}
-            if User.query.filter_by(username=username).first():
-                menu_text = "CON Username already taken. Please choose another username.\n"
-            else:
-                create_user(payload)
-                # graduate user level
-                self.set_level(0)
-                self.update_session()
-                menu_text = "CON Registration Succesfull\n Press 0 to continue"
-        else:
-            menu_text = "CON Username not supposed to be empty. Please enter your username \n"
-        # Print the response onto the page so that our gateway can read it
-        return respond(menu_text)
+        if self.user_response is None:
+            return self.ussd_proceed("Username not supposed to be empty. Please enter your username \n")
 
-    def register_default(self):
-        menu_text = "END Apologies something went wrong \n"
-        # Print the response onto the page so that our gateway can read it
-        return respond(menu_text, self.session_id)
+        username = self.user_response
+
+        if User.by_username(username) is not None:
+            return self.ussd_proceed("Username already taken. Please choose another username.\n")
+
+        address_code = Code.by_code(self.phone_number[:4])
+        if address_code is None:
+            return self.ussd_end("Service not available in your country. Please use a Kenyan or Ugandan line")
+        address = Address()
+        user = User(username=username, phone_number=self.phone_number)
+        user.address = address
+        user.address.code = address_code
+        db.session.commit()
+        # update current user
+        g.current_user = user
+        # run the home menu
+        return self.home()
