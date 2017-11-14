@@ -50,10 +50,12 @@ class Event(CRUDMixin,db.Model):
         return total
 
     def purchased_tickets(self):
-        tickets = Ticket.by_event(self)
-        if tickets:
-            return reduce(lambda x, y: x.number + y.number, tickets)
-        return 0
+        tickets = db.session.query(Ticket).join(Package).filter(Package.event_id==self.id).join(Type).\
+            filter(~Type.name.in_(['Organiser']))
+        total = 0
+        for ticket in tickets:
+            total += ticket.number
+        return total
 
     @staticmethod
     def organiser(user_id):

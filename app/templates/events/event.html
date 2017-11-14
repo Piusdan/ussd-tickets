@@ -16,7 +16,7 @@
         <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
             <div class="info-box-3 bg-brown hover-expand-effect">
                 <div class="icon">
-                    <span class="chart chart-line">3</span>
+                    <span class="chart chart-line">{% for i in daily_saleschart%}{{i}},{% endfor %}</span>
                 </div>
                 <div class="content">
                     <div class="text">TODAYS SALES</div>
@@ -27,7 +27,7 @@
         <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
             <div class="info-box-3 bg-grey hover-expand-effect">
                 <div class="icon">
-                    <span class="chart chart-line">3</span>
+                    <span class="chart chart-line">{% for i in sales_chart %}{{i}},{% endfor %}</span>
                 </div>
                 <div class="content">
                     <div class="text">TOTAL SALES</div>
@@ -41,8 +41,8 @@
                     <i class="material-icons">shopping_cart</i>
                 </div>
                 <div class="content">
-                    <div class="text">TICKET SOLD</div>
-                    <div class="number count-to" data-from="0" data-to="{{ event.bought_tickets }}" data-speed="1000" data-fresh-interval="20">{{ event.bought_tickets }}</div>
+                    <div class="text">TICKETS SOLD</div>
+                    <div class="number count-to" data-from="0" data-to="{{ tickets_sold }}" data-speed="1000" data-fresh-interval="20">{{ tickets_sold  }}</div>
                 </div>
             </div>
         </div>
@@ -66,11 +66,12 @@
 
                 </div>
                 <div class="body">
-                {% if purchases %}
+                {% if tickets %}
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped table-hover dataTable js-exportable">
                                     <thead>
                                         <tr>
+                                            <th>Ticket code</th>
                                             <th>Purchaser Username</th>
                                             <th>Date of Purchase</th>
                                             <th>Number of Tickets Bought</th>
@@ -79,13 +80,20 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for purchase in purchases %}
+                                        {% for ticket in tickets %}
                                         <tr>
-                                            <td>{{ purchase.account.holder.username }}</td>
-                                            <td>{{ moment(purchase.timestamp).format('MM/DD/YY') }}</td>
-                                            <td>{{ purchase.count }}</td>
-                                            <td>{{ purchase.ticket.type.name }}</td>
-                                            <td>{{ purchase.confirmed }}</td>
+                                            <td><a href="#">{{ ticket.code }}</a></td>
+                                            <td>{{ ticket.user.username }}</td>
+                                            <td>{{ moment(ticket.created_at).format('MM/DD/YY') }}</td>
+                                            <td>{{ ticket.number }}</td>
+                                            <td>{{ ticket.package.type.name }}</td>
+                                            <td>
+                                                {% if ticket.confirmed %}
+                                                <span class="label label-success">Confirmed</span>
+                                                {% else %}
+                                                <span class="label label-danger">Not Confirmed</span>
+                                                {% endif %}
+                                            </td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>

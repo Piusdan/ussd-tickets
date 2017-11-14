@@ -1,6 +1,7 @@
 import os
 import datetime
 import logging
+from sqlalchemy import func, and_
 from flask import render_template,flash,redirect,url_for,request,send_from_directory,current_app, jsonify, abort
 from flask_login import login_required, current_user
 from app.decorators import admin_required
@@ -19,22 +20,33 @@ def get_event(slug):
 
     event = Event.by_slug(slug)
     packages = Event.packages
-    tickets = db.session.query(Package.price).join(Ticket).filter(Package.event == event)
+    event_tickets = db.session.query(Ticket).join(Package).\
+        filter(Package.event_id==event.id).join(Type).filter(~Type.name.in_(['Organiser']))
+    todays_tickets = event_tickets.filter(Ticket.created_at+datetime.timedelta(days=1) > eastafrican_time())
+    # tickets = db.session.query(Package.price).join(Ticket).filter(Package.event == event).filter(Ticket.created_at.between(today, yesterday.date()))
+    tickets_sold = 0
     total_sales = 0
     daily_sales = 0
-    for price in tickets.all():
-        total_sales += price[0]
-    today = eastafrican_time().date()
-    yesterday = eastafrican_time() + datetime.timedelta(days=1)
-    todays_tickets = tickets.filter(Ticket.created_at.between(today, yesterday.date()))
-    for price in todays_tickets.all():
-        daily_sales += price[0]
+    sales_chart = []
+    daily_saleschart = []
+    for ticket in event_tickets.all():
+        tickets_sold+=ticket.number
+        total_sales+=ticket.package.price
+        sales_chart.append(ticket.number*ticket.package.price)
+    for ticket in todays_tickets:
+        daily_sales += ticket.package.price
+        daily_saleschart.append(ticket.number*ticket.package.price)
     return render_template('events/event.html',
                            event=event,
                             packages=packages,
                            package_form=package_form,
                            total_sales=total_sales,
-                           daily_sales=daily_sales)
+                           daily_sales=daily_sales,
+                           tickets=event_tickets.all(),
+                           tickets_sold=tickets_sold,
+                           daily_saleschart=daily_saleschart,
+                           sales_chart=sales_chart
+                           )
 
 
 @main.route('/event', methods=['POST', 'GET'])
