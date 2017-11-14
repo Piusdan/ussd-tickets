@@ -1,5 +1,6 @@
 from flask import current_app
 from africastalking.AfricasTalkingGateway import AfricasTalkingGatewayException
+import json
 
 from app import db, gateway
 from app.model import Ticket, User, Transaction, Account, Package
@@ -40,7 +41,7 @@ def check_balance(user_id):
 
 
 @celery.task(bind=True, ignore_result=True)
-def make_ticketPurchase(self, package_id, number_of_tickets, phone_number, method):
+def ticketPurchase(self, package_id, number_of_tickets, phone_number, method):
     """
     :param package_id: 
     :param number_of_tickets: 
@@ -56,81 +57,100 @@ def make_ticketPurchase(self, package_id, number_of_tickets, phone_number, metho
     cost = package.price * number_of_tickets
     # get requesting user
     user = User.by_phonenumber(phone_number)
-    # TODO check if the event has enough tickets
-    # handle mobile payment check
-    if method in payments.keys():
-        metadata = dict(event_id=event.id, package_id=package_id, number_of_tickets=number_of_tickets,
-                        reason="Buy Ticket", user_id=user.id)
+    timestamp = eastafrican_time()
+    currency_code = user.address.code.currency_code
+    description = "Buy {number} {type} tickets for {event_name}".format(number=number_of_tickets,
+                                                                        type=package.type.name,
+                                                                        event_name=event.name)
+    transaction_id = log_transaction(user_id=user.id,
+                                     description=description,
+                                     timestamp=timestamp,
+                                     amount=cost,
+                                     status='Pending')  # log transaction
+    transaction = Transaction.by_transactionCode(transaction_id)
+    if package.remaining < number_of_tickets:
+        transaction.status = 'Failed'
+        transaction.save()
+        # TODO send message
+        message = "{transaction_id} Failed. Sorry tickets already sold out.\n".format(transaction_id=transaction_id)
+        gateway.sendMessage(to_=user.phone_number, message=message)
+        return None
+
+    if str(method) in payments.keys():  # handle mobile payment check
+        metadata = {'event_slug': event.slug,
+                    'package_id':str(package_id),
+                    'number_of_tickets':str(number_of_tickets),
+                    'reason':"Buy Ticket",
+                    'user_slug':user.slug,
+                    'transaction_id':transaction_id }
+
         payment = payments.get(method)(phone_number=user.phone_number, amount=cost, metadata=metadata)
         payment.execute()
-        celery_logger.warn("Sent to mobile payments checkout")
+        celery_logger.warn("{} Sent to mobile payments checkout".format(transaction_id))
         return True
-    # do mobile wallet checkout
-    # check user account balance
-    if user.account.balance < cost:
-        gateway.sendMessage(to_=user.phone_number,
-                            message_="Your have insufficient funds to purchase {number_of_tickets} "
-                                     "{ticket_type} ticket(s) for {event_name}. "
-                                     "worth {iso_cost} each. Please top up and try again".format(
-                                number_of_tickets=number_of_tickets,
-                                ticket_type=package.type.name,
-                                event_name=event.name,
-                                iso_cost=iso_format(event.address.code.currency_code, package.price)
-                            ))
-        celery_logger.error(
-            "Cannot complete ticket purchase, user has inadequate funds. Sending message to user {}".format(
-                user.phone_number
-            ))
+
+    # mobile wallet checkout
+    if user.account.balance < cost:  # check if user has enough cash
+        message = "{transaction_id} Failed. " \
+                  "There is not enough money in your account to buy tickets worth {cost}. " \
+                  "Your account balance is {balance}".format(transaction_id=transaction_id,
+                                                             cost=iso_format(currency_code, cost),
+                                                             balance=iso_format(currency_code, user.account.balance))
+        gateway.sendMessage(to_=user.phone_number, message_=message)
+        celery_logger.error(message)
         return False
 
-    # do actual cvs checkout
-    purchase_ticket.apply_async(kwargs={'number_of_tickets': number_of_tickets,
-                                        'user_id': user.id,
-                                        'package_id': package.id,
-                                        'wallet': True})
-    celery_logger.warn("Transaction queued ")
+    # mobile wallet checkout
+    purchaseTicket.apply_async(kwargs={'number_of_tickets': number_of_tickets,
+                                       'user_id': user.id,
+                                       'package_id': package.id,
+                                       'wallet': True,
+                                       'transaction_id': transaction_id})
+    celery_logger.warn("Transaction queued {}".format(transaction_id))
     return True
 
 
 @celery.task(bind=True, ignore_result=True, default_retry_delay=30 * 60)
-def purchase_ticket(self, number_of_tickets, user_id, package_id, wallet=False):
+def purchaseTicket(self, number_of_tickets, user_id, package_id, transaction_id, wallet=False):
     """
     :param number_of_tickets: 
     :param user_id: 
     :param package_id: 
-    :param wallet: 
+    :param wallet:
+    :param transaction_id: unique identifier for the transaction
     :return: 
     """
     # compose message
-    message = "You have purchased {number} {ticket_type} ticket(s) for {event_name} worth " \
-              "{currency_code} " \
-              "{ticket_price} each.Your ticket code is {ticket_code}, " \
-              "Download the ticket at {ticket_url}\n"
-
     package = Package.by_id(package_id)
-    if package is None:
-        celery_logger.error("Invalid package selected")
-        return
+    event = package.event
+    transaction = Transaction.by_transactionCode(transaction_id)
     user = User.by_id(user_id)
-    cost = package.price * number_of_tickets
-    if wallet:
+    cost = number_of_tickets * package.price
+    if wallet:  # performing a mobile wallet checkout deduct from user's account
+        transaction.status = 'Success'  # update transaction details
+        transaction.save()
         user.account.balance -= cost
         user.account.points += cost * 0.1
         user.save()
-    package.remaining -= number_of_tickets
+
+    package.remaining -= number_of_tickets  # reduce number of remaining tickets
     package.save()
-    ticket = Ticket.create(number=number_of_tickets, package=package, user=user)
-    event = package.event
-    recepients = [user.phone_number]
-    message = message.format(number=number_of_tickets,
-                             event_name=event.name,
-                             ticket_type=ticket.type,
-                             currency_code=event.address.code.currency_code,
-                             ticket_price=package.price,
-                             ticket_url=' ',  # TODO add ticket url
-                             ticket_code=ticket.code)
+    ticket = Ticket.create(number=number_of_tickets, package=package, user=user) # add ticket for the user
+
+    message = "{transaction_id} Confirmed. " \
+              "Purchased {number} {type} ticket(s) for {event_name} event on {date} at {time}. " \
+              "Ticket code is {ticket_code} " \
+              "Download the ticket at {url}\n".format(transaction_id=transaction.transaction_code,
+                                                      number=number_of_tickets,
+                                                      type=package.type.name,
+                                                      event_name=event.name,
+                                                      date=transaction.date,
+                                                      time=transaction.time,
+                                                      ticket_code=ticket.code,
+                                                      url='') # TODO fix ticket download url
+
     try:
-        resp = gateway.sendMessage(to_=recepients, message_=message)
+        resp = gateway.sendMessage(to_=user.phone_number, message_=message)
     except AfricasTalkingGatewayException as exc:
         self.retry(exc=exc, countdown=20)
     return True
@@ -209,15 +229,18 @@ def handle_mobilecheckout_callback(provider_refId, provider, value, transaction_
                                                        cost=iso_format(currency_code, transaction_fees))
 
             gateway.sendMessage(to_=user.phone_number, message_=message)
-        if reason == "Buy Ticket":  # TODO add context
-            number_of_tickets = metadata['number_of_tickets']
-            phone_number = metadata['phone_number']
-            user_id = User.by_phonenumber(phone_number).id
-            package_id = metadata['package_id']
-            purchase_ticket.apply_async(kwargs={'number_of_tickets': number_of_tickets,
-                                                'user_id': user_id,
-                                                'package_id': package_id,
-                                                'wallet': False})
+        if reason == "Buy Ticket":
+            number_of_tickets =int(metadata['number_of_tickets'])
+            user_slug = metadata['user_slug']
+            user = User.by_slug(user_slug)
+            user_id = user.id
+            package_id = int(metadata['package_id'])
+            purchaseTicket.apply_async(kwargs={'number_of_tickets': number_of_tickets,
+                                          'user_id': user_id,
+                                          'package_id': package_id,
+                                          'wallet': False,
+                                          'transaction_id':transaction_id
+                                          })
 
     if category == 'MobileB2C':
         # withdrawal request
@@ -245,12 +268,14 @@ def mobileCheckout(self, phone_number, amount, metadata):
     # get currency code
     currency_code = user.address.code.currency_code
     timestamp = eastafrican_time()
-    transaction_id = log_transaction(user_id=user.id,
+    transaction_id = metadata.get('transaction_id')
+    if transaction_id is None:
+        transaction_id = log_transaction(user_id=user.id,
                                      description=metadata['reason'],
                                      status='Pending',
                                      amount=amount,
                                      timestamp=timestamp)
-    metadata['transaction_id'] = transaction_id
+        metadata['transaction_id'] = transaction_id
 
     try:
         payments = gateway.initiateMobilePaymentCheckout(
@@ -263,7 +288,7 @@ def mobileCheckout(self, phone_number, amount, metadata):
         )
         celery_logger.warn("New transaction id: {} logged".format(transaction_id))
     except AfricasTalkingGatewayException as exc:
-        celery_logger.error("Could not complete transaction")
+        celery_logger.error("Could not complete transaction {exc}".format(exc=exc))
 
 
 @celery.task(bind=True, ignore_result=True)
@@ -309,14 +334,14 @@ def buyAirtime(self, phone_number, amount, account_phoneNumber):
     if not isinstance(amount, int):
         celery_logger.error("Invalid format for amount")
     value = iso_format(currency_code, amount)
-    timestamp = eastafrican_time() # generate timestamp
-    transaction_id = log_transaction(user_id=user.id,amount=amount,status='Pending',timestamp=timestamp,
-                                     description="Buy Airtime for {}".format(phone_number)) # record transaction
+    timestamp = eastafrican_time()  # generate timestamp
+    transaction_id = log_transaction(user_id=user.id, amount=amount, status='Pending', timestamp=timestamp,
+                                     description="Buy Airtime for {}".format(phone_number))  # record transaction
     transaction = Transaction.by_transactionCode(transaction_id)
-    if phone_number.startswith('0'): # transform phone number to ISO format
+    if phone_number.startswith('0'):  # transform phone number to ISO format
         phone_number = user.address.code.country_code + phone_number[1:]
 
-    if user.account.balance < amount: # check if user has enough cash
+    if user.account.balance < amount:  # check if user has enough cash
         message = "{transaction_id} Failed. There is not enough money in your account to buy {amount}. " \
                   "Your Cash Value Wallet balance is {balance}\n".format(transaction_id=transaction_id,
                                                                          amount=value,
@@ -330,7 +355,7 @@ def buyAirtime(self, phone_number, amount, account_phoneNumber):
         return False
     recepients = [{"phoneNumber": phone_number, "amount": value}]
     try:
-        response = gateway.sendAirtime(recipients_=recepients)[0] # get response from AT
+        response = gateway.sendAirtime(recipients_=recepients)[0]  # get response from AT
         transaction.status = response['status']
         transaction.request_id = response['requestId']
         transaction.save()
@@ -363,7 +388,7 @@ def redeemPoints(user_id, points):
                                                                      points=points,
                                                                      amount=iso_format(currency_code, amount),
                                                                      account_balance=iso_format(currency_code,
-                                                                                              account.balance),
+                                                                                                account.balance),
                                                                      point_balance=account.points,
                                                                      transaction_cost=transaction_cost)
     if account.points < points:
@@ -408,6 +433,7 @@ def handle_airtime_callback(self, request_id, status):
 
 
 def log_transaction(user_id, description, status, amount=0.00, transaction_fees=0.00, timestamp=eastafrican_time(), ):
+    # type: (object, object, object, object, object, object) -> object
     transaction = Transaction.create(user_id=user_id, description=description,
                                      status=status, amount=amount,
                                      transaction_cost=transaction_fees, timestamp=timestamp)

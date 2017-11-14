@@ -4,7 +4,7 @@ from flask import g
 import logging
 from app import db
 from app.model import Event, Package, Type
-from app.ussd.tasks import make_ticketPurchase
+from app.ussd.tasks import ticketPurchase
 from app.ussd.utils import paginate_events
 
 from base_menu import Menu
@@ -86,7 +86,7 @@ class ElecticronicTicketing(Menu):
                     "You will receive an SMS notification shortly\n" \
                     "Thank you"
 
-        make_ticketPurchase.apply_async(kwargs={'package_id': package_id,
+        ticketPurchase.apply_async(kwargs={'package_id': package_id,
                                                 'number_of_tickets': int(number_of_tickets),
                                                 'phone_number': g.current_user.phone_number,
                                                 'method': self.user_response},
