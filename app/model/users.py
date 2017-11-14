@@ -197,7 +197,7 @@ class AnonymousUser(AnonymousUserMixin):
         return False
 
 
-class Account(db.Model):
+class Account(CRUDMixin, db.Model):
     """
     :param id: Unique identifier
     :param user_id: User's account id
@@ -216,25 +216,41 @@ class Transaction(CRUDMixin, db.Model):
     :param request_id: Unique transaction request id
     :param status: Failed, Pending, Success - Request fro the transaction
     :param Description: More info about the transaction
-    :param meta: Additional info about the transaction
+    :param transaction_cost: Cost of the transaction
+    :param timestamp: Time transaction took place
+    :param request_id: Used to track responses fro AT gateway
     """
     __tablename__ = 'transactions'
     id = Column(Integer, primary_key=True)
-    transaction_id = Column(String, nullable=False)
-    reference_id = Column(String)
     user_id = Column(Integer, ForeignKey('user.id'))
     status = Column(String(12), default='Pending')
-    Description = Column(String)
+    description = Column(String)
+    request_id = Column(String(255), default=None)
     amount = Column(Float, default=0.00)
-    fees = Column(Float, default=0.00)
+    transaction_cost = Column(Float, default=0.00)
+    timestamp = Column(DateTime, default=eastafrican_time)
 
-    meta = Column(String)
-    created_at = Column(DateTime, default=eastafrican_time)
+    @property
+    def transaction_code(self):
+        return hashids.encode(self.id)
+
+    @property
+    def date(self):
+        return self.timestamp.date().strftime('%d/%m/%y')
+
+    @property
+    def time(self):
+        return self.timestamp.time().strftime('%H:%M %p')
 
     @staticmethod
     def by_id(id):
         return Transaction.query.get(id)
 
     @staticmethod
-    def by_transactionId(id):
-        return Transaction.query.filter_by(request_id=id).first()
+    def by_requestId(request_id):
+        return Transaction.query.filter_by(request_id=request_id).first()
+
+    @staticmethod
+    def by_transactionCode(trasaction_code):
+        id = hashids.decode(trasaction_code)[0]
+        return Transaction.by_id(id)

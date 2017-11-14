@@ -6,7 +6,6 @@ from app import hashids
 from app.database import db
 from app.utils.database import CRUDMixin, slugify
 from app.utils.web import eastafrican_time
-from app.utils.web import get_country
 
 class Event(CRUDMixin,db.Model):
     """

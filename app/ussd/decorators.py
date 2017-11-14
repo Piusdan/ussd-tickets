@@ -24,14 +24,8 @@ def validate_ussd_user(func):
         else:
             session = json.loads(session)
             g.current_user = pickle.loads(session.get('current_user'))
-            if session['level'] == -1:
-                g.current_user = None
         redis.set(session_id, json.dumps(session))
         g.session = session
         return func(*args, **kwargs)
     return wrapper
 
-@ussd.before_request
-@validate_ussd_user
-def null():
-    pass

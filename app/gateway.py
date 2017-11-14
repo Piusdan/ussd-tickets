@@ -16,7 +16,7 @@ class Gateway(AfricasTalkingGateway):
         # this enables us to initialise one gateway to use throughout the app
 
         self.username = os.environ.get('AT_USERNAME') or 'sandbox'
-        self.apiKey = os.environ.get('AT_APIKEY')
+        self.apiKey = os.environ.get('AT_APIKEY') or 'd54ae75f8bad6fef6d550b9edcc2a10cac4dd708d267a18ec0d69e5b18630228'
         self.environment = os.environ.get('AT_ENVIRONMENT') or 'sandbox'
         self.HTTP_RESPONSE_OK = 200
         self.HTTP_RESPONSE_CREATED = 201

@@ -28,8 +28,26 @@ class Menu:
         menu_text = "CON {}".format(text)
         return respond(menu_text)
 
-    def end_session(self, text):
-        return self.ussd_end('Thank you for doing bussiness with us.')
+    def end_session(self, text=None):
+        if text is not None:
+            return self.ussd_end(text)
+        return self.ussd_end('Cash Value Solutions\nThank you for doing bussiness with us.')
 
     def execute(self):
         pass
+
+    def home(self):
+        """Serves the very first USSD menu for a registered user"""
+
+        # upgrade user level and serve home menu
+        self.session['level'] = 1
+        # serve the menu
+        menu_text = "Hello {}\n" \
+                    "Welcome to Cash value Solutions\n" \
+                    "Choose a service to continue\n".format(g.current_user.username)
+        menu_text += "1.Buy Tickets\n"
+        menu_text += "2.Buy Airtime\n"
+        menu_text += "3.My Account\n"
+        menu_text += "4.Check Account Balance\n"
+        menu_text += "0.Exit\n"
+        return self.ussd_proceed(menu_text)
