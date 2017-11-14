@@ -2,7 +2,7 @@ from geopy.geocoders import googlev3
 from flask import flash, redirect, url_for
 
 from app import db
-from app.models import User, Location, Event
+from app.model import User, Address, Event
 from app.main.tasks import async_send_message
 
 
