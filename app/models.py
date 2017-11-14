@@ -35,7 +35,8 @@ class User(UserMixin, db.Model):
     country = db.Column(db.String(64))
     city = db.Column(db.String(64))
     # relationships
-    account = db.relationship('Account', backref="holder", uselist=False, lazy='subquery', cascade='all, delete-orphan')
+    account = db.relationship('Account', backref="holder", uselist=False,
+                              lazy='subquery', cascade='all, delete-orphan')
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     events = db.relationship('Event', backref='organiser', lazy='dynamic')
 
@@ -122,6 +123,10 @@ class User(UserMixin, db.Model):
 
     def to_bin(self):
         return dumps(self)
+
+    @classmethod
+    def to_model(cls):
+        return pickle.loads(cls)
 
 
 class Account(db.Model):
@@ -222,6 +227,10 @@ class Event(db.Model):
     def to_bin(self):
         return pickle.dumps(self)
 
+    @classmethod
+    def to_model(cls):
+        return pickle.loads(cls)
+
     @property
     def logo_url(self):
         from app import photos
@@ -263,9 +272,12 @@ class Ticket(db.Model):
     def __repr__(self):
         return "<Type> {} <Price> {}".format(self.type, self.price)
 
-    @property
-    def price_code(self):
-        return self.event.currency_code + ". " + str(self.price)
+    def to_bin(self):
+        return pickle.dumps(self)
+
+    @classmethod
+    def to_model(cls):
+        return pickle.loads(cls)
 
 
 class Location():

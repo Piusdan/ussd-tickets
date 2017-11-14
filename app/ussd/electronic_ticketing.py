@@ -1,4 +1,6 @@
 from uuid import uuid1
+import json
+import pickle
 
 from flask import url_for
 
@@ -7,31 +9,47 @@ from app.ussd.utils import (respond, current_user,
 from base_menu import Menu
 from app.controllers import async_buy_ticket
 
-
 class ElecticronicTicketing(Menu):
+    """Facilitates Electronic USSD ticketing system
+    """
 
     def get_events(self):
+        """Returns a key value mapping of events as displayed on the USSD sreen
+        :return: session_dict
+        :rtype: dict
+        """
+
         return self.session_dict.get('events')
 
     def get_tickets(self):
+        """Returns a key value mapping of tickets as displayed on the USSD screen
+        :return: session_dict
+        :rtype: dict
+        """
         return self.session_dict.get('tickets')
 
     def view_event(self):
-        event_list_key = "events" + self.session_id
+        """Displays a list of available tickets for a selected event on the USSD screen      
+        :return: USSD meu-text string
+        :rtype: str
+        """
         events_dict = self.get_events()
-        event = events_dict.get(self.user_response)
+        event = events_dict.get(self.user_response)     # get event selected by user
         if event is None:
             return self.invalid_response()
+        event = pickle.loads(str(event))
         tickets = event.tickets
+        text, tickets_dict = get_event_tickets_text(event, tickets)
         if tickets:
             menu_text = "CON {event_title}\n{text}".format(
                 event_title = event.name,
-            text=get_event_tickets_text(tickets, self.session_id))
+                text=text)
+            self.session_dict.setdefault("tickets", tickets_dict)
+            self.session_dict['level'] = 32  # update the user's session level
+            self.update_session()
         else:
             menu_text = "END {} has no tickets available at the moment".format(event.name)
-        # Update sessions to level 32
-        self.session_dict['level'] = 32
-        self.update_session()
+
         return respond(menu_text)
 
     def buy_ticket(self):
@@ -40,6 +58,7 @@ class ElecticronicTicketing(Menu):
         ticket = tickets_dict.get(self.user_response)
         if ticket is None:
             return self.invalid_response()
+        ticket = pickle.loads(str(ticket))
         ticket.price = int(ticket.price)
         if ticket.price < current_user().account.balance:
             menu_text = "END Your request to purchase {}'s " \
