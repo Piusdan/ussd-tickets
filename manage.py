@@ -37,6 +37,7 @@ manager.add_command('db', MigrateCommand)
 
 @manager.command
 def reset_db():
+    """Resets and initialises db"""
     logging.info("Prepairing to reset db")
     db.session.commit()
     db.session.close_all()
