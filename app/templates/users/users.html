@@ -5,7 +5,15 @@
 {% import "bootstrap/wtf.html" as wtf %}
 
 {% block page_content %}
-<!-- Basic Examples -->
+<div class="block-header">
+    <ol class="breadcrumb breadcrumb-col-orange">
+        <li class="active"><i class="material-icons">home</i> All members</li>
+        <li><a href="javascript:void()"><i class="material-icons">event_available</i>User Details</a>
+        </li>
+        <li><a href="javascript:void()"><i class="material-icons">mode_edit</i> Edit User Details</a>
+        </li>
+    </ol>
+</div>
 <div class="row clearfix">
     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
         <div class="card">
@@ -15,17 +23,19 @@
                         #col1, #col2, #col3 {
                            margin-bottom: 0px;
                         }
+
                     </style>
                     <div class="row clearfix">
                         <div class="col-md-3 col-lg-3 col-xs-6 col-sm-6" id="col1">
-                        <h4 class="text-info">
-                            All Members
-                        </h4>
+                            <h4 class="text-info">
+                                All Members
+                            </h4>
                         </div>
 
                         <div class="col-md-9 col-lg-9 col-xs-6 col-sm-6" id="col2">
-                            <button type="button" class="btn bg-green btn-circle waves-effect waves-circle waves-float pull-right"
-                            data-toggle="modal" data-target="#add_userModal">
+                            <button type="button"
+                                    class="btn bg-green btn-circle waves-effect waves-circle waves-float pull-right"
+                                    data-toggle="modal" data-target="#add_userModal">
                                 <i class="material-icons">add</i>
                             </button>
                         </div>
@@ -34,33 +44,23 @@
                     <div class="row clearfix">
                         {% if users %}
                         <div class="table-responsive">
-                            <table class="table table-bordered table-striped table-hover dataTable js-exportable">
+                            <table class="table table-hover dataTable js-exportable">
                                 <thead>
-                                    <tr>
-                                        <th>code</th>
-                                        <th>Name</th>
-                                        <th>Phone Number</th>
-                                        <th>Email</th>
-                                        <th>member since</th>
-                                    </tr>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>user #</th>
+                                    <th>Phone Number</th>
+                                    <th>member since</th>
+                                </tr>
                                 </thead>
-                                <tfoot>
-                                    <tr>
-                                        <th>code</th>
-                                        <th>Name</th>
-                                        <th>Phone Number</th>
-                                        <th>Email</th>
-                                        <th>member since</th>
-                                    </tr>
-                                </tfoot>
                                 <tbody>
                                 {% for user in users %}
                                 <tr class="odd gradeX">
-                                    <td><a href="{{ url_for('main.get_user', slug=user.slug) }}">{{ user.code }}</a></td>
-                                    <td>{{ user.username }}</td>
+                                    <td><a href="{{ url_for('main.get_user', slug=user.slug) }}">{{ user.username }}</a>
+                                    </td>
+                                    <td>{{ user.code }}</td>
                                     <td>{{ user.phone_number }}</td>
-                                    <td class="center">{{ user.email }}</td>
-                                    <td><span class="label label-primary">{{ moment(user.member_since).format('L') }}</span></td>
+                                    <td>{{ moment(user.member_since).format('MMMM Do YYYY, h:mm:ss a') }}</td>
                                 </tr>
                                 {% endfor %}
                                 </tbody>
@@ -69,7 +69,7 @@
                     </div>
                 </div>
             </div>
-                {% else %}
+            {% else %}
             <div class="body">
                 <h4>No users registered with the system yet</h4>
                 {% endif %}
@@ -77,11 +77,12 @@
         </div>
     </div>
     <!--add user modal-->
-     <div class="modal fade" id="add_userModal" tabindex="-1" role="dialog">
-         <div class="modal-dialog modal-sm" role="document">
-             <div class="card">
+    <div class="modal fade" id="add_userModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="card">
                 <div class="body container-fluid">
-                    <h4 class="title-text">Register a new membership</h4><hr>
+                    <h4 class="title-text">Register a new membership</h4>
+                    <hr>
                     <form id="add_userForm" method="post" action="" role="form" name="add_user">
                         {{ form.hidden_tag() }}
                         <div class="input-group">
@@ -97,7 +98,8 @@
                                 <i class="material-icons">phone</i>
                             </span>
                             <div class="form-line">
-                                {{ form.phone_number(class_="form-control", placeholder="Phone Number (+254 7XXXXXXXX)", required=True)}}
+                                {{ form.phone_number(class_="form-control", placeholder="Phone Number (+254 7XXXXXXXX)",
+                                required=True)}}
                             </div>
                         </div>
                         <div class="input-group">
@@ -117,14 +119,16 @@
                             </div>
                         </div>
                         {{ form.submit(class_="btn btn-link waves-effect")}}
-                        <button type="button" class="btn btn-link waves-effect pull-right" data-dismiss="modal">CLOSE</button>
-                </form>
+                        <button type="button" class="btn btn-link waves-effect pull-right" data-dismiss="modal">CLOSE
+                        </button>
+                    </form>
                 </div>
-             </div>
-         </div>
-     </div>
-{% endblock %}
-{% block table_scripts %}
+            </div>
+        </div>
+    </div>
+</div>
+    {% endblock %}
+    {% block table_scripts %}
     <script src="{{ url_for('static', filename='plugins/jquery-datatable/jquery.dataTables.js') }}"></script>
     <script src="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js') }}"></script>
     <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/dataTables.buttons.min.js') }}"></script>
@@ -136,4 +140,4 @@
     <script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.print.min.js') }}"></script>
 
     <script src="{{ url_for('static', filename='js/pages/tables/jquery-datatable.js') }}"></script>
-{% endblock %}
+    {% endblock %}

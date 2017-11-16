@@ -198,6 +198,11 @@ $(function () {
 
     });
 });
+function writeDate(e) {
+    var date = this.innerHTML
+    this.innerHTML= moment(date).fromNow();
+    console.log(moment(date).fromNow())
+}
 
 function showNotification(colorName, text, placementFrom, placementAlign, animateEnter, animateExit) {
     if (colorName === null || colorName === '') { colorName = 'bg-black'; }

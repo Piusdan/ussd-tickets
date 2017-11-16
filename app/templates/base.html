@@ -59,7 +59,8 @@
     <script src="{{ url_for('static', filename='plugins/jquery-sparkline/jquery.sparkline.js') }}"></script>
 
 
-
+    <!--notifier css-->
+    <link href="{{ url_for('static', filename='css/notifier.min.css') }}" rel="stylesheet">
     <!-- Custom Css -->
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 
@@ -181,16 +182,9 @@
                                         <span>Members</span>
                                 </a>
                                 <ul class="ml-menu">
-                                    {% if current_user.is_administrator() %}
-                                    <li {% block add_user %}{% endblock %}>
-                                        <a href="{{ url_for('main.add_user') }}">Add Member</a>
-                                    </li>
-                                    {% endif %}
                                     <li {% block all_users %}{% endblock %}>
                                         {% if current_user.is_administrator() %}
                                         <a href="{{ url_for('main.get_users') }}">All Members</a>
-                                    {% else %}
-                                        <a href="{{ url_for('main.get_user', id=current_user.id) }}">Profile</a>
                                      {% endif %}
                                     </li>
                                 </ul>
@@ -280,7 +274,7 @@
         {{ moment.include_moment() }}
 
     {% block page_scripts %}<!--all custom page scripts go here-->{% endblock %}
-
+    <script src="{{ url_for('static', filename='js/notifier.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <!-- Demo Js -->
     <script src="{{ url_for('static', filename='js/demo.js') }}"></script>

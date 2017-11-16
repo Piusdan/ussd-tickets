@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block page %}{{ user.username }}'s Profile{% endblock %}
+{% block users %}class="active"{% endblock %}
+{% block all_users %}class="active"{% endblock %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block page_content %}
+{{ moment.include_moment() }}
+<div class="container-fluid">
+    <div class="block-header">
+        <ol class="breadcrumb breadcrumb-col-orange">
+            <li><a href="{{ url_for('.get_users')}}"><i class="material-icons">home</i> All Members</a></li>
+            <li class="active"><i class="material-icons">event_available</i>User Details</li>
+            <li><a href="javascript:void()"><i class="material-icons">mode_edit</i> Edit User Details</a>
+            </li>
+        </ol>
+    </div>
+    <div class="block-header">
+        <button type="button" class="btn btn-warning btn-lg"
+                {% if current_user.is_administrator() %} {% else %}disabled="disabled"{% endif %}
+                data-toggle="modal" data-target="#topupModal">
+            Balance: {{ "{}{:,.2f}".format(
+            user.address.code.currency_code,
+            user.account.balance) }}
+            Points: {{ "{:,.2f}".
+            format(user.account.points) }}
+        </button>
+        <span class="pull-right">
+        {{ user.username }} From <label class="label label-primary">{{ user.address.code.country }}</label>
+        Member since <label class="label label-default"> {{ moment(user.member_since).format('L') }}</label>
+        Last seen <label class="label label-warning">{{ moment(user.last_seen).fromNow() }}</label>
+    </span>
+    </div>
+    <div class="row clearfix">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="card">
+                <div class="header">
+                    <h2>
+                        {{ user.username }}'s Activity
+                        <small>Detail of {{ user.username }} latest transactions</small>
+                    </h2>
+                    <ul class="header-dropdown m-r--5">
+                        <li class="dropdown">
+                            <a href="javascript:void(0);" class="dropdown-toggle"
+                               data-toggle="dropdown"
+                               role="button" aria-haspopup="true" aria-expanded="false">
+                                <i class="material-icons">more_vert</i>
+                            </a>
+                            <ul class="dropdown-menu pull-right">
+                                <li><a href="javascript:void(0);">Action</a></li>
+                                <li><a href="javascript:void(0);">Another action</a></li>
+                                <li><a href="javascript:void(0);">Something else here</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                <div class="body">
+                    <div class="table-responsive">
+                        <table class="table table-hover dataTable js-exportable">
+                            <thead>
+                            <tr>
+                                <th>date</th>
+                                <th>status</th>
+                                <th>Transaction Id</th>
+                                <th>Description</th>
+                                <th>amount transacted</th>
+                                <th>transaction cost</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <style>
+                                a#transactiondateLink:link, a#transactiondateLink:visited a#transactiondateLink:hover {
+                                    color: #000000;
+                                    padding: 14px 25px;
+                                    text-align: center;
+                                    text-decoration: none;
+                                    display: inline-block;
+                                }
+
+
+                            </style>
+                            {% for transaction in transactions %}
+                            <tr>
+                                <td id="transactiondate" scope="row">
+                                    <span style="cursor:help">
+                                        <a id="transactiondateLink" data-transactionid="{{transaction.id}}"
+                                           onclick="javascript:writeDate(transaction.id)">
+                                            {{ moment(transaction.timestamp).format('MMMM Do YYYY, h:mm:ss a') }}
+                                        </a>
+                                </span>
+                                </td>
+                                <td><label class="label {% if transaction.status == 'Success' or
+                                       transaction.status == 'Sent'%}label-success
+                                       {% elif transaction.status == 'Failed'%}label-danger
+                                       {% else %}label-warning{%endif%}">
+                                    {{ transaction.status }}</label>
+                                </td>
+                                <td>{{ transaction.transaction_code }}</td>
+                                <td>{{ transaction.description }}</td>
+                                <td>{{ '{} {:,.2f}'.format(user.address.code.currency_code,transaction.amount) }}</td>
+                                <td>{{ '{} {:,.2f}'.format(user.address.code.currency_code,transaction.transaction_cost)
+                                    }}
+                                </td>
+
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="topupModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="card">
+                <div class="body container-fluid">
+                    <h4 class="title-text">Top up {{ user.username }}</h4>
+                    <hr>
+                    <form id="sign_up" method="post" action="" role="form" name="register">
+                    {{ form.hidden_tag() }}
+                        <div class="input-group">
+                                <span class="input-group-addon"><i class="material-icons">attach_money</i></span>
+                                <div class="form-line">
+                                    {{ form.account_balance(class_="form-control", required=True)}}
+                                </div>
+                            </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="material-icons">location_city</i>
+                            </span>
+                            <div class="form-line">
+                                {{ form.role(class_="form-control show-tick", required=True, autofocus=True)}}
+                            </div>
+                        </div>
+                        {{ form.submit(class_="btn btn-link waves-effect")}}
+                        <button type="button" class="btn btn-link waves-effect pull-right" data-dismiss="modal">CLOSE</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block table_scripts %}
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/jquery.dataTables.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/dataTables.buttons.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.flash.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/jszip.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/pdfmake.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/vfs_fonts.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.html5.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/jquery-datatable/extensions/export/buttons.print.min.js') }}"></script>
+
+<script src="{{ url_for('static', filename='js/pages/tables/jquery-datatable.js') }}"></script>
+
+{% endblock %}

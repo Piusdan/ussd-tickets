@@ -4,7 +4,7 @@ from flask_login import login_required, current_user
 from app.main import main
 from app.database import db
 from app.decorators import admin_required
-from app.model import User, Role, Code, Address
+from app.model import User, Role, Code, Address, Transaction
 from app.main.utils import get_country, update_balance_and_send_sms, create_user
 from app.utils.web import flash_errors
 from forms import EditProfileForm, EditProfileAdminForm, AddUserForm
@@ -14,13 +14,15 @@ from forms import EditProfileForm, EditProfileAdminForm, AddUserForm
 @login_required
 def get_user(slug):
     user = User.by_slug(slug)
-    has_purchases = False
-    has_purchases = False
+    form = EditProfileAdminForm(user=user)
+    form.role.data = user.role_id
+    form.account_balance.data = 0.00
+    transactions = Transaction.query.join(User).filter(Transaction.user_id==user.id).order_by(Transaction.timestamp).all()
     if current_user.is_administrator() or current_user == user:
         user = user
     else:
         abort(405)
-    return render_template('users/user_profile.html', user=user, has_purchases=has_purchases)
+    return render_template('users/user.html', user=user, transactions=transactions, form=form)
 
 
 @main.route("/users")

@@ -10,7 +10,6 @@
             <form id="sign_up" method="post" action="" role="form" name="register">
                 {{ form.hidden_tag() }}
                 <div class="col-xs-12 col-sm-12 col-md-4 col-lg-4 pull-left">
-                        
                 <div class="input-group">
                     <span class="input-group-addon">
                         <i class="material-icons">attach_money</i>
@@ -19,17 +18,16 @@
                         {{ form.account_balance(class_="form-control", required=True)}}
                     </div>
                 </div>
-                                    <div class="input-group">
+                    <div class="input-group">
                         <span class="input-group-addon">
                             <i class="material-icons">location_city</i>
                         </span>
                         <div class="form-line">
                             {{ form.role(class_="form-control show-tick", required=True, autofocus=True)}}
-                        
                         </div>
                     </div>
-                    </div>
-                    <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3 pull-right">
+                </div>
+                <div class="col-xs-12 col-sm-12 col-md-3 col-lg-3 pull-right">
                     {{ form.submit(class_="btn btn-block btn-lg bg-black waves-effect")}}
                     </div>
             </form>
