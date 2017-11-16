@@ -36,6 +36,7 @@ Flask-WTF==0.14.2
 futures==3.1.1
 geopy==1.11.0
 gunicorn==19.7.1
+hashids==1.2.0
 html5lib==1.0b8
 idna==2.6
 ipython==5.4.1
