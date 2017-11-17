@@ -1,4 +1,4 @@
-import pickle
+from flask import g
 from app import db
 from app.model import User, Address, Code
 from app.ussd.base_menu import Menu as Base
@@ -37,6 +37,7 @@ class RegistrationMenu(Base):
         address = Address()
         user = User(username=username, phone_number=self.phone_number)
         user.address = address
+        address.save()
         user.address.code = address_code
         db.session.commit()
         # update current user

@@ -27,7 +27,7 @@ class Address(CRUDMixin, db.Model):
 
 
     def __repr__(self):
-        return "<> <>".format(self.city, self.code.country)
+        return "<> <>".format(self.id, self.code.country)
 
     @staticmethod
     def all():
