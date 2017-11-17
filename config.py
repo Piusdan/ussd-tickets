@@ -108,7 +108,7 @@ class ProductionConfig(Config):
 
 class HerokuConfig(ProductionConfig):
     SSL_DISABLE = bool(os.environ.get('SSL_DISABLE'))
-    CACHE_URL = os.environ.get('HEROKU_REDIS_NAVY_URL')
+    CACHE_URL = os.environ.get('HEROKU_REDIS_AQUA')
     @classmethod
     def init_app(cls, app):
         ProductionConfig.init_app(app)
