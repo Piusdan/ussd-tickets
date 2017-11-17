@@ -15,7 +15,6 @@ def index():
 def dashboard():
     users = User.query.count()
     tickets = Ticket.query.count()
-    purchases = Purchase.query.count()
     events = Event.query.count()
     campaigns = 0
 
@@ -23,7 +22,6 @@ def dashboard():
         "users": users,
         "events": events,
         "tickets": tickets,
-        "purchases": purchases,
         "campaigns": campaigns
     }
 
