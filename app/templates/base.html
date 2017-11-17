@@ -130,7 +130,6 @@
                             <ul class="dropdown-menu pull-right">
                                 <li><a href="{{ url_for('main.get_user', slug=current_user.slug) }}"><i class="material-icons">person</i>Profile</a></li>
                                 <li role="seperator" class="divider"></li>
-                                <li><a href="{{ url_for('main.edit_profile') }}"><i class="material-icons">settings</i>Settings</a></li>
                                 <li><a href="{{ url_for('auth.logout') }}"><i class="material-icons">input</i>Sign Out</a></li>
                             </ul>
                         </div>
@@ -183,9 +182,7 @@
                                 </a>
                                 <ul class="ml-menu">
                                     <li {% block all_users %}{% endblock %}>
-                                        {% if current_user.is_administrator() %}
-                                        <a href="{{ url_for('main.get_users') }}">All Members</a>
-                                     {% endif %}
+                                        <a href="{% if current_user.is_administrator() %}{{ url_for('main.get_users') }}{% else %}{{ url_for('main.get_user', slug=current_user.slug) }}{% endif %}">All Members</a>
                                     </li>
                                 </ul>
                         </li>
