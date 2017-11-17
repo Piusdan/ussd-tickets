@@ -61,7 +61,8 @@ class Code(CRUDMixin,db.Model):
             }
         }
         for k, v in codes.items():
-            Code.create(country=v["country"], currency_code=v["currency"],country_code=k)
+            if Code.by_country(country=v["country"]) is None:
+                Code.create(country=v["country"], currency_code=v["currency"],country_code=k)
 
 
     @staticmethod

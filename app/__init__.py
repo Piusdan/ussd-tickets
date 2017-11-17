@@ -72,6 +72,8 @@ def create_app(config_name):
     app.register_blueprint(main_blueprint)
     from app.ussd import ussd as ussd_blueprint
     app.register_blueprint(ussd_blueprint)
+    from app.deploy import deploy as deploy_blueprint
+    app.register_blueprint(deploy_blueprint)
 
     return app
 

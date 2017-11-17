@@ -65,12 +65,16 @@ def deploy():
     # migrate db to latest version
     logging.info("migrating database to latest state")
     upgrade()
+
+    from app.deploy import insert_codes
+    insert_codes.apply_async()
     # create user roles
     logging.info("adding user roles")
     Role.insert_roles()
     # create user roles
     logging.info("adding ticket types")
     Type.insert_types()
+    Code.insert_codes()
 
 
 @manager.command
