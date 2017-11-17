@@ -11,7 +11,7 @@
 {% endblock %}
     <!-- Favicon-->
 {% block favicon %}
-    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" href="s3://cashvaluesolution-assets/images/favicon.ico" type="image/x-icon">
 {% endblock %}
 {% block styles %}
 
@@ -23,49 +23,49 @@
 
 
     <!-- Jquery Core Js -->
-    <script src="{{ url_for('static', filename='plugins/jquery/jquery.min.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery/jquery.min.js"></script>
 
 
     <!-- Bootstrap Core Css -->
-    <link href="{{ url_for('static', filename='plugins/bootstrap/css/bootstrap.css') }}" rel="stylesheet">
+    <link href="s3://cashvaluesolution-assets/plugins/bootstrap/css/bootstrap.css" rel="stylesheet">
 
     <!-- Waves Effect Css -->
-    <link href="{{ url_for('static', filename='plugins/node-waves/waves.css') }}" rel="stylesheet" />
+    <link href="s3://cashvaluesolution-assets/plugins/node-waves/waves.css" rel="stylesheet" />
 
     <!-- Animation Css -->
-    <link href="{{ url_for('static', filename='plugins/animate-css/animate.css') }}" rel="stylesheet" />
+    <link href="s3://cashvaluesolution-assets/plugins/animate-css/animate.css" rel="stylesheet" />
 
     <!-- Morris Chart Css-->
-    <link href="{{ url_for('static', filename='plugins/morrisjs/morris.css') }}" rel="stylesheet" />
+    <link href="s3://cashvaluesolution-assets/plugins/morrisjs/morris.css" rel="stylesheet" />
 
     {% block custom_css %} {% endblock %}
 
     <!-- JQuery DataTable Css -->
-    <link href="{{ url_for('static', filename='plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css') }}" rel="stylesheet">
+    <link href="s3://cashvaluesolution-assets/plugins/jquery-datatable/skin/bootstrap/css/dataTables.bootstrap.css" rel="stylesheet">
 
     <!-- datetime picker css -->
-    <link href="{{ url_for('static', filename='plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css') }}"
+    <link href="s3://cashvaluesolution-assets/plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css"
         rel="stylesheet" />
 
     <!-- Bootstrap Select Css -->
-    <link href="{{ url_for('static', filename='plugins/bootstrap-select/css/bootstrap-select.css') }}" rel="stylesheet" />
+    <link href="s3://cashvaluesolution-assets/plugins/bootstrap-select/css/bootstrap-select.css" rel="stylesheet" />
 
 
 
     <!-- Jquery CountTo Plugin Js -->
-    <script src="{{ url_for('static', filename='plugins/jquery-countto/jquery.countTo.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery-countto/jquery.countTo.js"></script>
 
     <!-- Sparkline Chart Plugin Js -->
-    <script src="{{ url_for('static', filename='plugins/jquery-sparkline/jquery.sparkline.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery-sparkline/jquery.sparkline.js"></script>
 
 
     <!--notifier css-->
-    <link href="{{ url_for('static', filename='css/notifier.min.css') }}" rel="stylesheet">
+    <link href="s3://cashvaluesolution-assets/css/notifier.min.css" rel="stylesheet">
     <!-- Custom Css -->
-    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <link href="s3://cashvaluesolution-assets/css/style.css" rel="stylesheet">
 
     <!-- AdminBSB Themes. -->
-    <link href="{{ url_for('static', filename='css/theme-orange.css') }}" rel="stylesheet" />
+    <link href="s3://cashvaluesolution-assets/css/theme-orange.css" rel="stylesheet" />
 {% endblock %}
 
 {% block body_attribs %} class="container-fluid"{% endblock %}
@@ -210,69 +210,81 @@
 <!--end content-->
 {% block scripts %}
     <!-- Jquery Core Js -->
-    <script src="{{ url_for('static', filename='plugins/jquery/jquery.min.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery/jquery.min.js"></script>
 
     <!-- Moment js -->
-    <script src="{{ url_for('static', filename='plugins/momentjs/moment.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/momentjs/moment.js"></script>
 
     <!-- datetime picker -->
-    <script src="{{ url_for('static', filename='plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js"></script>
 
 
     <!-- Select Plugin Js -->
-    <script src="{{ url_for('static', filename='plugins/bootstrap-select/js/bootstrap-select.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/bootstrap-select/js/bootstrap-select.js"></script>
 
 
 
     <!-- Bootstrap Core Js -->
-    <script src="{{ url_for('static', filename='plugins/bootstrap/js/bootstrap.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/bootstrap/js/bootstrap.js"></script>
 
     <!-- Select Plugin Js -->
-    <script src="{{ url_for('static', filename='plugins/bootstrap-select/js/bootstrap-select.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/bootstrap-select/js/bootstrap-select.js"></script>
 
 
     <!-- Bootstrap Notify Plugin Js -->
-    <script src="{{ url_for('static', filename='plugins/bootstrap-notify/bootstrap-notify.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/bootstrap-notify/bootstrap-notify.js"></script>
 
 
     <!-- Dropzone Plugin Js -->
-    <script src="{{ url_for('static', filename='plugins/dropzone/dropzone.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/dropzone/dropzone.js"></script>
 
     <!-- Slimscroll Plugin Js -->
-    <script src="{{ url_for('static', filename='plugins/jquery-slimscroll/jquery.slimscroll.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery-slimscroll/jquery.slimscroll.js"></script>
 
     <!-- Waves Effect Plugin Js -->
-    <script src="{{ url_for('static', filename='plugins/node-waves/waves.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/node-waves/waves.js"></script>
 
 
     <!-- Jquery CountTo Plugin Js -->
-    <script src="{{ url_for('static', filename='plugins/jquery-countto/jquery.countTo.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery-countto/jquery.countTo.js"></script>
     {% block table_scripts %}
 
     {% endblock %}
 
     <!-- Morris Plugin Js -->
-    <script src="{{ url_for('static', filename='plugins/raphael/raphael.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='plugins/morrisjs/morris.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/raphael/raphael.min.js"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/morrisjs/morris.js"></script>
 
     <!-- ChartJs -->
-    <script src="{{ url_for('static', filename='plugins/chartjs/Chart.bundle.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/chartjs/Chart.bundle.js"></script>
 
     <!-- Flot Charts Plugin Js -->
-    <script src="{{ url_for('static', filename='plugins/flot-charts/jquery.flot.js') }}"></script>
-    <script src="{{ url_for('static', filename='plugins/flot-charts/jquery.flot.resize.js') }}"></script>
-    <script src="{{ url_for('static', filename='plugins/flot-charts/jquery.flot.pie.js') }}"></script>
-    <script src="{{ url_for('static', filename='plugins/flot-charts/jquery.flot.categories.js') }}"></script>
-    <script src="{{ url_for('static', filename='plugins/flot-charts/jquery.flot.time.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/flot-charts/jquery.flot.js"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/flot-charts/jquery.flot.resize.js"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/flot-charts/jquery.flot.pie.js"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/flot-charts/jquery.flot.categories.js"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/flot-charts/jquery.flot.time.js"></script>
     <!-- Sparkline Chart Plugin Js -->
-    <script src="{{ url_for('static', filename='plugins/jquery-sparkline/jquery.sparkline.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery-sparkline/jquery.sparkline.js"></script>
     <!-- Custom Js -->
-    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/js/admin.js"></script>
         {{ moment.include_moment() }}
+    {% block table_scripts %}
 
-    {% block page_scripts %}<!--all custom page scripts go here-->{% endblock %}
-    <script src="{{ url_for('static', filename='js/notifier.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery-datatable/jquery.dataTables.js"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery-datatable/skin/bootstrap/js/dataTables.bootstrap.js"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery-datatable/extensions/export/dataTables.buttons.min.js"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery-datatable/extensions/export/buttons.flash.min.js"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery-datatable/extensions/export/jszip.min.js"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery-datatable/extensions/export/pdfmake.min.js"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery-datatable/extensions/export/vfs_fonts.js"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery-datatable/extensions/export/buttons.html5.min.js"></script>
+    <script src="s3://cashvaluesolution-assets/plugins/jquery-datatable/extensions/export/buttons.print.min.js"></script>
+
+    <script src="s3://cashvaluesolution-assets/js/pages/tables/jquery-datatable.js"></script>
+{% endblock %}
+    <script src="s3://cashvaluesolution-assets/js/notifier.min.js"></script>
+    <script src="s3://cashvaluesolution-assets/js/main.js"></script>
     <!-- Demo Js -->
-    <script src="{{ url_for('static', filename='js/demo.js') }}"></script>
+    <script src="s3://cashvaluesolution-assets/js/demo.js"></script>
 {% endblock %}
