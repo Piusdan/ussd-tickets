@@ -55,7 +55,7 @@ class Code(CRUDMixin,db.Model):
                 "currency": "KES",
                 "country": "Kenya"
             },
-            "+255": {
+            "+256": {
                 "currency": "UGX",
                 "country": "Uganda"
             }
