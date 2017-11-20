@@ -4,7 +4,6 @@ from app.model import User, Event, Ticket, Package
 from . import main
 
 
-
 @main.route('/')
 @login_required
 def index():
