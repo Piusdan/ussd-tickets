@@ -6,7 +6,8 @@ $(function() {
 });
 // Data Picker Initialization
 $('#date').bootstrapMaterialDatePicker({ weekStart : 0, time: false, format : 'DD/MM/YYYY', minDate : moment(), nowButton: true, nowText: 'Today' });
-
+$('#startdate').bootstrapMaterialDatePicker({ weekStart : 0, time: false, format : 'DD/MM/YYYY', minDate : moment(), nowButton: true, nowText: 'Today' });
+$('#enddate').bootstrapMaterialDatePicker({ weekStart : 0, time: false, format : 'DD/MM/YYYY', minDate : moment() });
 $(function() {
 //uses ajax to submit request to create event
     $('#create_eventForm').on('submit', function(e) { //use on if jQuery 1.7+

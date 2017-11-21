@@ -15,6 +15,7 @@ from flask_uploads import configure_uploads, UploadSet, IMAGES
 
 from flask_qrcode import QRcode
 from celery.utils.log import get_task_logger
+import flask_excel as Excel
 
 from app.gateway import Gateway
 from config import Config, config
@@ -53,6 +54,7 @@ def create_app(config_name):
     db.init_app(app)
     login_manager.init_app(app)
     moment.init_app(app)
+    Excel.init_excel(app)
 
     redis.init_app(app)
     cache.init_app(app, config_prefix='CACHE')

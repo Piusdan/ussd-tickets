@@ -5,7 +5,7 @@ from wtforms import (StringField, SubmitField, TextAreaField,
 from wtforms.validators import (Length, DataRequired,
                                 Email, Regexp, ValidationError, Optional)
 
-from app.model import Role, User, Event, Package, Code
+from app.model import Role, User, Event, Package, Code, Interval, Message
 
 
 class EditProfileForm(Form):
@@ -137,3 +137,22 @@ class EditPackageForm(Form):
             int(field.data)
         except:
             raise ValidationError("Price must be a valid integer.")
+
+class CreateMessageForm(Form):
+    title = StringField('Title of the Message', validators=[DataRequired()])
+    body = TextAreaField('Message Body', validators=[DataRequired()])
+    startdate = DateTimeField("Start", format="%d/%m/%Y", validators=[DataRequired()])
+    enddate = DateTimeField("Stop", format="%d/%m/%Y", validators=[DataRequired()])
+    interval = SelectField('Interval', coerce=int)
+    subscriptions = FileField('Upload excel sheet of phone numbers')
+    submit = SubmitField('Submit')
+
+    def __init__(self, *args, **kwargs):
+        super(CreateMessageForm, self).__init__(*args, **kwargs)
+        self.interval.choices = [(interval.id, interval.name)
+                             for interval in Interval.query.order_by(Interval.name).all()]
+
+    def validate_title(self, field):
+        if Message.query.filter_by(title=field.data).first() is not None:
+            raise ValidationError('Message title must be unique')
+

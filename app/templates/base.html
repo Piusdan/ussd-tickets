@@ -166,10 +166,10 @@
                                         </a>
                             <ul class="ml-menu">
                                 <li {% block start_campaign %}{% endblock %}>
-                                    <a href="{{ url_for('.start_campaign') }}">Start Campaign</a>
+                                    <a href="{{ url_for('.bulk_sms') }}">Bulk SMS</a>
                                 </li>
                                 <li {% block view_campaigns%} %}{% endblock %}>
-                                    <a href="#">View Campaigns</a>
+                                    <a href="#">SMS Campaigns</a>
                         </li>
 
                         </ul>
@@ -280,7 +280,7 @@
     <script src="https://s3.eu-west-2.amazonaws.com/cashvaluesolution-assets/js/pages/tables/jquery-datatable.js"></script>
 {% endblock %}
     <script src="https://s3.eu-west-2.amazonaws.com/cashvaluesolution-assets/js/notifier.min.js"></script>
-    <script src="https://s3.eu-west-2.amazonaws.com/cashvaluesolution-assets/js/main.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <!-- Demo Js -->
     <script src="https://s3.eu-west-2.amazonaws.com/cashvaluesolution-assets/js/demo.js"></script>
 {% endblock %}

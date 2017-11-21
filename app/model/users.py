@@ -15,6 +15,59 @@ from app.database import db
 from app.utils.database import CRUDMixin, slugify
 from app.utils.web import eastafrican_time
 
+class Role(db.Model):
+    """
+    :param id: Unique identification for the role
+    :type id: Integer
+    :param name: Name for the role
+    :param permissions: Set of permissions allowed for the role
+    :param users: Assosiation of user's with the role
+    :param default: default role for user
+    :type default: Boolean
+    """
+    __tablename__ = 'roles'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(64), unique=True, nullable=False)
+    default = db.Column(Boolean, default=False, index=True)
+    permissions = Column(Integer)
+    users = relationship('User', backref='role', lazy='dynamic')
+
+    def __repr__(self):
+        return "Role " + self.name
+
+    @staticmethod
+    def insert_roles():
+        roles = {
+            'User': (Permission.BUY_TICKET, True),
+            'Moderator': (Permission.BUY_TICKET |
+                          Permission.ORGANIZE_EVENT |
+                          Permission.MODERATE_EVENT, False),
+            'Administrator': (0xff, False)
+        }
+        for r in roles:
+            role = Role.query.filter_by(name=r).first()
+            if role is None:
+                role = Role(name=r)
+            role.permissions = roles[r][0]
+            role.default = roles[r][1]
+            db.session.add(role)
+        db.session.commit()
+
+
+class Permission:
+    BUY_TICKET = 0x01
+    ORGANIZE_EVENT = 0x04
+    MODERATE_EVENT = 0x08
+    ADMINISTER = 0x80
+
+
+class AnonymousUser(AnonymousUserMixin):
+    def can(self, permissions):
+        return False
+
+    def is_administrator(self):
+        return False
+
 
 class User(UserMixin, CRUDMixin,db.Model):
     """
@@ -141,60 +194,7 @@ class User(UserMixin, CRUDMixin,db.Model):
                        expires_in=expiration)
         return s.dumps({'id': self.id})
 
-
-
-class Role(db.Model):
-    """
-    :param id: Unique identification for the role
-    :type id: Integer
-    :param name: Name for the role
-    :param permissions: Set of permissions allowed for the role
-    :param users: Assosiation of user's with the role
-    :param default: default role for user
-    :type default: Boolean
-    """
-    __tablename__ = 'roles'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(64), unique=True, nullable=False)
-    default = db.Column(Boolean, default=False, index=True)
-    permissions = Column(Integer)
-    users = relationship('User', backref='role', lazy='dynamic')
-
-    def __repr__(self):
-        return "Role " + self.name
-
-    @staticmethod
-    def insert_roles():
-        roles = {
-            'User': (Permission.BUY_TICKET, True),
-            'Moderator': (Permission.BUY_TICKET |
-                          Permission.ORGANIZE_EVENT |
-                          Permission.MODERATE_EVENT, False),
-            'Administrator': (0xff, False)
-        }
-        for r in roles:
-            role = Role.query.filter_by(name=r).first()
-            if role is None:
-                role = Role(name=r)
-            role.permissions = roles[r][0]
-            role.default = roles[r][1]
-            db.session.add(role)
-        db.session.commit()
-
-
-class Permission:
-    BUY_TICKET = 0x01
-    ORGANIZE_EVENT = 0x04
-    MODERATE_EVENT = 0x08
-    ADMINISTER = 0x80
-
-
-class AnonymousUser(AnonymousUserMixin):
-    def can(self, permissions):
-        return False
-
-    def is_administrator(self):
-        return False
+login_manager.anonymous_user = AnonymousUser
 
 
 class Account(CRUDMixin, db.Model):
