@@ -156,3 +156,20 @@ class CreateMessageForm(Form):
         if Message.query.filter_by(title=field.data).first() is not None:
             raise ValidationError('Message title must be unique')
 
+class EditMessageForm(Form):
+    title = StringField('Title of the Message', validators=[DataRequired()])
+    body = TextAreaField('Message Body', validators=[DataRequired()])
+    enddate = DateTimeField("Stop", format="%d/%m/%Y")
+    interval = SelectField('Interval', coerce=int)
+    subscriptions = FileField('Upload excel sheet of phone numbers')
+    submit = SubmitField('Submit')
+
+    def __init__(self, message, *args, **kwargs):
+        super(EditMessageForm, self).__init__(*args, **kwargs)
+        self.interval.choices = [(interval.id, interval.name)
+                             for interval in Interval.query.order_by(Interval.name).all()]
+        self.message = message
+
+    def validate_title(self, field):
+        if Message.query.filter_by(title=field.data).first() is not None and self.message.title != field.data:
+            raise ValidationError('Message title must be unique')

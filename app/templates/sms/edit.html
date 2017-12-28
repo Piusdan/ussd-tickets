@@ -1,0 +1,77 @@
+{% extends "base.html" %} {% block custom_css %}
+{% endblock %}
+{% block sms %}class="active"{% endblock %} {% block start_campaign %}class="active"{% endblock %}
+{% import "bootstrap/wtf.html" as wtf %} {% import "bootstrap/wtf.html" as wtf %}
+{% block page %}{{ message.title|title }} Edit Details{% endblock %}
+{% block page_content%}
+<div class="container-fluid">
+    <div class="block-header">
+        <ol class="breadcrumb breadcrumb-col-orange">
+            <li><a href="{{ url_for('.bulk_sms')}}"><i class="material-icons">home</i> Console Home</a></li>
+            <li><a href="{{ url_for('.sms_details', slug=message.slug)}}"><i class="material-icons">event_available</i>
+                Message Details</a></li>
+            <li class="active"><i class="material-icons">mode_edit</i> Edit Message Details</li>
+        </ol>
+    </div>
+    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+        <div class="card">
+            <div class="header">
+                <h2>
+                    Bulk SMS
+                    <small>New sms</small>
+                </h2>
+            </div>
+            <div class="body">
+                <form id="add_sms" method="post" action="" role="form" name="add_sms" enctype=multipart/form-data>
+                    {{ form.hidden_tag() }}
+                    <div class="row clearfix">
+                        <div class="col-md-4">
+                            <label for="title">Message Title</label>
+                            <div class="form-group">
+                                <div class="form-line">
+                                    {{ form.title(class_='form-control', required=True) }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="enddate">Stop On</label>
+                            <div class="form-group">
+                                <div class="form-line">
+                                    {{ form.enddate(class_="form-control datepicker", required=True) }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="interval">Send Messages</label>
+                            <div class="form-group">
+                                <div class="form-line">
+                                    {{ form.interval(class_='form-control') }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row clearfix">
+                        <div class="col-md-8">
+                            <label for="body">Message Body</label>
+                            <div class="form-group">
+                                <div class="form-line">
+                                    {{ form.body(class_='form-control', required=True) }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="subscriptions">Upload an excel of phonenumbers</label>
+                            <div class="form-group">
+                                <div class="form-line">
+                                    {{ form.subscriptions() }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{ form.submit(class_="btn bg-green btn-block waves-effect")}}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

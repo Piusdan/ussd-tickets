@@ -19,6 +19,7 @@ class Message(CRUDMixin, db.Model):
     body = Column(Text, nullable=False)
     subscriptions = relationship('Subscription', backref='message', lazy='dynamic', cascade='all, delete-orphan')
     interval_id = Column(Integer, ForeignKey('intervals.id'))
+    broadcasts = relationship('Broadcast', backref='message', lazy='dynamic', cascade='all, delete-orphan')
 
     def __init__(self, **kwargs):
         super(Message, self).__init__(**kwargs)
@@ -51,7 +52,6 @@ class Subscription(CRUDMixin, db.Model):
     message_id = Column(Integer, ForeignKey('messages.id'))
     status = Column(String, default="Pending")
     at_messageId = Column(Integer)
-
 
 class Interval(CRUDMixin, db.Model):
     __tablename__ = 'intervals'
@@ -88,4 +88,14 @@ class Interval(CRUDMixin, db.Model):
             if Interval.by_name(value['name']) is None:
                 Interval.create(name=value['name'], seconds=value['seconds'])
         return True
+
+class Broadcast(CRUDMixin, db.Model):
+    __tablename__ = "broadcasts"
+    id  = Column(Integer, primary_key=True)
+    day = Column(DateTime, default=eastafrican_time)
+    failed_count = Column(Integer, default=0)
+    sucess_count = Column(Integer, default=0)
+    sent_count = Column(Integer, default=0)
+    message_id = Column(Integer, ForeignKey('messages.id'))
+
 

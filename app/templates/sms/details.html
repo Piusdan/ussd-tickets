@@ -9,8 +9,85 @@
         <ol class="breadcrumb breadcrumb-col-orange">
             <li><a href="{{ url_for('.bulk_sms')}}"><i class="material-icons">home</i> Console Home</a></li>
             <li class="active"><i class="material-icons">event_available</i> Message Details</li>
-            <li><a href="javascript:void(0)"><i class="material-icons">mode_edit</i> Edit Message Details</a></li>
+            <li><a href="{{ url_for('.edit_bulk_sms', slug=message.slug)}}"><i class="material-icons">mode_edit</i> Edit Message Details</a></li>
         </ol>
+    </div>
+    <div class="row clearfix">
+        <div class="col-lg-12 col-md-12 col-sm-6 col-xs-12">
+            created on <span
+                class="badge badge-default">{{ moment(message.timestamp).format("Do/M/YYYY, h:mm:ss a")}}</span>
+            {% if message.expired %}Expired <span class="badge bg-red">{{ moment(message.expiry).fromNow()}}</span>{%
+            else %}Expires <span class="badge bg-orange">{{ moment(message.expiry).fromNow()}}</span>
+            Last Broadcast was <span class="badge badge-default">{{ moment(message.last_broadcast).fromNow()}}</span>
+            Next Broadcast is <span class="badge bg-green">{{ moment(message.next_broadcast).fromNow()}}</span>
+            {% endif %}
+            <br>
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-lg-12 col-md-12 col-sm-6 col-xs-12">
+
+            <div class="card">
+                <div class="header">
+                    <h2>
+                        {{ message.title| title}}
+                        <small>Subscribers <span class="badge bg-blue">{{ message.subscriptions.count() }}</span>
+                        </small>
+                    </h2>
+                    <ul class="header-dropdown m-r--5">
+                        <li class="dropdown">
+                            <a href="javascript:void(0);" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                               aria-haspopup="true" aria-expanded="false">
+                                <i class="material-icons">more_vert</i>
+                            </a>
+                            <ul class="dropdown-menu pull-right">
+                                <li><a href="javascript:void(0);">Action</a></li>
+                                <li><a href="javascript:void(0);">Another action</a></li>
+                                <li><a href="javascript:void(0);">Something else here</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                <div class="body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped table-hover js-basic-example dataTable">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Broadcast Date</th>
+                                <th>Number of Subscribers</th>
+                                <th>Failed</th>
+                                <th>Succeed</th>
+                                <th>Total Sent</th>
+                            </tr>
+                            </thead>
+                            <tfoot>
+                            <tr>
+                                <th>#</th>
+                                <th>Broadcast Date</th>
+                                <th>Number of Subscribers</th>
+                                <th>Failed</th>
+                                <th>Succeed</th>
+                                <th>Total Sent</th>
+                            </tr>
+                            </tfoot>
+                            <tbody>
+                            {% for broadcast in broadcasts %}
+                            <tr>
+                                <th>{{ loop.index }}</th>
+                                <td>{{ broadcast.day }}</td>
+                                <td>{{ message.subscriptions.count() }}</td>
+                                <td>{{ broadcast.failed_count }}</td>
+                                <td>{{ broadcast.sucess_count }}</td>
+                                <td>{{ broadcast.sent_count }}</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

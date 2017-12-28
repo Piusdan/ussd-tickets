@@ -25,10 +25,16 @@ class Config(object):
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SSL_DISABLE = True
 
+    # CELERYBEAT_SCHEDULE = {
+    #     'send-subscription-sms': {
+    #         'task': 'app.main.tasks.send_subscription_sms',
+    #         'schedule': solar('sunrise', +0.3476, +32.5825)
+    #     },
+    # }
     CELERYBEAT_SCHEDULE = {
         'send-subscription-sms': {
             'task': 'app.main.tasks.send_subscription_sms',
-            'schedule': solar('sunrise', +0.3476, +32.5825)
+            'schedule': timedelta(seconds=30)
         },
     }
 
