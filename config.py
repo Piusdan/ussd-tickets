@@ -25,12 +25,6 @@ class Config(object):
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SSL_DISABLE = True
 
-    # CELERYBEAT_SCHEDULE = {
-    #     'send-subscription-sms': {
-    #         'task': 'app.main.tasks.send_subscription_sms',
-    #         'schedule': solar('sunrise', +0.3476, +32.5825)
-    #     },
-    # }
     CELERYBEAT_SCHEDULE = {
         'send-subscription-sms': {
             'task': 'app.main.tasks.send_subscription_sms',
@@ -114,6 +108,12 @@ class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
     CACHE_URL = os.environ.get('CACHE_URL')
     DEBUG_MEMCHACHE = True
+    CELERYBEAT_SCHEDULE = {
+        'send-subscription-sms': {
+            'task': 'app.main.tasks.send_subscription_sms',
+            'schedule': solar('sunrise', +0.3476, +32.5825)
+        },
+    }
     @classmethod
     def init_app(cls, app):
         Config.init_app(app)
