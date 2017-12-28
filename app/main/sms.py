@@ -77,3 +77,8 @@ def delete_bulk_sms(slug):
     message.delete()
     flash("Broadcast removed", category="warning")
     return redirect(url_for('.bulk_sms'))
+
+@main.route('/view-campaigns')
+@login_required
+def sms_campaigns():
+    return render_template('/sms/campaigns.html')

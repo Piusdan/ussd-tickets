@@ -1,0 +1,14 @@
+{% extends "base.html" %} {% block custom_css %}
+{% endblock %}
+{% block sms %}class="active"{% endblock %} {% block view_campaigns %}class="active"{% endblock %}
+{% import "bootstrap/wtf.html" as wtf %} {% import "bootstrap/wtf.html" as wtf %}
+{% block page %}SMS Campaigns{% endblock %}
+{% block page_content%}
+    <div class="block-header">
+        <ol class="breadcrumb breadcrumb-col-orange">
+            <li class="active"><i class="material-icons">home</i> Console Home</li>
+            <li><a href="javascript:void(0)"><i class="material-icons">event_available</i> Campaign Details</li>
+            <li><a href="javascript:void(0)"><i class="material-icons">mode_edit</i> Edit Campaign Details</a></li>
+        </ol>
+    </div>
+{% endblock %}
