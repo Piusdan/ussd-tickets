@@ -2,10 +2,10 @@ from flask import render_template, flash, jsonify, request, redirect, url_for
 import logging
 from flask_login import login_required
 from app.main import main
-from app.model import Interval, Message, Subscription
+from app.model import Interval, Message, Subscription, Campaign, Choice, Subscriber
 from app.utils.web import flash_errors
 import flask_excel as excel
-from forms import CreateMessageForm, EditMessageForm
+from forms import CreateMessageForm, EditMessageForm, AddCampaignForm, EditCampaignForm, AddChoiceForm
 
 
 @main.route('/sms', methods=['post', 'get'])
@@ -78,7 +78,26 @@ def delete_bulk_sms(slug):
     flash("Broadcast removed", category="warning")
     return redirect(url_for('.bulk_sms'))
 
-@main.route('/view-campaigns')
+@main.route('/campaigns', methods=['get','post'])
 @login_required
 def sms_campaigns():
-    return render_template('/sms/campaigns.html')
+    form = AddCampaignForm()
+    campaigns = Campaign.query.all()
+    if form.validate_on_submit():
+        title = form.title.data
+        expiry = form.expiry.data
+        campaign = Campaign.create(title=title, expiry=expiry)
+        flash(message="New SMS Campaign Added")
+        return redirect(url_for('.sms_campaigns'))
+    form.title.data = ''
+    form.expiry.data = ''
+    return render_template('/sms/campaigns.html', campaigns=campaigns, form=form)
+
+
+@main.route('/campaigns/<string:slug>')
+@login_required
+def campaign_details(slug):
+    campaign = Campaign.by_slug(slug)
+    form = AddChoiceForm()
+    subscribers = Subscriber.query.join(Choice).filter(Choice.campaign_id==campaign.id).all()
+    return render_template('/sms/campaigns_details.html', form=form, campaign=campaign, subscribers=subscribers)

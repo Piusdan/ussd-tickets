@@ -8,7 +8,7 @@ from app.utils.database import CRUDMixin, slugify
 from app.utils.web import eastafrican_time
 
 
-class Campaign(db.Model, CRUDMixin):
+class Campaign(CRUDMixin, db.Model):
     __tablename__ = "campaigns"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(32), index=True, nullable=False, unique=True)
@@ -19,8 +19,21 @@ class Campaign(db.Model, CRUDMixin):
     def __repr__(self):
         return "<Campaign {title}>".format(title=self.title)
 
+    @property
+    def slug(self):
+        return slugify(self.title)
 
-class Choice(db.Model, CRUDMixin):
+    @property
+    def expired(self):
+        if self.expiry.date() < datetime.datetime.utcnow().date():
+            return True
+        return False
+
+    @staticmethod
+    def by_slug(slug):
+        return Campaign.query.filter_by(slug=slug).first_or_404()
+
+class Choice(CRUDMixin, db.Model):
     __tablename__ = 'choices'
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(32), index=True, nullable=False)
@@ -32,10 +45,10 @@ class Choice(db.Model, CRUDMixin):
         return "<Choice {title}: {kw}>".format(title=self.title, kw=self.keyword)
 
 
-class Subscriber(db.Model, CRUDMixin):
+class Subscriber(CRUDMixin, db.Model):
     __tablename__ = 'subscribers'
     id = Column(Integer, primary_key=True, index=True)
-    phoneNumber = Column(String(14), nullable=False, index=True)
+    phone_number = Column(String(14), nullable=False, index=True)
     attempts = Column(Integer, default=1)
     choice_id = Column(Integer, ForeignKey('choices.id'))
 

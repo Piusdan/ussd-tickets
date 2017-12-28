@@ -5,7 +5,7 @@ from wtforms import (StringField, SubmitField, TextAreaField,
 from wtforms.validators import (Length, DataRequired,
                                 Email, Regexp, ValidationError, Optional)
 
-from app.model import Role, User, Event, Package, Code, Interval, Message
+from app.model import Role, User, Event, Package, Code, Interval, Message, Choice, Campaign, Broadcast, Subscriber
 
 
 class EditProfileForm(Form):
@@ -173,3 +173,35 @@ class EditMessageForm(Form):
     def validate_title(self, field):
         if Message.query.filter_by(title=field.data).first() is not None and self.message.title != field.data:
             raise ValidationError('Message title must be unique')
+
+class AddCampaignForm(Form):
+    title = StringField('Campign Title', validators=[DataRequired()])
+    expiry = DateTimeField("Stop", format="%d/%m/%Y")
+    submit = SubmitField('Submit')
+
+    def validate_title(self, field):
+        if Campaign.query.filter_by(title=field.data).first() is not None:
+            raise ValidationError('Title Must be Unique')
+
+class EditCampaignForm(Form):
+    title = StringField('Campign Title', validators=[DataRequired()])
+    expiry = DateTimeField("Stop", format="%d/%m/%Y")
+    submit = SubmitField('Submit')
+
+    def __init__(self, campaign, *args, **kwargs):
+        super(EditCampaignForm, self).__init__(*args, **kwargs)
+        self.campaign = campaign
+
+    def validate_title(self, field):
+        if Campaign.query.filter_by(title=field.data).first() is not None and field.data != self.campaign.title:
+            raise ValidationError('Title Must be Unique')
+
+
+class AddChoiceForm(Form):
+    name = StringField("Choice Name", validators=[DataRequired()])
+    keyword = StringField("Choice Keyword", validators=[DataRequired()])
+    submit =SubmitField('Submit')
+
+    def validate_keyword(self, field):
+        if Choice.query.filter_by(keyword=field.data) is not None:
+            raise ValidationError('keyword already in use')

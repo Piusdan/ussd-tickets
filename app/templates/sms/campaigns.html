@@ -4,6 +4,7 @@
 {% import "bootstrap/wtf.html" as wtf %} {% import "bootstrap/wtf.html" as wtf %}
 {% block page %}SMS Campaigns{% endblock %}
 {% block page_content%}
+<div class="container-fluid">
     <div class="block-header">
         <ol class="breadcrumb breadcrumb-col-orange">
             <li class="active"><i class="material-icons">home</i> Console Home</li>
@@ -11,4 +12,115 @@
             <li><a href="javascript:void(0)"><i class="material-icons">mode_edit</i> Edit Campaign Details</a></li>
         </ol>
     </div>
+    <div class="row clearfix">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="card">
+                <div class="body">
+                    <div class="container-fluid">
+                        <style>
+                            #col1, #col2, #col3 {
+                               margin-bottom: 0px;
+                            }
+
+
+                        </style>
+                        <div class="row clearfix">
+                            <div class="col-md-3 col-lg-3 col-xs-6 col-sm-6" id="col1">
+                                <h4 class="text-info">
+                                    SMS Campaigns
+                                </h4>
+                            </div>
+
+                            <div class="col-md-9 col-lg-9 col-xs-6 col-sm-6" id="col2">
+                                <button type="button"
+                                        class="btn bg-green btn-circle waves-effect waves-circle waves-float pull-right"
+                                        data-toggle="modal" data-target="#add_campaignModal">
+                                    <i class="material-icons">add</i>
+                                </button>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row clearfix">
+                            {% if campaigns %}
+                            <div class="table-responsive">
+                                <table class="table table-hover dataTable js-exportable">
+                                    <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>title</th>
+                                        <th>ends on</th>
+                                        <th>date created</th>
+                                        <th>status</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for campaign in campaigns %}
+                                    <tr class="odd gradeX">
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ campaign.title }}</td>
+                                        <td>{{ campaign.expiry }}</td>
+                                        <td>{{ campaign.timestamp }}</td>
+                                        <td><span
+                                                class='badge {% if campaign.expired %}bg-red{% else %}bg-green{% endif %}'>{% if campaign.expired %}Closed{% else %}Active{% endif %}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="body">
+                    <h4>No SMS Campaigns registered with the system yet</h4>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <!--add bulk sms modal-->
+        <div class="modal fade" id="add_campaignModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="card">
+                        <div class="header">
+                            <h2>
+                                SMS Camaigns
+                                <small>New campaign</small>
+                            </h2>
+                        </div>
+                        <div class="body">
+                            <form id="add_campaign" method="post" action="" role="form" name="add_campaign"
+                                  enctype=multipart/form-data>
+                                {{ form.hidden_tag() }}
+                                <div class="row clearfix">
+                                    <div class="col-md-6">
+                                        <label for="title">Campaign Title</label>
+                                        <div class="form-group">
+                                            <div class="form-line">
+                                                {{ form.title(class_='form-control', required=True) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="expiry">Stop On</label>
+                                        <div class="form-group">
+                                            <div class="form-line">
+                                                {{ form.expiry(class_="form-control datepicker", required=True) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {{ form.submit(class_="btn bg-green waves-effect")}}
+                                <button type="button" class="btn btn-link waves-effect pull-right" data-dismiss="modal">
+                                    CLOSE
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

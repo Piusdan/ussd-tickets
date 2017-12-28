@@ -9,7 +9,8 @@ from flask_migrate import MigrateCommand, Migrate
 import logging
 
 from app import create_app, db
-from app.model import User, Role, Account, Event, Package, Type, Ticket, Address, Code, AnonymousUser, Permission, Message, Interval, Subscription
+from app.model import User, Role, Account, Event, Package, Type, Ticket, Address, Code, AnonymousUser, Permission, \
+    Message, Interval, Subscription, Campaign, Choice, Subscriber, Broadcast, Transaction
 
 app = create_app(os.environ.get('FLASK_CONFIG') or 'default')
 
@@ -22,14 +23,17 @@ COV = None
 
 if os.environ.get('VALHALLA_COVERAGE'):
     import coverage
+
     COV = coverage.coverage(branch=True, include='app/*')
     COV.start()
 
 
 def make_shell_context():
-    return dict(app=app, User=User, Role=Role, Ticket=Ticket,Permission=Permission,AnonymousUser=AnonymousUser,
+    return dict(app=app, User=User, Role=Role, Ticket=Ticket, Permission=Permission, AnonymousUser=AnonymousUser,
                 Event=Event, Account=Account, Package=Package,
-                Address=Address, Type=Type, Code=Code, Message=Message, Interval=Interval, Subscription=Subscription)
+                Address=Address, Type=Type, Code=Code, Message=Message, Interval=Interval, Subscription=Subscription,
+                Campaign=Campaign, Choice=Choice, Subscriber=Subscriber, Broadcast=Broadcast, Transaction=Transaction)
+
 
 manager.add_command("shell", Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
@@ -46,6 +50,7 @@ def reset_db():
     logging.info("Initializing new db")
     db.create_all()
     logging.info("DB reset")
+
 
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.schema import DropTable
