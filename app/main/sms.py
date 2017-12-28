@@ -75,4 +75,5 @@ def edit_bulk_sms(slug):
 def delete_bulk_sms(slug):
     message = Message.query.filter_by(slug=slug).first_or_404()
     message.delete()
-
+    flash("Broadcast removed", category="warning")
+    return redirect(url_for('.bulk_sms'))
