@@ -1,0 +1,16 @@
+{% extends "base.html" %} {% block custom_css %}
+{% endblock %}
+{% block sms %}class="active"{% endblock %} {% block start_campaign %}class="active"{% endblock %}
+{% import "bootstrap/wtf.html" as wtf %} {% import "bootstrap/wtf.html" as wtf %}
+{% block page %}{{ message.title|title }} Details{% endblock %}
+{% block page_content%}
+<div class="container-fluid">
+    <div class="block-header">
+        <ol class="breadcrumb breadcrumb-col-orange">
+            <li><a href="{{ url_for('.bulk_sms')}}"><i class="material-icons">home</i> Console Home</a></li>
+            <li class="active"><i class="material-icons">event_available</i> Message Details</li>
+            <li><a href="javascript:void(0)"><i class="material-icons">mode_edit</i> Edit Message Details</a></li>
+        </ol>
+    </div>
+</div>
+{% endblock %}

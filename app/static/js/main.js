@@ -157,6 +157,45 @@ $(function() {
     });
 });
 
+$(function() {
+//uses ajax to submit request to top up a user
+    $('#topUpForm').on('submit', function(e) { //use on if jQuery 1.7+
+        e.preventDefault();  //prevent form from submitting
+        console.log("clicked")
+        $('#topUpModal').modal('toggle');
+        var data = $("#topUpForm :input").serializeArray();
+        var json_data = [];
+        console.log(data)
+        console.log(JSON.stringify(data)); //use the console for debugging, F12 in Chrome, not alerts
+        var placementFrom = $(this).data('placement-from');
+        var placementAlign = $(this).data('placement-align');
+        var animateEnter = $(this).data('animate-enter');
+        var animateExit = $(this).data('animate-exit');
+        var colorName = $(this).data('color-name');
+        var user_id = $(this).attr('data-userId');
+        var url = '/edit-profile/'+user_id
+        document.getElementById('topUpForm').reset();
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            type: 'post',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function (data, textStatus, jQxhr) {
+                var text = data.payload
+                showNotification(colorName, text, placementFrom, placementAlign, animateEnter, animateExit);
+            },
+            processData: false,
+            error: function (jqXhr, textStatus, errorThrown) {
+                // var colorName = "bg-red"
+                showNotification("bg-red", errorThrown, placementFrom, placementAlign, animateEnter, animateExit);
+            }
+        });
+//        location.reload(false);
+
+    });
+});
+
 
 $(function () {
 // edit package ajax
@@ -199,6 +238,7 @@ $(function () {
 
     });
 });
+
 function writeDate(e) {
     var date = this.innerHTML
     this.innerHTML= moment(date).fromNow();

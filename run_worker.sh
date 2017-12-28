@@ -4,7 +4,7 @@
 mkdir -p /var/run/celery
 mkdir -p /var/log/celery
 
-celery worker -A app.celery_worker.celery -E \
+celery worker -A app.celery_worker.celery -B -E \
     --without-gossip \
     --without-mingle \
     --without-heartbeat \

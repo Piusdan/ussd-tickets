@@ -5,6 +5,7 @@ from app.database import db
 from app.utils.database import CRUDMixin, slugify
 from app.utils.web import eastafrican_time
 from app.utils.database import slugify
+import datetime
 
 
 class Message(CRUDMixin, db.Model):
@@ -12,6 +13,7 @@ class Message(CRUDMixin, db.Model):
     id = Column(Integer, primary_key=True)
     timestamp = Column(DateTime, default=eastafrican_time)
     expiry = Column(DateTime)
+    last_broadcast = Column(DateTime, default=datetime.datetime.utcnow())
     slug = Column(String)
     title = Column(String, nullable=False, unique=True)
     body = Column(Text, nullable=False)
@@ -22,6 +24,24 @@ class Message(CRUDMixin, db.Model):
         super(Message, self).__init__(**kwargs)
         self.slug = slugify(self.title)
 
+    @property
+    def status(self):
+        if self.expiry < datetime.datetime.utcnow()+datetime.timedelta(hours=3):
+            return "Expired"
+        return "Active"
+
+    @property
+    def expired(self):
+        if self.expiry < datetime.datetime.utcnow()+datetime.timedelta(hours=3):
+            return True
+        return False
+
+    @property
+    def next_broadcast(self):
+        if self.last_broadcast is None:
+            self.last_broadcast = datetime.datetime.utcnow()
+            self.save()
+        return self.last_broadcast + datetime.timedelta(seconds=self.interval.seconds)
 
 
 class Subscription(CRUDMixin, db.Model):
@@ -29,6 +49,8 @@ class Subscription(CRUDMixin, db.Model):
     id = Column(Integer, primary_key=True)
     phone_number = Column(String, nullable=False, index=True)
     message_id = Column(Integer, ForeignKey('messages.id'))
+    status = Column(String, default="Pending")
+    at_messageId = Column(Integer)
 
 
 class Interval(CRUDMixin, db.Model):

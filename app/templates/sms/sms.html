@@ -6,8 +6,11 @@
 {% block page_content%}
 <div class="container-fluid">
     <div class="block-header">
-        <h2>SMS Management Console</h2>
-
+        <ol class="breadcrumb breadcrumb-col-orange">
+            <li class="active"><i class="material-icons">home</i> Console Home</a></li>
+            <li><a href="javascript:void(0)"><i class="material-icons">event_available</i> Message Details</li>
+            <li><a href="javascript:void(0)"><i class="material-icons">mode_edit</i> Edit Message Details</a></li>
+        </ol>
     </div>
     <div class="row clearfix">
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -52,11 +55,11 @@
                                     <tbody>
                                     {% for message in messages %}
                                     <tr class="odd gradeX">
-                                        <td>{{ message.title }}</td>
+                                        <td><a href="{{url_for('.sms_details', slug=message.slug)}}">{{ message.title }}</a></td>
                                         <td>{{ message.subscriptions.count() }}</td>
                                         <td>{{ moment(message.expiry).format('MMMM Do YYYY, h:mm:ss a') }}</td>
                                         <td>{{ moment(message.timestamp).format('MMMM Do YYYY, h:mm:ss a') }}</td>
-                                        <td></td>
+                                        <td><span class='badge {% if message.status == "Expired"%}bg-red{% else %}bg-green{% endif %}'>{{ message.status }}</span></td>
                                     </tr>
                                     {% endfor %}
                                     </tbody>

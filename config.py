@@ -6,6 +6,8 @@
 """
 import logging
 import os
+from datetime import timedelta
+from celery.schedules import solar
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -22,6 +24,15 @@ class Config(object):
     # sql alchemy conf
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SSL_DISABLE = True
+
+    CELERYBEAT_SCHEDULE = {
+        'send-subscription-sms': {
+            'task': 'app.main.tasks.send_subscription_sms',
+            'schedule': solar('sunrise', +0.3476, +32.5825)
+        },
+    }
+
+    CELERY_TIMEZONE = 'UTC'
 
     ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER', '+254703554404')
     SECRET_KEY = os.getenv('SECRET_KEY', '\xdf\xd2i\xe1\xa0\xc7p)j\x18\x91\xdb3{\n\x02\x7f\xb4OMt\x9c\x0ec')

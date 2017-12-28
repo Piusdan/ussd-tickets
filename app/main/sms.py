@@ -32,3 +32,9 @@ def bulk_sms():
     else:
         flash_errors(form)
     return render_template("sms/sms.html", form=form, messages=messages)
+
+@main.route('/sms/<string:slug>/details')
+@login_required
+def sms_details(slug):
+    message = Message.query.filter_by(slug=slug).first_or_404()
+    return render_template('sms/details.html', message=message)

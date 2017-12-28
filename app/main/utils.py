@@ -11,7 +11,7 @@ def update_balance_and_send_sms(user, account_balance):
     message = "Cash Value Solution\n" \
               "Your account has been credited with " \
               "{currency_code}.{amount}".format(
-        currency_code=Location.currency_code(user.country),
+        currency_code=user.address.code.currency_code,
         amount=account_balance)
 
     payload = {"message": message, "to": user.phone_number}

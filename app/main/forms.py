@@ -144,7 +144,7 @@ class CreateMessageForm(Form):
     startdate = DateTimeField("Start", format="%d/%m/%Y", validators=[DataRequired()])
     enddate = DateTimeField("Stop", format="%d/%m/%Y", validators=[DataRequired()])
     interval = SelectField('Interval', coerce=int)
-    subscriptions = FileField('Upload excel sheet of phone numbers')
+    subscriptions = FileField('Upload excel sheet of phone numbers', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
     def __init__(self, *args, **kwargs):

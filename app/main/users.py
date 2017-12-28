@@ -96,15 +96,17 @@ def edit_profile():
 @login_required
 @admin_required
 def edit_profile_admin(id):
-    user = User.query.filter_by(id=id).first_or_404()
-    form = EditProfileAdminForm(user=user)
-    if form.validate_on_submit():
-        user.role = Role.query.get(form.role.data)
-        bal = form.account_balance.data
-        if bal > 0:
-            update_balance_and_send_sms(account_balance=bal, user=user)
-        flash('The profile has been updated.', category="success")
-        return redirect(url_for('.get_user', id=user.id))
-    form.role.data = user.role_id
-    form.account_balance.data = 0
-    return render_template('/users/edit_profile_admin.html', form=form, user=user)
+    user = User.query.get(id)
+    if user is None:
+        response = jsonify({"payload":"User not found"})
+        return response, 300
+    data = request.get_json()
+    request_dict = {}
+    map(lambda x: request_dict.setdefault(x.get('name'), x.get('value')), data)
+    account_balance = float(request_dict["account_balance"])
+    role_id = int(request_dict["role"])
+    user.role = Role.query.get(role_id)
+    if account_balance > 0:
+        update_balance_and_send_sms(user, account_balance)
+    response = jsonify({"payload":"User topped Up"})
+    return response, 200

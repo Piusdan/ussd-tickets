@@ -18,7 +18,7 @@
     <div class="block-header">
         <button type="button" class="btn btn-warning btn-lg"
                 {% if current_user.is_administrator() %} {% else %}disabled="disabled"{% endif %}
-                data-toggle="modal" data-target="#topupModal">
+                data-toggle="modal" data-target="#topUpModal">
             Balance: {{ "{}{:,.2f}".format(
             user.address.code.currency_code,
             user.account.balance) }}
@@ -111,13 +111,14 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="topupModal" tabindex="-1" role="dialog">
+    <div class="modal fade" id="topUpModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-sm" role="document">
             <div class="card">
                 <div class="body container-fluid">
                     <h4 class="title-text">Top up {{ user.username }}</h4>
                     <hr>
-                    <form id="sign_up" method="post" action="" role="form" name="register">
+                    <form id="topUpForm" method="post" action="" role="form" name="topUp" data-userId="{{ user.id }}"  data-placement-from="bottom" data-placement-align="center"
+                              data-animate-enter="" data-animate-exit="" data-color-name="bg-green">
                     {{ form.hidden_tag() }}
                         <div class="input-group">
                                 <span class="input-group-addon"><i class="material-icons">attach_money</i></span>
@@ -133,7 +134,7 @@
                                 {{ form.role(class_="form-control show-tick", required=True, autofocus=True)}}
                             </div>
                         </div>
-                        {{ form.submit(class_="btn btn-link waves-effect")}}
+                        {{ form.submit(class_="btn btn-link waves-effect", id="topUpButton")}}
                         <button type="button" class="btn btn-link waves-effect pull-right" data-dismiss="modal">CLOSE</button>
                     </form>
                 </div>
