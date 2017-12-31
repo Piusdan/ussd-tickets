@@ -1,11 +1,11 @@
-from flask import render_template, flash, jsonify, request, redirect, url_for
+from flask import render_template, flash, jsonify, request, redirect, url_for, abort
 import logging
 from flask_login import login_required
 from app.main import main
 from app.model import Interval, Message, Subscription, Campaign, Choice, Subscriber
 from app.utils.web import flash_errors
 import flask_excel as excel
-from forms import CreateMessageForm, EditMessageForm, AddCampaignForm, EditCampaignForm, AddChoiceForm
+from forms import CreateMessageForm, EditMessageForm, AddCampaignForm, EditCampaignForm, AddChoiceForm, EditChoiceForm
 
 
 @main.route('/sms', methods=['post', 'get'])
@@ -94,10 +94,69 @@ def sms_campaigns():
     return render_template('/sms/campaigns.html', campaigns=campaigns, form=form)
 
 
-@main.route('/campaigns/<string:slug>')
+@main.route('/view-campaigns/<int:id>', methods=['get', 'post'])
 @login_required
-def campaign_details(slug):
-    campaign = Campaign.by_slug(slug)
+def campaign_details(id):
+    campaign = Campaign.query.get(id)
+    if campaign is None:
+        abort(404)
     form = AddChoiceForm()
-    subscribers = Subscriber.query.join(Choice).filter(Choice.campaign_id==campaign.id).all()
-    return render_template('/sms/campaigns_details.html', form=form, campaign=campaign, subscribers=subscribers)
+    if form.validate_on_submit():
+        name = form.name.data
+        keyword = form.keyword.data
+        print name, keyword
+        choice = Choice.create(name=name, keyword=keyword)
+        campaign.choices.append(choice)
+        campaign.save()
+        flash("Choice Added")
+        return redirect(url_for('.campaign_details', id=campaign.id))
+    flash_errors(form)
+    form.name.data = ''
+    form.keyword.data = ''
+    subscribers = Subscriber.query.join(Choice).filter(Choice.campaign_id==campaign.id)
+    choices = campaign.choices
+    return render_template('/sms/campaign_details.html', form=form, campaign=campaign, subscribers=subscribers, choices=choices)
+
+
+@main.route('/delete-campaigns/<int:id>')
+@login_required
+def delete_campaign(id):
+    campaign = Campaign.query.get(id)
+    if campaign is None:
+        abort(404)
+    campaign.delete()
+    flash('Campaign Deleted')
+    return redirect(url_for('.sms_campaigns'))
+
+@main.route('/view-choice/<string:keyword>')
+@login_required
+def choice_details(keyword):
+    choice = Choice.query.filter_by(keyword=keyword).first_or_404()
+    return render_template('/sms/choice_details.html', choice=choice)
+
+
+@main.route('/sms/incoming-message', methods=['post', 'get'])
+def sms_incoming_message():
+    """Receives sms callbacks from the user & saves message to the database
+    :param from: The number that sent the message
+    :param to: The number to which the message was sent
+    :param text: The message content
+    :param date: The date and time when the message was received
+    :param id: The internal ID that we use to store this message
+    :param linkId: Optional parameter required when responding to an on-demand user request with a premium message
+    """
+    from_ = request.values.get('from')
+    to_ = request.values.get('to')
+    text = request.values.get('text')
+    id_ = request.values.get('id')
+    linkId = request.values.get('linkId')
+    # record message
+    text = text.strip()
+    choice = Choice.query.filter_by(keyword=text).first()
+    if choice is not None:
+        subs = Subscriber.query.join(Choice).filter_by()
+        subs = Subscriber.create(phone_number=from_)
+        subs.choice_id = choice.id
+        subs.save()
+    return jsonify('Received Message'), 200
+

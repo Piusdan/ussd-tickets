@@ -80,7 +80,6 @@ def deploy():
     logging.info("adding ticket types")
     Type.insert_types()
     Code.insert_codes()
-
     Interval.insert_intervals()
 
 

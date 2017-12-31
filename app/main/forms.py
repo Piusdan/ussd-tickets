@@ -202,6 +202,8 @@ class AddChoiceForm(Form):
     keyword = StringField("Choice Keyword", validators=[DataRequired()])
     submit =SubmitField('Submit')
 
-    def validate_keyword(self, field):
-        if Choice.query.filter_by(keyword=field.data) is not None:
-            raise ValidationError('keyword already in use')
+
+class EditChoiceForm(Form):
+    name = StringField("Choice Name", validators=[DataRequired()])
+    keyword = StringField("Choice Keyword", validators=[DataRequired()])
+    submit =SubmitField('Submit')

@@ -29,10 +29,6 @@ class Campaign(CRUDMixin, db.Model):
             return True
         return False
 
-    @staticmethod
-    def by_slug(slug):
-        return Campaign.query.filter_by(slug=slug).first_or_404()
-
 class Choice(CRUDMixin, db.Model):
     __tablename__ = 'choices'
     id = Column(Integer, primary_key=True, index=True)
@@ -51,6 +47,7 @@ class Subscriber(CRUDMixin, db.Model):
     phone_number = Column(String(14), nullable=False, index=True)
     attempts = Column(Integer, default=1)
     choice_id = Column(Integer, ForeignKey('choices.id'))
+    timestamp =Column(DateTime, default=eastafrican_time)
 
     def __repr__(self):
         return "<Subscriber {}>".format(self.phoneNumber)

@@ -57,7 +57,7 @@
                                     {% for campaign in campaigns %}
                                     <tr class="odd gradeX">
                                         <td>{{ loop.index }}</td>
-                                        <td>{{ campaign.title }}</td>
+                                        <td><a href="{{ url_for('.campaign_details', id=campaign.id)}}">{{ campaign.title }}</a></td>
                                         <td>{{ campaign.expiry }}</td>
                                         <td>{{ campaign.timestamp }}</td>
                                         <td><span

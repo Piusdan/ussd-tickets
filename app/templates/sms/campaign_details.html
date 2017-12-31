@@ -7,116 +7,129 @@
 <div class="container-fluid">
     <div class="block-header">
         <ol class="breadcrumb breadcrumb-col-orange">
-            <li><a href="javascript:void(0)"><i class="material-icons">home</i> Console Home</a></li>
+            <li><a href="{{ url_for('.sms_campaigns') }}"><i class="material-icons">home</i> Console Home</a></li>
             <li class="active"><i class="material-icons">event_available</i> Campaign Details</li>
             <li><a href="javascript:void(0)"><i class="material-icons">mode_edit</i> Edit Campaign Details</a></li>
         </ol>
+        <div class="col-lg-12 col-md-12 col-sm-6 col-xs-12">
+            created on <span
+                class="badge badge-default">{{ moment(campaign.timestamp).format("Do/M/YYYY, h:mm:ss a")}}</span>
+            {% if campaign.expired %}Expired <span class="badge bg-red">{{ moment(campaign.expiry).fromNow()}}</span>{%
+            else %}Expires <span class="badge bg-orange">{{ moment(campaign.expiry).fromNow()}}</span>
+            Number of Participants <span class="badge badge-default">{{ subscribers.count() }}</span>
+            {% endif %}
+            <a class="btn btn-danger btn-xs" href="{{ url_for('.delete_campaign', id=campaign.id)}}"><i
+                    class="material-icons">delete</i><span>Delete</span></a>
+        </div>
+    </div>
+    <div class="row clearfix">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="card">
+                <div class="body">
+                    <div class="container-fluid">
+                        <style>
+                            #col1, #col2 {
+                               margin-bottom: 0px;
+                            }
+
+
+
+                        </style>
+                        <div class="row clearfix">
+                            <div class="col-md-3 col-lg-3 col-xs-6 col-sm-6" id="col1">
+                                <h4 class="text-info">
+                                    {{ campaign.title }} Choices
+                                </h4>
+                            </div>
+
+                            <div class="col-md-9 col-lg-9 col-xs-6 col-sm-6" id="col2">
+                                <button type="button"
+                                        class="btn bg-green btn-circle waves-effect waves-circle waves-float pull-right"
+                                        data-toggle="modal" role="button" data-target="#createChoiceModal"
+                                        aria-haspopup="true" aria-expanded="false">
+                                    <i class="material-icons">add</i>
+                                </button>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row clearfix">
+                            {% if choices %}
+                            <div class="table-responsive">
+                                <table class="table table-hover dataTable js-exportable">
+                                    <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Name</th>
+                                        <th>Keyword</th>
+                                        <th>Votes</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for choice in choices %}
+                                    <tr>
+                                        <td>{{ loop.index }}
+                                        </td>
+                                        <td><a href="{{ url_for('.choice_details', keyword=choice.keyword) }}">{{ choice.name }}</a></td>
+                                        <td>{{ choice.keyword }}</td>
+                                        <td>{{ choice.subscribers.count() }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="row clearfix">
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-            <div class="card">
-                <div class="header">
-                    <h2 class="title-text">Available Choices</h2>
-                    <ul class="header-dropdown m-r--5">
-                        <li class="dropdown">
-                            <a class="dropdown-toggle btn btn-success btn-sm waves-effect"  data-toggle="modal" role="button" data-target="#add_packageModal" aria-haspopup="true" aria-expanded="false">
-                                <span>Add Choice</span><i class="material-icons">add</i>
-                            </a>
-                    </ul>
-                </div>
-                <div class="body">
-                    {% if campaign.choices %}
-                    <!-- /.col-lg-4 -->
-                    <div class="row clearfix">
-                        {% for package in packages %}
-                        <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12">
-                            <div class="card">
-                                <div class="header">
-                                    <h2 class="title-text text-info">{{ package.type.name }} Package Details</h2>
-                                </div>
-                                <div class="body">
-                                    <form class="edit-package" id="{{ package.id }}" method="post" action="" role="form" name="register">
-                                        {{ edit_packageForm.hidden_tag() }}
-                                        <div class="input-group">
-                                            <span class="input-group-addon">
-                                                <i class="material-icons">attach_money</i>
-                                            </span>
-                                            <div class="form-line">
-                                                {{ edit_packageForm.price(class_="form-control price", value=package.price,required=True, autofocus=True, id="price")}}
+            <div class="modal fade" id="createChoiceModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="card">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <h2 class="modal-title float-center">New Choice for {{ campaign.title }}</h2>
+                            </div>
+                            <div class="modal-body">
+                                <form id="add_choice" method="post" action="" role="form" name="add_choice"
+                                      enctype=multipart/form-data>
+                                    {{ form.hidden_tag() }}
+                                    <div class="row clearfix">
+                                        <div class="col-md-6">
+                                            <label for="title">Choice Name</label>
+                                            <div class="form-group">
+                                                <div class="form-line">
+                                                    {{ form.name(class_='form-control', required=True) }}
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="input-group">
-                                            <span class="input-group-addon">
-                                                <i class="material-icons">group</i>
-                                            </span>
-                                            <div class="form-line">
-                                                {{ edit_packageForm.number(class_="form-control number", value=package.remaining,required=True, autofocus=True, id="number")}}
+                                        <div class="col-md-6">
+                                            <label for="title">Choice Keyword</label>
+                                            <div class="form-group">
+                                                <div class="form-line">
+                                                    {{ form.keyword(class_='form-control', required=True) }}
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="form-group edit-package-button">
-                                            <button type="button" class="btn btn-success waves-effect edit-package" data-packageid="{{package.id}}" data-placement-from="bottom"
-                                                    data-placement-align="center" data-animate-enter="" data-animate-exit="" data-color-name="bg-green">Update</button>
-                                        </div>
-                                    </form>
-                                </div>
+                                    </div>
+                                    {{ form.submit(class_="btn bg-green waves-effect")}}
+                                    <button type="button" class="btn btn-link waves-effect pull-right"
+                                            data-dismiss="modal">
+                                        CLOSE
+                                    </button>
+                                </form>
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
-    <!--addPackage modal-->
-    <div class="modal fade" id="add_packageModal" tabindex="-1" role="dialog" id="edit">
-        <div class="modal-dialog modal-sm" role="document">
-        <div class="card">
-            <div class="header">
-                <h2 class="title-text">{{ event.name}}<small> add package</small></h2>
-            </div>
-                <form id="add_packageForm" data-package-eventId="{{ event.id }}" method="post" action="" role="form" name="add_Package" data-placement-from="bottom"
-                            data-placement-align="center" data-animate-enter="" data-animate-exit="" data-color-name="bg-green">
-                    <div class="body modal-body">
-                    {{ create_packageForm.hidden_tag() }}
-                    <div class="input-group">
-                        <span class="input-group-addon">
-                                <i class="material-icons">info</i>
-                            </span>
-                        <div class="form-line">
-                            {{ create_packageForm.type(class_="show-tick") }}
-
-                        </div>
-                    </div>
-
-                    <div class="input-group">
-                        <span class="input-group-addon">
-                                        <i class="material-icons">attach_money</i>
-                                    </span>
-                        <div class="form-line">
-                            {{ create_packageForm.price(class_="form-control", placeholder="Price " + event.address.code.currency_code ,required=True, autofocus=True)}}
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <span class="input-group-addon">
-                                            <i class="material-icons">group</i>
-                                        </span>
-                        <div class="form-line">
-                            {{ create_packageForm.number(class_="form-control", placeholder="Number of Packages",required=True, autofocus=True)}}
-
-                        </div>
-                    </div>
-                    </div>
-                    <div class="modal-footer">
-                        {{ create_packageForm.submit(class_="btn btn-sm bg-orange waves-effect add_tiket_button") }}
-                        <button type="button" class="btn btn-link waves-effect" data-dismiss="modal">CLOSE</button>
-
-                    </div>
-
-                </form>
-            </div>
-        </div>
-    </div>
-    <!--end editPackage modal-->
 </div>
 {% endblock %}
