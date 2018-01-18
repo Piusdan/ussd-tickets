@@ -124,9 +124,12 @@ def delete_campaign(id):
     campaign = Campaign.query.get(id)
     if campaign is None:
         abort(404)
-    campaign.delete()
-    flash('Campaign Deleted')
-    return redirect(url_for('.sms_campaigns'))
+    if not campaign.choices.count():
+        campaign.delete()
+        flash('Campaign Deleted')
+        return redirect(url_for('.sms_campaigns'))
+    flash('Cannot delete a campaign with Choices. Remove the choices first!')
+    return redirect(url_for('.campaign_details', id=campaign.id))
 
 @main.route('/view-choice/<string:keyword>')
 @login_required

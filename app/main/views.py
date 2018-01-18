@@ -3,7 +3,6 @@ from flask_login import login_required, current_user
 from app.model import User, Event, Ticket, Package
 from . import main
 
-
 @main.route('/')
 @login_required
 def index():
