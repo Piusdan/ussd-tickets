@@ -13,6 +13,7 @@ body"{% endblock %} {% block main_div %}class="login-box"{% endblock %} {% block
                 <div class="form-line">
                     {{ form.email(class_="form-control", placeholder="your-email@example.com", required=True, autofocus=True)}}
                 </div>
+                {{ render_fielderrors(form.email) }}
             </div>
             <div class="input-group">
                 <span class="input-group-addon">
@@ -20,6 +21,7 @@ body"{% endblock %} {% block main_div %}class="login-box"{% endblock %} {% block
                             </span>
                 <div class="form-line">
                     {{ form.password(class_='form-control', placeholder="Password", required=True)}}
+                    {{ render_fielderrors(form.email) }}
                 </div>
             </div>
             <div class="row">

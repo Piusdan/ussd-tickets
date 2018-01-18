@@ -1,0 +1,26 @@
+
+{% macro render_fielderrors(field) %}
+{% if field.errors %}
+{% for error in field.errors %}
+<label id="{{ field.id }}-error" class="error" for="{{ field.name }}">{{ error }}</label>
+{% endfor %}
+{% endif %}
+{% endmacro %}
+
+{% macro render_field(field, class_="form-control") %}
+<label for="{{ field.name }}">{{ field.label }}</label>
+<div class="form-group">
+    <div class="form-line">
+        {{ field(class_=class_)}}
+    </div>
+</div>
+{% endmacro %}
+
+{% macro render_form(form) %}
+<form id="{{ form.id }}" method="POST" action="">
+{{ form.hidden_tag() }}
+{% for field in form %}
+{{ render_field(field) }}
+{% endfor %}
+</form>
+{% endmacro %}

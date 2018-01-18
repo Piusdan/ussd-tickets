@@ -11,6 +11,10 @@ class LoginForm(Form):
     remember_me = BooleanField('Keep me logged in')
     submit = SubmitField('Sign In')
 
+    def validate_email(self, field):
+        if User.query.filter_by(email=field.data) is None:
+            raise ValidationError("Email not registered")
+
 
 class RegistrationForm(Form):
     phone_number = StringField("Phone number", validators=[DataRequired(), Length(13)])

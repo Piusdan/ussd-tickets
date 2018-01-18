@@ -21,7 +21,9 @@ styles %}
 <!-- Custom Css -->
 <link href="https://s3.eu-west-2.amazonaws.com/cashvaluesolution-assets/css/style.css" rel="stylesheet">
 <link href="https://s3.eu-west-2.amazonaws.com/cashvaluesolution-assets/css/theme-orange.css" rel="stylesheet"> {% endblock %}
+{% from "_formhelpers.html" import render_fielderrors %}
 {% block content %} {% include('_get_flashed_messages.html') %}
+
 <div {% block main_div %}class="signup-box" {% endblock %}>
     {% block logo %}
     <div class="logo">

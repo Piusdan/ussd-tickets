@@ -7,6 +7,7 @@
 import logging
 import os
 from datetime import timedelta
+
 from celery.schedules import solar
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -37,8 +38,7 @@ class Config(object):
     ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER', '+254703554404')
     SECRET_KEY = os.getenv('SECRET_KEY', '\xdf\xd2i\xe1\xa0\xc7p)j\x18\x91\xdb3{\n\x02\x7f\xb4OMt\x9c\x0ec')
 
-
-    ADMIN_MAIL = os.getenv('ADMIN_MAIL')          # admins email address
+    ADMIN_MAIL = os.getenv('ADMIN_MAIL')  # admins email address
     MAIL_SUBJECT_PREFIX = "[Cash Value Solutions]"
     MAIL_SENDER = 'Cash Value Solutions <cashvaluesolutions@gmail.com>'
     MAIL_SERVER = 'smtp.googlemail.com'
@@ -67,7 +67,6 @@ class Config(object):
     CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL', "redis://localhost:6379/0")
     timezone = 'UTC'
 
-
     @classmethod
     def init_app(cls, app):
         pass
@@ -82,6 +81,7 @@ class DevelopmentConfig(Config):
                               '/valhalla'
     DEBUG_MEMCACHE = False
     TEMPLATES_AUTO_RELOAD = True
+
     @classmethod
     def init_app(cls, app):
         Config.init_app(app)
@@ -95,25 +95,20 @@ class TestingConfig(Config):
     TESTING = True
     DEBUG_MEMCACHE = False
 
-class PythonAnyWhereConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'mysql+mysqldb://{username}:{password}@{host}/{db}'.\
-    format(username="piusdan",
-           password="vallhalla",
-           host="piusdan.mysql.pythonanywhere-services.com",
-           db="valhalla")
-
 
 class ProductionConfig(Config):
     """Production configuration options"""
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
     CACHE_URL = os.environ.get('CACHE_URL')
     DEBUG_MEMCHACHE = True
+
     CELERYBEAT_SCHEDULE = {
         'send-subscription-sms': {
             'task': 'app.main.tasks.send_subscription_sms',
             'schedule': solar('sunrise', +0.3476, +32.5825)
         },
     }
+
     @classmethod
     def init_app(cls, app):
         Config.init_app(app)
@@ -127,6 +122,7 @@ class ProductionConfig(Config):
 class HerokuConfig(ProductionConfig):
     SSL_DISABLE = bool(os.environ.get('SSL_DISABLE'))
     CACHE_URL = os.environ.get('HEROKU_REDIS_AQUA')
+
     @classmethod
     def init_app(cls, app):
         ProductionConfig.init_app(app)
@@ -145,7 +141,6 @@ config = {
     "testing": TestingConfig,
     "production": ProductionConfig,
     "heroku": HerokuConfig,
-    "anywhere": PythonAnyWhereConfig,
 
     "default": DevelopmentConfig
 }
