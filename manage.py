@@ -3,31 +3,22 @@
 Launch script
 Creates a shell context for the app
 """
-import os
-from flask_script import Manager, Shell
-from flask_migrate import MigrateCommand, Migrate
 import logging
+import os
+
+import click
+from flask_migrate import Migrate
 
 from app import create_app, db
 from app.model import User, Role, Account, Event, Package, Type, Ticket, Address, Code, AnonymousUser, Permission, \
     Message, Interval, Subscription, Campaign, Choice, Subscriber, Broadcast, Transaction
 
-app = create_app(os.environ.get('FLASK_CONFIG') or 'default')
-
+config_name = os.environ.get('FLASK_CONFIG') or 'default'
+app = create_app(config_name)
 migrate = Migrate(app, db)
-manager = Manager(app)
-
-logging.info("initialising app")
-
-COV = None
-
-if os.environ.get('VALHALLA_COVERAGE'):
-    import coverage
-
-    COV = coverage.coverage(branch=True, include='app/*')
-    COV.start()
 
 
+@app.shell_context_processor
 def make_shell_context():
     return dict(app=app, User=User, Role=Role, Ticket=Ticket, Permission=Permission, AnonymousUser=AnonymousUser,
                 Event=Event, Account=Account, Package=Package,
@@ -35,11 +26,45 @@ def make_shell_context():
                 Campaign=Campaign, Choice=Choice, Subscriber=Subscriber, Broadcast=Broadcast, Transaction=Transaction)
 
 
-manager.add_command("shell", Shell(make_context=make_shell_context))
-manager.add_command('db', MigrateCommand)
+
+@app.cli.command()
+def deploy():
+    """Run deployment tasks"""
+    from flask_migrate import upgrade
+    from app.model import Role, Type
+
+    # migrate database to latest revision
+    click.echo(click.style("Perfoming Migrations .....", fg='green'))
+    upgrade()
+
+    from app.deploy import insert_codes
+    insert_codes.apply_async()
+
+    # create user roles
+    click.echo(click.style('Updating roles ....', fg='green'))
+    Role.insert_roles()
+    click.echo(click.style('Done ....', fg='green'))
+
+    click.echo(click.style('adding ticket types ....', fg='green'))
+    Type.insert_types()
+    click.echo(click.style('Done ....', fg='green'))
+
+    click.echo(click.style('adding address codes ....', fg='green'))
+    Code.insert_codes()
+    Interval.insert_intervals()
+    click.echo(click.style('Done ....', fg='green'))
+    return
 
 
-@manager.command
+COV = None
+if os.environ.get('VALHALLA_COVERAGE'):
+    import coverage
+
+    COV = coverage.coverage(branch=True, include='app/*')
+    COV.start()
+
+
+@app.cli.command()
 def reset_db():
     """Resets and initialises db"""
     logging.info("Prepairing to reset db")
@@ -61,29 +86,7 @@ def _compile_drop_table(element, compiler, **kwargs):
     return compiler.visit_drop_table(element) + " CASCADE"
 
 
-@manager.command
-def deploy():
-    """Run deployment tasks"""
-    from flask_migrate import upgrade
-    from app.model import Role, Type
-
-    # migrate db to latest version
-    logging.info("migrating database to latest state")
-    upgrade()
-
-    from app.deploy import insert_codes
-    insert_codes.apply_async()
-    # create user roles
-    logging.info("adding user roles")
-    Role.insert_roles()
-    # create user roles
-    logging.info("adding ticket types")
-    Type.insert_types()
-    Code.insert_codes()
-    Interval.insert_intervals()
-
-
-@manager.command
+@app.cli.command()
 def test(coverage=False):
     """
     Run unit tests.
