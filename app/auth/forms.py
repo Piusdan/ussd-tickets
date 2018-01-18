@@ -12,7 +12,7 @@ class LoginForm(Form):
     submit = SubmitField('Sign In')
 
     def validate_email(self, field):
-        if User.query.filter_by(email=field.data) is None:
+        if User.query.filter_by(email=field.data).first() is None:
             raise ValidationError("Email not registered")
 
 
