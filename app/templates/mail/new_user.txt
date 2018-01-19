@@ -1,0 +1,18 @@
+Dear Sir/Madaam,<br/>
+Welcome to Cash Value Solutions Console<br/>
+
+You have been registered as an Administrator<br />
+
+Your login details are:<br/>
+
+username: {{ user.username }}<br/>
+email: {{ user.email }}<br/>
+Password: {{ password }}<br/>
+
+Visit {{ url_for('auth.confirm_password', reset_token=token, _external=True)}} to reset your password<br/>
+
+Sincerely,<br/>
+
+Cash value Solutions Team<br/>
+
+Note: Replies to this email address are not monitored.

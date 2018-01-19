@@ -1,9 +1,12 @@
 from datetime import datetime, timedelta
-from flask import flash
+import random
 
+from app.tasks import send_async_email
+from flask import current_app
+from flask import render_template, flash
+from flask_mail import Message
 from geopy.geocoders import googlev3
 
-from app import db
 
 def eastafrican_time():
     return datetime.utcnow() + timedelta(hours=3)
@@ -29,3 +32,18 @@ def get_country(city):
     except Exception as exc:
         country = None
     return country
+
+def send_mail(to, subject, template, **kwargs):
+    msg = Message(current_app.config['MAIL_SUBJECT_PREFIX'] + subject,
+                  sender=current_app.config['MAIL_SENDER'], recipients=[to])
+    msg.body = render_template(template + '.txt', **kwargs)
+    msg.html = render_template(template + '.html', **kwargs)
+    send_async_email.apply_async(kwargs={'msg':msg})
+
+def generate_password():
+    chars = 'abcdefghijklmnopqrstuvwxyz'
+    chars = chars + chars.upper() + '1234567890'
+    password = ''
+    for c in range(10):
+        password += random.choice(chars)
+    return password

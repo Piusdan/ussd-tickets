@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block page %}Add A Site Administrator{% endblock %}
+{% block users %}class="active"{% endblock %}
+{% block add_admin %}active{% endblock %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block page_content %}
+{{ moment.include_moment() }}
+<div class="container-fluid">
+    <div class="block-header">
+        <ol class="breadcrumb breadcrumb-col-orange">
+            <li><a href="{{ url_for('.get_users')}}"><i class="material-icons">home</i> All Members</a></li>
+            <li class="active"><i class="material-icons">event_available</i>User Details</li>
+            <li><a href="javascript:void()"><i class="material-icons">mode_edit</i> Edit User Details</a>
+            </li>
+        </ol>
+    </div>
+    <div class="block-header">
+        <h2>Add Site Administrator</h2>
+    </div>
+    <div class="row clearfix">
+        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+            <div class="card">
+                <div class="body">
+                    <form id="sign_up" method="post" action="" role="form" name="register">
+                        {{ form.hidden_tag() }}
+                        <div class="input-group">
+                        <span class="input-group-addon">
+                            <i class="material-icons">email</i>
+                        </span>
+                            <div class="form-line">
+                                {{ form.email(class_="form-control", placeholder="Email Address", required=True)}}
+                            </div>
+                            {{ render_fielderrors(form.email) }}
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="material-icons">phone</i>
+                            </span>
+                            <div class="form-line">
+                                {{ form.phone_number(class_="form-control", placeholder="+254 7XXXXXXXX",
+                                required=True)}}
+                            </div>
+                            {{ render_fielderrors(form.phone_number) }}
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <i class="material-icons">location_city</i>
+                            </span>
+                            <div class="form-line">
+                                {{ form.city(class_="form-control", placeholder="Location (City/Town)", required=True,
+                                autofocus=True)}}
+
+                            </div>
+                            {{ render_fielderrors(form.city) }}
+                        </div>
+                        <div class="row clearfix">
+                            <div class="col-md-3">
+                                {{ form.submit(class_="btn btn-link bg-black waves-effect")}}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

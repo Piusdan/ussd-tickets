@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-
-# create pid and log files
-mkdir -p /var/run/celery
-mkdir -p /var/log/celery
-
+export FLASK_APP=manage.py
+export FLASK_DEBUG=1
+export MAIL_USERNAME=Cash\ Value\ Solution
+export MAIL_PASSWORD=1996tsunami13237
+export FLASK_ADMIN=+254703554404
+export ADMIN_MAIL=npiusdan@gmail.com
+export ADMIN_PHONENUMBER=+254703554404
 celery worker -A app.celery_worker.celery -B -E \
     --without-gossip \
     --without-mingle \

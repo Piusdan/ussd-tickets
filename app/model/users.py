@@ -194,6 +194,26 @@ class User(UserMixin, CRUDMixin,db.Model):
                        expires_in=expiration)
         return s.dumps({'id': self.id})
 
+
+    def generate_reset_token(self, expiration=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        return s.dumps({'reset': self.id})
+
+    @staticmethod
+    def reset_password(token, password):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except Exception as exc:
+            return False
+        id = data.get('reset')
+        user = User.query.get(id)
+        if user is None:
+            return False
+        user.password = password
+        user.save()
+        return user
+
 login_manager.anonymous_user = AnonymousUser
 
 

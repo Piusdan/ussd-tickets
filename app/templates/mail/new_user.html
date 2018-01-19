@@ -1,0 +1,20 @@
+<p>Dear {{ user.username }},</p>
+
+<p>
+    Welcome to Cash value Solutions<br>
+    Your login details are:
+</p>
+<ul>
+    <li><b>email:</b> {{ user.email }}</li>
+    <li><b>username:</b> {{ user.username }}<br/></li>
+    <li><b>Password:</b> {{ password }}<br/></li>
+</ul>
+<p>
+    Visit <a href="{{ url_for('auth.confirm_password', reset_token=token, _external=True)}}">this url</a> to reset your password
+</p>
+<p>
+    Sincerely,<br/>
+    Cash value Solutions Team<br/>
+</p>
+<i>Note: Replies to this email address are not monitored.</i>
+

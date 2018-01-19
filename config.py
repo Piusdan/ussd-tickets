@@ -35,7 +35,7 @@ class Config(object):
 
     CELERY_TIMEZONE = 'UTC'
 
-    ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER', '+254703554404')
+    ADMIN_PHONENUMBER = os.environ.get('ADMIN_PHONENUMBER')
     SECRET_KEY = os.getenv('SECRET_KEY', '\xdf\xd2i\xe1\xa0\xc7p)j\x18\x91\xdb3{\n\x02\x7f\xb4OMt\x9c\x0ec')
 
     ADMIN_MAIL = os.getenv('ADMIN_MAIL')  # admins email address
@@ -44,7 +44,7 @@ class Config(object):
     MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_USERNAME = "cashvaluesolutions@gmail.com"
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
 
     UPLOADS_DEFAULT_DEST = os.environ.get(
@@ -65,6 +65,7 @@ class Config(object):
     REDIS_URL = os.environ.get('REDIS_URL', "redis://localhost:6379/0")
     CELERY_BROKER_URL = os.environ.get('REDIS_URL', "redis://localhost:6379/0")
     CELERY_RESULT_BACKEND = os.environ.get('REDIS_URL', "redis://localhost:6379/0")
+    CELERY_ACCEPT_CONTENT = ['json', 'pickle']
     timezone = 'UTC'
 
     @classmethod

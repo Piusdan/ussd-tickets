@@ -7,7 +7,7 @@ from app.decorators import admin_required
 from app.model import User, Role, Code, Address, Transaction
 from app.main.utils import get_country, update_balance_and_send_sms, create_user
 from app.utils.web import flash_errors
-from forms import EditProfileForm, EditProfileAdminForm, AddUserForm
+from forms import EditProfileForm, EditProfileAdminForm, AddUserForm, AddAdminForm
 
 
 @main.route('/user/<string:slug>')
@@ -110,3 +110,28 @@ def edit_profile_admin(id):
         update_balance_and_send_sms(user, account_balance)
     response = jsonify({"payload":"User topped Up"})
     return response, 200
+
+
+@main.route('/add-admin')
+@login_required
+@admin_required
+def add_administrator():
+    form = AddAdminForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        username = form.username.data
+        password = form.password.data
+        city = form.city.data
+        user = User(email=email, username=username, password=password, phone_number=form.phone_number.data)
+        user.address = Address.create(city=city)
+        country = get_country(city)
+        if country is not None:
+            code = Code.query.filter_by(country).first()
+            if code is not None:
+                user.address.code = code
+        user.save()
+
+        flash('You can now login.', category="success")
+        return redirect(url_for('.users'))
+
+    return render_template('users/add-admin.html', form=form)

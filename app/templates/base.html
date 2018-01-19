@@ -67,7 +67,7 @@
     <!-- AdminBSB Themes. -->
     <link href="https://s3.eu-west-2.amazonaws.com/cashvaluesolution-assets/css/theme-orange.css" rel="stylesheet" />
 {% endblock %}
-
+{% from "_formhelpers.html" import render_fielderrors %}
 {% block body_attribs %} class="container-fluid"{% endblock %}
 
 {% block content %}
@@ -183,6 +183,9 @@
                                 <ul class="ml-menu">
                                     <li {% block all_users %}{% endblock %}>
                                         <a href="{% if current_user.is_administrator() %}{{ url_for('main.get_users') }}{% else %}{{ url_for('main.get_user', slug=current_user.slug) }}{% endif %}">All Members</a>
+                                    </li>
+                                    <li class="{% block add_admin %}{% endblock %}">
+                                        <a href="{{ url_for('main.add_administrator') }}">Add Administrator</a>
                                     </li>
                                 </ul>
                         </li>

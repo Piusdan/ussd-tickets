@@ -4,22 +4,22 @@
     ~~~
     Provides the flask application
 """
-from hashids import Hashids
+import flask_excel as Excel
 from celery import Celery
+from celery.utils.log import get_task_logger
 from flask import Flask
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
+from flask_mail import Mail
 from flask_moment import Moment
+from flask_qrcode import QRcode
 from flask_redis import Redis
 from flask_uploads import configure_uploads, UploadSet, IMAGES
+from hashids import Hashids
 
-from flask_qrcode import QRcode
-from celery.utils.log import get_task_logger
-import flask_excel as Excel
-
+from app.database import db
 from app.gateway import Gateway
 from config import Config, config
-from app.database import db
 
 __version__ = '0.1.0'
 
@@ -40,6 +40,7 @@ gateway = Gateway()
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'
+mail = Mail()
 
 celery = Celery(__name__, broker=Config.CELERY_BROKER_URL)
 celery_logger = get_task_logger(__name__)
@@ -55,6 +56,7 @@ def create_app(config_name):
     login_manager.init_app(app)
     moment.init_app(app)
     Excel.init_excel(app)
+    mail.init_app(app)
 
     redis.init_app(app)
     cache.init_app(app, config_prefix='CACHE')

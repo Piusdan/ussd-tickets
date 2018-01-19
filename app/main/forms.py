@@ -207,3 +207,26 @@ class EditChoiceForm(Form):
     name = StringField("Choice Name", validators=[DataRequired()])
     keyword = StringField("Choice Keyword", validators=[DataRequired()])
     submit =SubmitField('Submit')
+
+class AddAdminForm(Form):
+    phone_number = StringField("Phone number", validators=[DataRequired(), Length(13)])
+    email = StringField('Email', validators=[Optional(), Length(1, 64),
+    Email()])
+    city = StringField('City', validators=[DataRequired()])
+    submit = SubmitField('Add')
+
+    def validate_email(self, field):
+        if field.data:
+            if User.query.filter_by(email=field.data).first():
+                raise ValidationError('Email already registered.')
+
+    def validate_username(self, field):
+        if User.query.filter_by(username=field.data).first():
+            raise ValidationError('Username already in use.')
+
+    def validate_phone_number(self, field):
+        phone_number = field.data
+        if not phone_number.startswith("+"):
+            raise ValidationError('Invalid phone number. Phone number should start with country code.')
+        if User.query.filter_by(phone_number=field.data).first():
+            raise ValidationError('Phone number already in use.')
