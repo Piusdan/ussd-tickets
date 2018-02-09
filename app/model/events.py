@@ -161,6 +161,18 @@ class Ticket(CRUDMixin, db.Model):
         ticket = self.save()
         ticket.code = hashids.encode(ticket.id)
 
+    def to_dict(self):
+        return {
+            "ticket_code": self.code,
+            "purchaser": self.user.username,
+            "admits": self.number,
+            "price": self.package.price,
+            "type": self.package.type.name,
+            "purchased_on": self.created_at,
+            "event_name": self.package.event.name,
+            "event_data": self.package.event.date
+        }
+
     @staticmethod
     def by_id(id):
         Ticket.query.get(id)

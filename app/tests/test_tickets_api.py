@@ -5,7 +5,7 @@ import json
 import datetime
 import unittest
 from app import create_app, db
-from app.models import User, Role, Event
+from app.model import User, Role, Event
 
 
 class APITestEvent(unittest.TestCase):

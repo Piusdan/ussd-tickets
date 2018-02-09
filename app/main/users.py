@@ -6,8 +6,8 @@ from app.database import db
 from app.decorators import admin_required
 from app.model import User, Role, Code, Address, Transaction
 from app.main.utils import get_country, update_balance_and_send_sms, create_user
-from app.utils.web import flash_errors
 from forms import EditProfileForm, EditProfileAdminForm, AddUserForm, AddAdminForm
+from ..utils.web import generate_password
 
 
 @main.route('/user/<string:slug>')
@@ -120,7 +120,7 @@ def add_administrator():
     if form.validate_on_submit():
         email = form.email.data
         username = form.username.data
-        password = form.password.data
+        password = generate_password()
         city = form.city.data
         user = User(email=email, username=username, password=password, phone_number=form.phone_number.data)
         user.address = Address.create(city=city)

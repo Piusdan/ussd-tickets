@@ -73,7 +73,7 @@ def ticketPurchase(self, package_id, number_of_tickets, phone_number, method):
         transaction.save()
         # TODO send message
         message = "{transaction_id} Failed. Sorry tickets already sold out.\n".format(transaction_id=transaction_id)
-        gateway.sendMessage(to_=user.phone_number, message=message)
+        gateway.sendMessage(to_=user.phone_number, message_=message)
         return None
 
     if str(method) in payments.keys():  # handle mobile payment check

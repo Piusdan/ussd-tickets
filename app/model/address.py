@@ -15,7 +15,7 @@ class Address(CRUDMixin, db.Model):
     __tablename__ = "address"
     id = Column(Integer, primary_key=True)
     city = Column(String(64))
-    location = Column(String(12))
+    location = Column(String(64))
     code_id = Column(Integer, ForeignKey('codes.id'))
     code = relationship('Code', backref="address", lazy="subquery")
 

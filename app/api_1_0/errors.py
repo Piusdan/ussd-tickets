@@ -6,7 +6,7 @@ from api_exceptions import SignupError
 
 @api.errorhandler(ValueError)
 def value_error(e):
-    response = jsonify({'error': 'invalid values', 'message':e.args})
+    response = jsonify({'error': 'Missing?Invalid Values', 'message':e.args})
     response.status_code = 402
     return response
 

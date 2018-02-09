@@ -1,6 +1,6 @@
 import unittest
 from app import create_app, db
-from app.models import User, Event, Ticket
+from app.model import User, Event, Ticket
 
 class UserModelTestCase(unittest.TestCase):
     def setUp(self):

@@ -1,5 +1,5 @@
 from flask import Blueprint
-from ..models import Permission
+from ..model import Permission
 """
 api v1.0
 Scope:
@@ -13,4 +13,4 @@ api = Blueprint("api", __name__)
 def inject_permissions():
     return dict(Permission=Permission)
 
-from . import tickets
+from . import tickets, errors,exceptions, api_exceptions, authentication

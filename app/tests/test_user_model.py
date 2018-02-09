@@ -1,6 +1,6 @@
 import unittest
 from app import create_app, db
-from app.models import User, Role, Permission, AnonymousUser
+from app.model import User, Role, Permission, AnonymousUser
 from flask import current_app
 
 class UserModelTestCase(unittest.TestCase):
