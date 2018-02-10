@@ -66,6 +66,7 @@ class Config(object):
     AT_APIKEY = os.environ.get("AT_APIKEY", "7aa22285319d5057d35add8f32ee42b6db10fe14ac897dbcadf4ac06dda7fccc")
     AT_USERNAME = os.environ.get("AT_USERNAME", "sandbox")
     AT_ENV = os.environ.get("AT_ENV", "sandbox")
+    SERVER_NAME = os.environ.get('SERVER_NAME')
 
     # for pagination of responses
     USSD_EVENTS_PER_PAGE = 5

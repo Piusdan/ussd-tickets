@@ -7,7 +7,7 @@ from app.model import Ticket, User, Transaction, Account, Package
 from app import celery
 from app import celery_logger
 from app.utils.web import eastafrican_time
-from flask import url_for
+from flask import url_for, current_app
 
 
 @celery.task(ignore_result=True)
@@ -51,6 +51,8 @@ def ticketPurchase(self, package_id, number_of_tickets, phone_number, method):
     :param method: 
     :return: 
     """
+    # TODO change this manual fix
+    # current_app.config["SERVER_NAME"] = "https://cashvaluesol.herokuapp.com"
     package = Package.by_id(package_id)
     # get event
     event = package.event
