@@ -24,8 +24,9 @@ class Address(CRUDMixin, db.Model):
         if self.city is not None:
             country = get_country(self.city)
             self.code = Code.by_country(country)
-
-
+        if self.code_id is None:
+            self.code_id = Code.by_country(self.city) or Code.by_country("Uganda")
+            self.save()
 
     def __repr__(self):
         return "<> <>".format(self.id, self.code.country)

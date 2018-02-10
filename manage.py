@@ -118,6 +118,12 @@ def reset_db():
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.schema import DropTable
 
+@app.cli.command()
+def fix_bug_001():
+    events = Event.query.join(Address).filter(Address.code_id.is_(None))
+    for e in events:
+        e.address.code = Code.by_country("Uganda")
+    return
 
 @compiles(DropTable, "postgresql")
 def _compile_drop_table(element, compiler, **kwargs):
