@@ -35,8 +35,9 @@ def auth_error():
 @api_auth.login_required
 def before_request():
     # check login credentials
-    if g.current_user.is_anonymous:
-        return forbidden("Unauthorised Account")
+    # if g.current_user.is_anonymous:
+    #     return forbidden("Unauthorised Account")
+    pass
 
 
 @api.route('/token')
