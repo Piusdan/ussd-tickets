@@ -78,6 +78,7 @@ def superuser(username, phonenumber, password):
         return
     role = Role.get_admin()
     user = User.query.filter_by(phone_number=phonenumber).first() or User.query.filter_by(username=username).first()
+    user.role = role
     if user is not None:
         click.echo(click.style('phone number Already in Use', fg='red'))
         return
