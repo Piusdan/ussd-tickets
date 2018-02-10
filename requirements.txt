@@ -35,4 +35,5 @@ redis==2.10.6
 reportlab==3.4.0
 s3transfer==0.1.11
 xhtml2pdf==0.0.6
+html5lib==1.0b8
 flask-mail==0.9.1
