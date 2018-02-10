@@ -6,19 +6,19 @@ from app.model import User
 
 
 class LoginForm(Form):
-    email = StringField('Email', validators=[DataRequired(), Length(1, 64)])
+    email = StringField('Phone number/ Email', validators=[DataRequired(), Length(1, 64)])
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Keep me logged in')
     submit = SubmitField('Sign In')
 
     def validate_email(self, field):
-        if User.query.filter_by(email=field.data).first() is None:
-            raise ValidationError("Email not registered")
+        if User.query.filter_by(phone_number=field.data).first() is None and User.query.filter_by(email=field.data).first() is None:
+            raise ValidationError("Email/Phone Number not registered")
 
 
 
 class ResetPasswordForm(Form):
-    email = StringField('Please Enter your Email address', validators=[DataRequired(), Email(), Length(1, 64)])
+    email = StringField('Please Enter your Email Address', validators=[DataRequired(),Length(1, 64), Email  ])
     submit = SubmitField('RESET PASSWORD')
 
     def validate_email(self, field):

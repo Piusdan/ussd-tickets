@@ -21,8 +21,9 @@ class Address(CRUDMixin, db.Model):
 
     def __init__(self, **kwargs):
         super(Address, self).__init__(**kwargs)
-        country = get_country(self.city)
-        self.code = Code.by_country(country)
+        if self.city is not None:
+            country = get_country(self.city)
+            self.code = Code.by_country(country)
 
 
 
@@ -68,7 +69,7 @@ class Code(CRUDMixin,db.Model):
     @staticmethod
     def by_country(country):
         if country:
-            return db.session.query(Code).filter(Code.country==country.title()).first()
+            return db.session.query(Code).filter(Code.country==country.title()).first() or db.session.query(Code).filter(Code.country=="Uganda").first()
         return None
 
     @staticmethod
@@ -77,8 +78,8 @@ class Code(CRUDMixin,db.Model):
 
     @staticmethod
     def by_currency(code):
-        return db.session.query(Code).filter(Code.currency_code==code).first()
+        return db.session.query(Code).filter(Code.currency_code==code).first() or db.session.query(Code).filter(Code.currency_code=="UGX").first()
 
     @staticmethod
     def by_code(code):
-        return db.session.query(Code).filter(Code.country_code == code).first()
+        return db.session.query(Code).filter(Code.country_code == code).first() or db.session.query(Code).filter(Code.country_code=="+256").first()

@@ -13,11 +13,11 @@ from ..utils.web import send_mail
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = User.query.filter_by(phone_number=form.email.data).first() or User.query.filter_by(email=form.email.data).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
             return redirect(request.args.get('next') or url_for('main.index'))
-        flash('Invalid email or password.', category="errors")
+        flash('Invalid phoneNumber or password.', category="errors")
 
     return render_template('auth/login.html', form=form)
 

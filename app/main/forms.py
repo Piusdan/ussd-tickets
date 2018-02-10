@@ -56,15 +56,8 @@ class EditProfileAdminForm(Form):
 class AddUserForm(Form):
     phone_number = StringField('Phone Number', validators=[
                                DataRequired(), Length(13)])
-    account_balance = IntegerField('Top Up')
     role = SelectField('Role', coerce=int)
     submit = SubmitField('Submit')
-    username = StringField('Username',
-                           validators=[DataRequired(),
-                                       Length(1, 64),
-                                       Regexp('^[A-Za-z][A-Za-z0-9_.]*$', 0,
-                                              'Usernames must have only letters, '
-                                              'numbers, dots or underscores')])
 
     def __init__(self, *args, **kwargs):
         super(AddUserForm, self).__init__(*args, **kwargs)
@@ -209,7 +202,7 @@ class EditChoiceForm(Form):
     submit =SubmitField('Submit')
 
 class AddAdminForm(Form):
-    phone_number = StringField("Phone number", validators=[DataRequired(), Length(13)])
+    phone_number = StringField("Phone number", validators=[DataRequired(), Length(1,18)])
     email = StringField('Email', validators=[Optional(), Length(1, 64),
     Email()])
     city = StringField('City', validators=[DataRequired()])
@@ -220,9 +213,6 @@ class AddAdminForm(Form):
             if User.query.filter_by(email=field.data).first():
                 raise ValidationError('Email already registered.')
 
-    def validate_username(self, field):
-        if User.query.filter_by(username=field.data).first():
-            raise ValidationError('Username already in use.')
 
     def validate_phone_number(self, field):
         phone_number = field.data

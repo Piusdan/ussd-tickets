@@ -1,6 +1,5 @@
 from flask import render_template, abort, flash, redirect, url_for, request, jsonify
 from flask_login import login_required, current_user
-
 from app.main import main
 from app.database import db
 from app.decorators import admin_required
@@ -8,6 +7,7 @@ from app.model import User, Role, Code, Address, Transaction
 from app.main.utils import get_country, update_balance_and_send_sms, create_user
 from forms import EditProfileForm, EditProfileAdminForm, AddUserForm, AddAdminForm
 from ..utils.web import generate_password
+from .utils import _create_user
 
 
 @main.route('/user/<string:slug>')
@@ -42,9 +42,10 @@ def add_user():
     data = request.get_json()
     request_dict = {}
     map(lambda x: request_dict.setdefault(x.get('name'), x.get('value')), data)
-    username = request_dict['username']
+    password = generate_password()
+    username =""
     role_id = request_dict['role']
-    balance = request_dict["account_balance"]
+    balance = 0.00
     phone_number = request_dict["phone_number"]
     if User.by_phonenumber(phone_number) is None:
         if User.by_username(username) is None:
@@ -112,26 +113,19 @@ def edit_profile_admin(id):
     return response, 200
 
 
-@main.route('/add-admin')
+@main.route('/add-admin', methods=['get', 'post'])
 @login_required
 @admin_required
 def add_administrator():
     form = AddAdminForm()
     if form.validate_on_submit():
         email = form.email.data
-        username = form.username.data
-        password = generate_password()
-        city = form.city.data
-        user = User(email=email, username=username, password=password, phone_number=form.phone_number.data)
-        user.address = Address.create(city=city)
-        country = get_country(city)
-        if country is not None:
-            code = Code.query.filter_by(country).first()
-            if code is not None:
-                user.address.code = code
+        phoneNumber = form.phone_number.data
+        role_id = Role.get_admin().id
+        user = _create_user(role_id=role_id, email=email, phoneNumber=phoneNumber)
+        user.address.city = form.city.data.title()
         user.save()
-
-        flash('You can now login.', category="success")
-        return redirect(url_for('.users'))
+        flash('Administartor Added.', category="success")
+        return redirect(url_for('.get_users'))
 
     return render_template('users/add-admin.html', form=form)

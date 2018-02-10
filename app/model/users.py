@@ -15,7 +15,7 @@ from app.database import db
 from app.utils.database import CRUDMixin, slugify
 from app.utils.web import eastafrican_time
 
-class Role(db.Model):
+class Role(db.Model, CRUDMixin):
     """
     :param id: Unique identification for the role
     :type id: Integer
@@ -34,6 +34,11 @@ class Role(db.Model):
 
     def __repr__(self):
         return "Role " + self.name
+
+
+    @classmethod
+    def get_admin(cls):
+        return cls.query.filter_by(permissions=0xff).first()
 
     @staticmethod
     def insert_roles():
@@ -153,6 +158,7 @@ class User(UserMixin, CRUDMixin,db.Model):
     @password.setter
     def password(self, password):
         self._password = generate_password_hash(password)
+
 
     def verify_password(self, password):
         return check_password_hash(self._password, password)

@@ -2,11 +2,12 @@ from flask import render_template, make_response,jsonify, request, abort
 from flask_login import login_required
 from app.decorators import admin_required
 from cStringIO import StringIO
+from xhtml2pdf import pisa
 import logging
 
 from app import db
 from app.main import main
-from app.model import  Package, Type, Event
+from app.model import  Package, Type, Event, Ticket
 
 
 @main.route('/package/update', methods=['POST', 'GET'])
@@ -48,9 +49,11 @@ def add_package(event_id):
 
 @main.route('/download/<string:code>')
 def download_ticket(code):
-    ticket = Purchase.query.filter_by(code=code).first()
-    user = ticket.account.holder
-    pdf_data = render_template('events/print_ticket.html', purchase=ticket, user=user)
+    ticket = Ticket.by_code(code)
+    if ticket is None:
+        abort(404)
+    user = ticket.user
+    pdf_data = render_template('events/print_ticket.html', ticket=ticket, user=user)
     result = StringIO()
     print type(pdf_data)
     pisa.CreatePDF(
@@ -59,13 +62,13 @@ def download_ticket(code):
     response = make_response(result.getvalue())
     result.close()
     ticket_name = 'ticket{code}'.format(code=code)
-    # response.headers.set('Content-Disposition', 'attachment', filename=ticket_name + '.pdf')
+    response.headers.set('Content-Disposition', 'attachment', filename='{ticket_code}_{event_name}.pdf'.format(ticket_code=ticket.code, event_name=ticket.package.event.name))
     response.headers['Content-Type'] = 'application/pdf'
     return response
 
 @main.route('/ticket/<string:code>')
 def get_purchase(code):
-    purchase = Purchase.query.filter_by(code=code).first()
-    user = purchase.account.holder
-    return render_template('events/purchase.html', purchase=purchase, user=user)
+    ticket = Ticket.query.filter_by(code=code).first()
+    user = ticket.user
+    return render_template('events/purchase.html', ticket=ticket, user=user)
 

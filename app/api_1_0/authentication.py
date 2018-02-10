@@ -17,7 +17,7 @@ def verify_password(phone_number_or_token, password):
         if g.current_user is None: return forbidden("Invalid Auth Token")
         g.token_used = True
         return True
-    user = User.query.filter_by(phone_number=phone_number_or_token).first()
+    user = User.query.filter_by(phone_number=phone_number_or_token).first() or User.query.filter_by(email=phone_number_or_token).first()
     if not user:
         raise Exception("Invalid User")
     g.current_user = user

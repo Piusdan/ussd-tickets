@@ -7,6 +7,7 @@ from app.model import Ticket, User, Transaction, Account, Package
 from app import celery
 from app import celery_logger
 from app.utils.web import eastafrican_time
+from flask import url_for
 
 
 @celery.task(ignore_result=True)
@@ -110,6 +111,7 @@ def ticketPurchase(self, package_id, number_of_tickets, phone_number, method):
     return True
 
 
+
 @celery.task(bind=True, ignore_result=True, default_retry_delay=30 * 60)
 def purchaseTicket(self, number_of_tickets, user_id, package_id, transaction_id, wallet=False):
     """
@@ -147,7 +149,7 @@ def purchaseTicket(self, number_of_tickets, user_id, package_id, transaction_id,
                                                       date=transaction.date,
                                                       time=transaction.time,
                                                       ticket_code=ticket.code,
-                                                      url='') # TODO fix ticket download url
+                                                      url=url_for('main.download_ticket', code=ticket.code, _external=True)) # TODO fix ticket download url
 
     try:
         resp = gateway.sendMessage(to_=user.phone_number, message_=message)

@@ -8,6 +8,7 @@ import os
 
 import click
 from flask_migrate import Migrate
+from sqlalchemy import null
 
 from app import create_app, db
 from app.model import User, Role, Account, Event, Package, Type, Ticket, Address, Code, AnonymousUser, Permission, \
@@ -53,8 +54,44 @@ def deploy():
     Code.insert_codes()
     Interval.insert_intervals()
     click.echo(click.style('Done ....', fg='green'))
+
+    users = User.query.filter(User.address_id.is_(None)).all()
+    add = Address(city="Kampala")
+    code = Code.by_country("Uganda")
+    add.code = code
+    add.save()
+    for u in users:
+        u.address = add
+        u.save()
     return
 
+
+@app.cli.command()
+@click.option('--username', help='Username', prompt='Username', type=(str))
+@click.option('--phonenumber', help='PhoneNumber', prompt='PhoneNumber', type=(str))
+@click.password_option('--password', help='Admin Password', prompt=True, confirmation_prompt=True, hide_input=True, type=(str))
+def superuser(username, phonenumber, password):
+    """Creates a super-user Account
+    """
+    if not username or not phonenumber:
+        click.echo(click.style('missing username', fg='red'))
+        return
+    role = Role.get_admin()
+    user = User.query.filter_by(phone_number=phonenumber).first() or User.query.filter_by(username=username).first()
+    if user is not None:
+        click.echo(click.style('phone number Already in Use', fg='red'))
+        return
+    user = User.create(username=username, password=password, phone_number=phonenumber)
+    add = Address(city="Kampala")
+    code = Code.by_country("Uganda")
+    add.code = code
+    user.address = add
+    # commit I say Commit this changes
+    user.save()
+    click.echo(click.style('Super User created', fg='green'))
+    # send mail
+
+    return
 
 COV = None
 if os.environ.get('VALHALLA_COVERAGE'):

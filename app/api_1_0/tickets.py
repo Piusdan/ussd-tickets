@@ -1,14 +1,14 @@
 """
 Main applications enables one to buy tickets 
 """
-from flask import jsonify
+from flask import jsonify, abort
 
 from .decorators import moderator_required, login_required
 from ..model import Ticket
 from . import api
 
 
-@api.route('/confirm/<string:ticket_code>', methods=["get"])
+@api.route('/confirm-ticket/<string:ticket_code>', methods=["get"])
 @moderator_required
 def confirm_ticket(ticket_code):
     """confirm ticket
@@ -32,9 +32,14 @@ def confirm_ticket(ticket_code):
         }
 
     """
-    ticket = Ticket.by_code(ticket_code)
+    try:
+        ticket = Ticket.by_code(ticket_code)
+    except IndexError as exc:
+        return abort(404)
+
     if ticket is None:
-        return 404
+        return abort(404)
+
     if ticket.confirmed:
         response = jsonify({"error": "Ticket already used", "status":"Failed", "payload": None})
         response.status_code = 400

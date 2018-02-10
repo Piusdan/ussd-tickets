@@ -165,17 +165,17 @@ class Ticket(CRUDMixin, db.Model):
         return {
             "ticket_code": self.code,
             "purchaser": self.user.username,
-            "admits": self.number,
+            "admits": "{} persons".format(self.number or "0"),
             "price": self.package.price,
             "type": self.package.type.name,
             "purchased_on": self.created_at,
             "event_name": self.package.event.name,
-            "event_data": self.package.event.date
+            "event_date": self.package.event.date
         }
 
     @staticmethod
     def by_id(id):
-        Ticket.query.get(id)
+        return Ticket.query.get(id)
 
     @staticmethod
     def by_code(code):

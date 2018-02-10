@@ -85,14 +85,7 @@
                     <hr>
                     <form id="add_userForm" method="post" action="" role="form" name="add_user">
                         {{ form.hidden_tag() }}
-                        <div class="input-group">
-                            <span class="input-group-addon">
-                                <i class="material-icons">person</i>
-                            </span>
-                            <div class="form-line">
-                                {{ form.username(class_="form-control", placeholder="Username", required=True)}}
-                            </div>
-                        </div>
+
                         <div class="input-group">
                             <span class="input-group-addon">
                                 <i class="material-icons">phone</i>
@@ -100,14 +93,6 @@
                             <div class="form-line">
                                 {{ form.phone_number(class_="form-control", placeholder="Phone Number (+254 7XXXXXXXX)",
                                 required=True)}}
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <span class="input-group-addon">
-                                <i class="material-icons">attach_money</i>
-                            </span>
-                            <div class="form-line">
-                                {{ form.account_balance(class_="form-control",placeholder="Top up", required=True)}}
                             </div>
                         </div>
                         <div class="input-group">

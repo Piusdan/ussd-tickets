@@ -18,7 +18,7 @@ from flask_uploads import configure_uploads, UploadSet, IMAGES
 from hashids import Hashids
 
 from app.database import db
-from app.gateway import Gateway
+from at_gateway import sms_gateway
 from config import Config, config
 
 __version__ = '0.1.0'
@@ -36,7 +36,7 @@ cache = Redis()
 moment = Moment()
 qrcode = QRcode()
 photos = UploadSet('photos', IMAGES)
-gateway = Gateway()
+gateway = sms_gateway()
 login_manager = LoginManager()
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'auth.login'

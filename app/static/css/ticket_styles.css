@@ -1,0 +1,24 @@
+
+    .ls {
+        border-left: None;
+        border-right: None;
+    }
+    .logo {
+        height: 100%;
+        width: 100%
+    }
+    img {
+        zoom: 100%
+    }
+    html, body {
+        font-size: 12px;
+        font-family: "Calibri";
+        color: #080808;
+        /* background-color: #f7f6e3; */
+    }
+
+body {
+width: max-content;
+    height: 50%;
+    width: 60%;
+}
