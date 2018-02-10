@@ -123,6 +123,7 @@ def fix_bug_001():
     events = Event.query.join(Address).filter(Address.code_id.is_(None))
     for e in events:
         e.address.code = Code.by_country("Uganda")
+        e.save()
     return
 
 @compiles(DropTable, "postgresql")
