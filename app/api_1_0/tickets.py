@@ -9,7 +9,7 @@ from . import api
 
 
 @api.route('/confirm-ticket/<string:ticket_code>', methods=["get"])
-@moderator_required
+# @moderator_required
 def confirm_ticket(ticket_code):
     """confirm ticket
     :param ticket_code: ticket code required
