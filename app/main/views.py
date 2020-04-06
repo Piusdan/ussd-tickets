@@ -1,6 +1,7 @@
 from flask import render_template, redirect, url_for
 from flask_login import login_required, current_user
 from app.model import User, Event, Ticket, Package
+
 from . import main
 
 
@@ -15,7 +16,7 @@ def index():
 def dashboard():
     users = User.query.count()
     tickets = Ticket.query.count()
-    purchases = Purchase.query.count()
+    # purchases = Purchase.query.count()
     events = Event.query.count()
     campaigns = 0
 

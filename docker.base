@@ -1,0 +1,14 @@
+# build base docker image csv-base
+
+
+FROM debian:stretch
+
+RUN apt-get update 
+
+RUN apt-get install -y python-dev python-pip gcc musl-dev
+
+RUN pip install virtualenv
+
+RUN virtualenv /appenv
+
+RUN . /appenv/bin/activate; pip install -U pip
