@@ -2,7 +2,7 @@
 
 # run celery worker
 
-su -m cvs -c "celery worker -A app.celery_worker.celery -E \
+su -m cvs -c "/appenv/bin/celery worker -A app.celery_worker.celery -E \
     --without-gossip \
     --without-mingle \
     --without-heartbeat \

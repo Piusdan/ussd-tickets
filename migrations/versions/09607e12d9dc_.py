@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: b255d3002924
+Revision ID: 09607e12d9dc
 Revises: 
-Create Date: 2017-12-29 00:50:03.854064
+Create Date: 2020-04-06 11:51:26.780857
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b255d3002924'
+revision = '09607e12d9dc'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -30,7 +30,7 @@ def upgrade():
     op.create_index(op.f('ix_campaigns_title'), 'campaigns', ['title'], unique=True)
     op.create_table('codes',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('country', sa.String(length=12), nullable=False),
+    sa.Column('country', sa.String(), nullable=False),
     sa.Column('currency_code', sa.String(length=4), nullable=False),
     sa.Column('country_code', sa.String(length=4), nullable=False),
     sa.PrimaryKeyConstraint('id'),
@@ -61,8 +61,8 @@ def upgrade():
     )
     op.create_table('address',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('city', sa.String(length=64), nullable=True),
-    sa.Column('location', sa.String(length=12), nullable=True),
+    sa.Column('city', sa.String(), nullable=True),
+    sa.Column('location', sa.String(), nullable=True),
     sa.Column('code_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['code_id'], ['codes.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -117,6 +117,7 @@ def upgrade():
     sa.Column('phone_number', sa.String(length=14), nullable=False),
     sa.Column('attempts', sa.Integer(), nullable=True),
     sa.Column('choice_id', sa.Integer(), nullable=True),
+    sa.Column('timestamp', sa.DateTime(), nullable=True),
     sa.ForeignKeyConstraint(['choice_id'], ['choices.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

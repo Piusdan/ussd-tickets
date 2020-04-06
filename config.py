@@ -8,10 +8,13 @@ import logging
 import os
 from datetime import timedelta
 
+from dotenv import load_dotenv
+
 from celery.schedules import solar
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+load_dotenv()
 
 class Config(object):
     """general configurations"""
@@ -88,8 +91,13 @@ class DevelopmentConfig(Config):
 
     CACHE_URL = os.environ.get('CACHE_URL', "redis://localhost:6379/2")
     SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg2://' \
-                              'valhalla:valhalla@localhost' \
-                              '/valhalla'
+                              '{db_user}:{db_pass}@{db_host}' \
+                              '/{db_name}'.format(
+                                  db_host=os.getenv("DB_HOST", "localhost"),
+                                  db_pass=os.getenv("DB_PASS", "db_pass"),
+                                  db_name=os.getenv("DB_NAME", "cashvalue_backend"),
+                                  db_user=os.getenv("DB_USER", "apps_user")     
+                              )
     DEBUG_MEMCACHE = False
     TEMPLATES_AUTO_RELOAD = True
 
